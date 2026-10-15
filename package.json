@@ -1,0 +1,27 @@
+{
+  "name": "vocal-for-local",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run migrate -w server",
+    "db:seed": "npm run seed -w server",
+    "dev": "concurrently -k -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run start -w server",
+    "test": "npm test -w server",
+    "admin:create": "npm run admin:create -w server",
+    "admin:reset-password": "npm run admin:reset-password -w server",
+    "owner:set-phone": "npm run owner:set-phone -w server --",
+    "images:share-jpegs": "npm run images:share-jpegs -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  }
+}

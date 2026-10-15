@@ -1,0 +1,30 @@
+{
+  "name": "server",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=../.env src/index.js",
+    "start": "node --env-file-if-exists=../.env src/index.js",
+    "migrate": "node --env-file-if-exists=../.env src/migrate.js",
+    "seed": "node --env-file-if-exists=../.env src/seed.js",
+    "test": "node --env-file-if-exists=../.env --test --test-concurrency=1 test/",
+    "admin:create": "node --env-file-if-exists=../.env src/cli/admin.js create",
+    "admin:reset-password": "node --env-file-if-exists=../.env src/cli/admin.js reset-password",
+    "owner:set-phone": "node --env-file-if-exists=../.env src/cli/owner.js set-phone",
+    "images:share-jpegs": "node --env-file-if-exists=../.env src/cli/share-images.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "multer": "^2.4.0",
+    "nodemailer": "^10.1.1",
+    "pg": "^8.23.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
+  }
+}

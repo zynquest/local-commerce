@@ -1,0 +1,98 @@
+@import 'tailwindcss';
+
+/* Santali (Ol Chiki) isn't installed on many phones. Self-hosted Noto Sans Ol Chiki (SIL OFL 1.1),
+   downloaded only when Ol Chiki characters are on the page thanks to unicode-range. */
+@font-face {
+  font-family: 'Noto Sans Ol Chiki';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/noto-sans-ol-chiki.woff2') format('woff2');
+  unicode-range: U+1C50-1C7F;
+}
+
+:root {
+  --brand: #15803d;
+}
+
+[dir='rtl'] {
+  --slide-from: -100%; /* drawers open from the start side in right-to-left scripts */
+}
+
+@theme {
+  --color-brand: var(--brand);
+  --color-whatsapp: #25d366;
+  --color-whatsapp-dark: #128c7e;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial,
+    'Noto Sans Ol Chiki', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.6s ease-out both;
+  --animate-slide-in: slide-in 0.25s ease-out both;
+  --animate-pop: pop 0.25s ease-out both;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slide-in {
+    from { transform: translateX(var(--slide-from, 100%)); }
+    to { transform: translateX(0); }
+  }
+  @keyframes pop {
+    0% { transform: scale(0.9); }
+    60% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-stone-50 text-stone-900 antialiased;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-50;
+}
+@utility btn-brand {
+  @apply btn bg-brand text-white hover:brightness-110;
+}
+@utility btn-whatsapp {
+  @apply btn bg-whatsapp text-white hover:bg-whatsapp-dark;
+}
+@utility btn-ghost {
+  @apply btn border border-stone-200 bg-white text-stone-700 hover:bg-stone-100;
+}
+@utility input {
+  @apply w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-stone-400 focus:border-brand focus:ring-2 focus:ring-brand/20;
+}
+@utility label {
+  @apply mb-1 block text-xs font-semibold tracking-wide text-stone-600 uppercase;
+}
+@utility card {
+  @apply rounded-2xl border border-stone-200/80 bg-white;
+}

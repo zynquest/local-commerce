@@ -1,0 +1,28 @@
+[Unit]
+Description=Vocal For Local API (Node.js)
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=vfl
+Group=vfl
+WorkingDirectory=/opt/vfl/app/server
+EnvironmentFile=/etc/vfl/env
+Environment=NODE_OPTIONS=--max-old-space-size=256
+ExecStart=/usr/bin/node src/index.js
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vfl-api
+
+# Hardening: read-only system, writable only where uploads live.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/vfl
+
+[Install]
+WantedBy=multi-user.target

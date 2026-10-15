@@ -1,0 +1,94 @@
+// App config (feature flags) plus owner, customer and platform-admin sessions. All sessions are httpOnly
+// cookies; this context only mirrors "who am I".
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { PLATFORM } from '../config.js';
+import { get, post, put } from '../lib/api.js';
+
+const SessionContext = createContext(null);
+
+const CONFIG_KEY = 'app-config';
+// otpDelivery: 'sms' | 'manual' (WhatsApp otpHelpWhatsApp to receive the code) | 'dev' (local testing)
+const defaultConfig = {
+  freeSkuLimit: PLATFORM.freeSkuLimit,
+  platformName: PLATFORM.name,
+  otpDelivery: 'manual',
+  otpHelpWhatsApp: PLATFORM.whatsappNumber,
+};
+
+export function SessionProvider({ children }) {
+  const [appConfig, setAppConfig] = useState(() => {
+    try {
+      return { ...defaultConfig, ...JSON.parse(localStorage.getItem(CONFIG_KEY)) };
+    } catch {
+      return defaultConfig;
+    }
+  });
+  const [owner, setOwner] = useState(undefined); // undefined = not checked yet
+  const [customer, setCustomer] = useState(undefined);
+  const [admin, setAdmin] = useState(undefined);
+
+  useEffect(() => {
+    get('/config')
+      .then((c) => {
+        setAppConfig(c);
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(c));
+      })
+      .catch(() => {});
+  }, []);
+
+  const loadOwner = useCallback(() => get('/auth/me').then((r) => setOwner(r.user), () => setOwner(null)), []);
+  const loadAdmin = useCallback(() => get('/platform/me').then((r) => setAdmin(r.admin), () => setAdmin(null)), []);
+  const loadCustomer = useCallback(
+    () => get('/customer/me').then((r) => setCustomer(r.customer), (err) => err.status !== 0 && setCustomer(null)),
+    [],
+  );
+
+  useEffect(() => {
+    loadCustomer();
+  }, [loadCustomer]);
+
+  const value = useMemo(
+    () => ({
+      appConfig,
+      /** Sends an OTP. Returns { delivery, devCode? } — devCode only in local development. */
+      requestOtp: (phone, purpose, name) => post('/otp/request', { phone, purpose, ...(name ? { name } : {}) }),
+
+      owner,
+      loadOwner,
+      setOwner,
+      // Mobile + OTP only: register { storeName, phone, code }, login { phone, code }.
+      registerOwner: async (body) => setOwner((await post('/auth/register', body)).user),
+      loginOwner: async (body) => setOwner((await post('/auth/login', body)).user),
+      logoutOwner: async () => {
+        await post('/auth/logout').catch(() => {});
+        setOwner(null);
+      },
+
+      customer,
+      registerCustomer: async (body) => setCustomer((await post('/customer/register', body)).customer),
+      loginCustomer: async (body) => setCustomer((await post('/customer/login', body)).customer),
+      updateCustomer: async (body) => setCustomer((await put('/customer/me', body)).customer),
+      logoutCustomer: async () => {
+        await post('/customer/logout').catch(() => {});
+        setCustomer(null);
+      },
+
+      admin,
+      loadAdmin,
+      loginAdmin: async (body) => setAdmin((await post('/platform/login', body)).admin),
+      logoutAdmin: async () => {
+        await post('/platform/logout').catch(() => {});
+        setAdmin(null);
+      },
+    }),
+    [appConfig, owner, customer, admin, loadOwner, loadAdmin],
+  );
+
+  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+}
+
+export function useSession() {
+  const ctx = useContext(SessionContext);
+  if (!ctx) throw new Error('useSession must be used inside <SessionProvider>');
+  return ctx;
+}

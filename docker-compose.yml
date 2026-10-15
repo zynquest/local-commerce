@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vfl
+      POSTGRES_PASSWORD: vfl_local_dev
+      POSTGRES_DB: vocal_for_local
+    ports:
+      - "5433:5432" # 5433 on the host to avoid clashing with a local Postgres install
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vfl -d vocal_for_local"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

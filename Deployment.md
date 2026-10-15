@@ -638,6 +638,7 @@ When a merchant's own domain (e.g. `shopname.in`) should show their store:
 |---|---|---|
 | `deploy.sh`: API did not become healthy | `sudo journalctl -u vfl-api -n 50` | Usually a typo in `/etc/vfl/env`, or Postgres is down (`sudo systemctl start postgresql`) |
 | 502 Bad Gateway | `curl -s 127.0.0.1:4000/api/health` | `sudo systemctl restart vfl-api` |
+| Page shows plain unstyled text; console shows 404 for `/assets/*.js`, `.css`, `manifest.webmanifest` | `sudo -u www-data test -r /opt/vfl/app/client/dist/index.html && echo ok` | Nginx can't get through `/opt/vfl`: `sudo chmod 711 /opt/vfl` (setup/deploy scripts now do this), then hard-refresh |
 | `npm ci` or build killed / very slow | `free -m` | Make sure swap is on (`swapon --show`); re-run `setup-vm.sh` |
 | `git pull` asks for a password / permission denied | `sudo -u vfl -H ssh -T git@github.com` | Re-add the deploy key (B7); check `known_hosts` |
 | Certbot fails with "unauthorized" / timeout | `dig +short sonsari.in` | DNS must point to the static IP; firewall must allow tcp:80; bootstrap config must be active |

@@ -70,6 +70,9 @@ echo "==> App user and directories"
 id vfl >/dev/null 2>&1 || useradd --system --home-dir /opt/vfl --create-home --shell /bin/bash vfl
 mkdir -p /opt/vfl /var/lib/vfl/uploads /var/lib/vfl/backups /etc/vfl /var/www/certbot
 chown -R vfl:vfl /opt/vfl /var/lib/vfl
+# Nginx (www-data) serves client/dist from /opt/vfl/app: let it pass through the vfl home folder without listing it.
+# The deploy key in /opt/vfl/.ssh stays private (700).
+chmod 711 /opt/vfl
 chmod 750 /var/lib/vfl/backups
 
 echo "==> Database + /etc/vfl/env"

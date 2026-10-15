@@ -18,6 +18,14 @@ as_vfl "npm ci --no-audit --no-fund"
 echo "==> Build PWA (client/dist)"
 as_vfl "npm run build"
 
+echo "==> Check Nginx can read the build"
+chmod 711 /opt/vfl # vfl's home: traversable (not listable) so www-data can reach client/dist
+if ! sudo -u www-data test -r $APP/client/dist/index.html; then
+  echo "Nginx (www-data) cannot read $APP/client/dist — CSS/JS would 404. Permissions on the path:"
+  namei -l $APP/client/dist/index.html
+  exit 1
+fi
+
 echo "==> Install/refresh systemd unit + restart API (runs DB migrations on start)"
 install -m 644 $APP/deploy/systemd/vfl-api.service /etc/systemd/system/vfl-api.service
 systemctl daemon-reload

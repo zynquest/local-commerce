@@ -1,4 +1,6 @@
-import { BadgeCheck, Clock, FlaskConical, MapPin, Navigation, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BadgeCheck, Clock, FlaskConical, Home, MapPin, Navigation, RefreshCw } from 'lucide-react';
+import { PLATFORM } from '../config.js';
 import SmartImage from './SmartImage.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { getOpenStatus, mapsLink } from '../lib/format.js';
@@ -8,7 +10,7 @@ import LanguageSwitcher from './LanguageSwitcher.jsx';
 /** Store header: banner, logo, name, verified badge, open/closed status, address + Maps shortcut. */
 export default function StoreHeader() {
   const t = useT();
-  const { store: config, refreshing } = useStore();
+  const { store: config, refreshing, basePath } = useStore();
   if (!config) return null;
   const status = getOpenStatus(config.opening_hours, config.closed_days);
   const maps = mapsLink(config.maps_url, config.address_text);
@@ -21,6 +23,18 @@ export default function StoreHeader() {
       </p>
     )}
     <header className="relative bg-white">
+      {/* Platform-hosted stores (/s/<slug>) link back to the marketplace; custom-domain stores are their own home. */}
+      {basePath && (
+        <Link
+          to="/"
+          className="absolute top-3 start-3 z-10 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur hover:bg-black/55"
+          aria-label={t('common.goHome')}
+          title={t('common.goHome')}
+        >
+          <Home size={16} className="flex-none" />
+          <span className="max-w-[9rem] truncate max-[359px]:hidden">{PLATFORM.name}</span>
+        </Link>
+      )}
       <LanguageSwitcher variant="overlay" className="absolute top-3 end-3 z-10" />
       <div className="relative aspect-[16/5] max-h-64 w-full overflow-hidden bg-gradient-to-br from-brand to-emerald-900 sm:aspect-[16/4]">
         {config.banner_url && (
@@ -28,7 +42,7 @@ export default function StoreHeader() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent" />
         {refreshing && (
-          <span className="absolute top-3 start-3 flex items-center gap-1 rounded-full bg-black/40 px-2 py-1 text-[11px] text-white">
+          <span className="absolute bottom-3 start-3 flex items-center gap-1 rounded-full bg-black/40 px-2 py-1 text-[11px] text-white">
             <RefreshCw size={12} className="animate-spin" /> {t('store.updating')}
           </span>
         )}

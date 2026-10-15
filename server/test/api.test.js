@@ -143,6 +143,14 @@ describe('WhatsApp number change requires OTP', () => {
     assert.equal((await other('POST', '/api/merchant/store/whatsapp/verify', { phone: newNo, code: req.body.devCode })).status, 400, 'other store cannot use it');
   });
 
+  test("order message language: new stores use the customer's language ('auto'); a fixed language can be chosen", async () => {
+    assert.equal((await owner('GET', '/api/merchant/store')).body.store.order_language, 'auto');
+    assert.equal((await owner('PUT', '/api/merchant/store', { order_language: 'kn' })).status, 200);
+    assert.equal((await owner('GET', '/api/merchant/store')).body.store.order_language, 'kn');
+    assert.equal((await owner('PUT', '/api/merchant/store', { order_language: 'xx' })).status, 400);
+    assert.equal((await owner('PUT', '/api/merchant/store', { order_language: 'auto' })).status, 200);
+  });
+
   test('settings cannot change the WhatsApp number directly', async () => {
     await owner('PUT', '/api/merchant/store', { whatsapp_number: '919999999999', city: 'Pune' });
     const s = await owner('GET', '/api/merchant/store');

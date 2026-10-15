@@ -724,7 +724,7 @@
     "logo": "Logo",
     "banner": "Banner",
     "orderLanguage": "Language of WhatsApp order messages",
-    "orderLanguageHint": "Orders from customers arrive in this language, whatever language the customer uses.",
+    "orderLanguageHint": "By default each order arrives in the language the customer is shopping in. Pick a fixed language if you want every order in one language.",
     "save": "Save settings",
     "f": {
       "name": "Store name",
@@ -749,7 +749,8 @@
       "category": "Grocery, Bakery, Pharmacy…",
       "city": "Indiranagar, Bengaluru"
     },
-    "verifyUpdate": "Verify & update"
+    "verifyUpdate": "Verify & update",
+    "orderLanguageAuto": "Customer's language (recommended)"
   },
   "msgimp": {
     "title": "Add products from a WhatsApp message",

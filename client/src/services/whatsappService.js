@@ -27,6 +27,10 @@ export function computeTotals(cartItems, storeConfig) {
   };
 }
 
+/** Language of the WhatsApp order message: the store's fixed choice, or the customer's language when 'auto'. */
+export const orderMessageLanguage = (storeConfig, customerLang = 'en') =>
+  !storeConfig?.order_language || storeConfig.order_language === 'auto' ? customerLang : storeConfig.order_language;
+
 /**
  * Builds the WhatsApp message body. `t` is a translator for the store's order language (defaults to English).
  * WhatsApp Markdown (*bold*, _italic_) wraps the translated labels.

@@ -100,7 +100,7 @@ export default function StoreSettings({ store, onSaved }) {
   const t = useT();
   const [form, setForm] = useState(() =>
     Object.fromEntries(
-      [...FIELDS.map(([k]) => k), 'logo_url', 'banner_url', 'order_language'].map((k) => [k, store[k] ?? (k === 'theme_color' ? '#15803d' : k === 'order_language' ? 'en' : '')]),
+      [...FIELDS.map(([k]) => k), 'logo_url', 'banner_url', 'order_language'].map((k) => [k, store[k] ?? (k === 'theme_color' ? '#15803d' : k === 'order_language' ? 'auto' : '')]),
     ),
   );
   const [fields, setFields] = useState({});
@@ -170,6 +170,7 @@ export default function StoreSettings({ store, onSaved }) {
       <div>
         <label className="label" htmlFor="st-order_language">{t('settings.orderLanguage')}</label>
         <select id="st-order_language" className="input" value={form.order_language} onChange={set('order_language')}>
+          <option value="auto">{t('settings.orderLanguageAuto')}</option>
           {LANGUAGES.map((l) => (
             <option key={l.code} value={l.code}>
               {l.name} — {l.english}

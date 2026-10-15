@@ -7,15 +7,15 @@ import WhatsAppIcon from './WhatsAppIcon.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { formatMoney, getOpenStatus } from '../lib/format.js';
-import { compileWhatsAppOrder } from '../services/whatsappService.js';
+import { compileWhatsAppOrder, orderMessageLanguage } from '../services/whatsappService.js';
 import CustomerAuthModal from './CustomerAuthModal.jsx';
 import { useSession } from '../context/SessionContext.jsx';
 import { queueOrder } from '../services/orderService.js';
-import { makeT, rich, useT } from '../i18n/index.jsx';
+import { makeT, rich, useI18n } from '../i18n/index.jsx';
 
 /** Slide-out cart with unlisted-items notes, delivery details and WhatsApp checkout. */
 export default function CartDrawer() {
-  const t = useT();
+  const { t, lang } = useI18n();
   const { store: config, slug } = useStore();
   const cart = useCart();
   const { customer } = useSession();
@@ -59,8 +59,9 @@ export default function CartDrawer() {
   const canOrder = (hasItems || hasNotes) && !belowMin && !!config.whatsapp_number;
 
   const placeOrder = () => {
-    // The message uses the store's chosen order language (preloaded by StoreProvider), not the shopper's UI language.
-    const order = compileWhatsAppOrder(config, cart.items, cart.notes, cart.customer, makeT(config.order_language || 'en'));
+    // Customer's language by default; a store can fix one language in Settings (preloaded by StoreProvider).
+    const msgLang = orderMessageLanguage(config, lang);
+    const order = compileWhatsAppOrder({ ...config, order_language: msgLang }, cart.items, cart.notes, cart.customer, makeT(msgLang));
     // Open synchronously from the click so mobile browsers don't block the popup.
     // ("noopener" in the features string would make window.open return null, so detach manually.)
     const win = window.open(order.url, '_blank');

@@ -38,7 +38,7 @@ export const publicStore = (s) => ({
   theme_color: s.theme_color,
   verified: s.verified,
   is_demo: Boolean(s.is_demo),
-  order_language: s.order_language || 'en',
+  order_language: s.order_language || 'auto',
   accepting_orders: Boolean(s.is_demo || s.whatsapp_number),
 });
 

@@ -102,7 +102,7 @@ export const storeSettings = z
     ),
     closed_days: optText(40),
     theme_color: z.preprocess((v) => (v ? v : null), z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable()),
-    order_language: z.enum(LANGUAGE_CODES),
+    order_language: z.enum(['auto', ...LANGUAGE_CODES]), // auto = the customer's language
   })
   .partial();
 

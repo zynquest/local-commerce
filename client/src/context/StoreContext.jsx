@@ -83,7 +83,7 @@ export function StoreProvider({ slug, basePath, children }) {
   const store = state.entry?.store || null;
 
   useEffect(() => {
-    if (store?.order_language && store.order_language !== 'en') loadCatalog(store.order_language).catch(() => {});
+    if (store?.order_language && !['en', 'auto'].includes(store.order_language)) loadCatalog(store.order_language).catch(() => {});
   }, [store?.order_language]);
 
   useEffect(() => {

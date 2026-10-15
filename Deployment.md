@@ -234,7 +234,7 @@ sudo bash setup-vm.sh
 
 What `setup-vm.sh` does (safe to re-run):
 - adds a **2 GB swap** file (needed for `npm ci` and the build on 1 GB RAM);
-- installs Git, **Nginx**, **Certbot**, **PostgreSQL 16** and **Node.js 20**, and turns on automatic security updates;
+- installs Git, **Nginx**, **Certbot**, **PostgreSQL 16** and **Node.js 20**, and turns on automatic security updates. It works on Ubuntu 24.04/22.04 and Debian 12/11; if the OS doesn't ship PostgreSQL 16, it adds PostgreSQL's official apt repository;
 - tunes Postgres for 1 GB RAM and makes it listen on `localhost` only;
 - creates the system user **`vfl`** and these directories:
   - `/opt/vfl` — the code
@@ -381,9 +381,10 @@ Uploads are limited to 10 MB in Nginx; the app limits photos to 8 MB and resizes
 
 There is no UI or API for creating an admin, and the database allows only one.
 
+`/opt/vfl` is the private home folder of the `vfl` service user, so your own login can't `cd` into it. Run app commands **as `vfl`**, as below. To browse the code, use `sudo -iu vfl`, which opens a shell as `vfl` in `/opt/vfl`; `exit` returns to your own user.
+
 ```bash
-cd /opt/vfl/app/server
-sudo -u vfl bash -c 'set -a; . /etc/vfl/env; set +a; node src/cli/admin.js create'
+sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/admin.js create'
 # Username: 8–32 characters, not "admin".
 # Password (hidden): 16+ characters with upper, lower, digit and symbol; no common words; must not contain the username.
 ```
@@ -398,7 +399,7 @@ To rotate the admin password (this signs the admin out everywhere), run the same
 The demo store isn't created in production. To add it anyway:
 
 ```bash
-sudo -u vfl bash -c 'set -a; . /etc/vfl/env; set +a; SEED_DEMO_PHONE=91<your mobile> node src/seed.js'
+sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && SEED_DEMO_PHONE=91<your mobile> node src/seed.js'
 ```
 
 ---
@@ -426,7 +427,7 @@ The same command covers backend changes, frontend changes, new npm packages, sch
 | Nginx config (`deploy/nginx/sonsari.in.conf`) | Commit → `deploy.sh` (it runs `nginx -t` before reloading) |
 | Environment variables | `sudo nano /etc/vfl/env` → `sudo systemctl restart vfl-api` |
 | Deploy a different branch | `sudo BRANCH=release /opt/vfl/app/deploy/deploy.sh` |
-| Roll back | `cd /opt/vfl/app && sudo -u vfl git checkout <commit>` → re-run the build/restart steps from `deploy.sh`, or revert on GitHub and deploy |
+| Roll back | `sudo -u vfl git -C /opt/vfl/app checkout <commit>` → re-run the build/restart steps from `deploy.sh`, or revert on GitHub and deploy |
 
 ### Everyday commands (on the VM)
 
@@ -551,8 +552,7 @@ The app stops showing the "WhatsApp us for your code" box automatically (`/api/c
 **Existing owners without a mobile** (for example, accounts created before OTP login) can't log in until you attach one:
 
 ```bash
-cd /opt/vfl/app/server
-sudo -u vfl bash -c 'set -a; . /etc/vfl/env; set +a; node src/cli/owner.js set-phone <username|store-link> <10-digit mobile>'
+sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/owner.js set-phone <username|store-link> <10-digit mobile>'
 ```
 
 ---
@@ -574,7 +574,7 @@ Each page also gets a server-rendered HTML snapshot of its content, Open Graph/T
 
 **Link previews:** WhatsApp/Facebook previews use a JPEG copy of the store banner or product photo, which is saved next to each WebP upload. After deploying this version, create copies for photos uploaded before it, once:
 ```bash
-cd /opt/vfl/app/server && sudo -u vfl bash -c 'set -a; . /etc/vfl/env; set +a; node src/cli/share-images.js'
+sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/share-images.js'
 ```
 
 ### Launch day

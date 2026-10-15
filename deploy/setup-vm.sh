@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# One-time VM bootstrap for Ubuntu 24.04 on a GCP e2-micro (1 GB RAM, free tier).
+# One-time VM bootstrap for a GCP e2-micro (1 GB RAM, free tier). Works on Ubuntu 22.04/24.04 and Debian 11/12
+# (PostgreSQL 16 comes from the official apt.postgresql.org repo when the OS doesn't ship it).
 # Installs PostgreSQL 16, Node.js 20, Nginx and Certbot natively (no Docker) and prepares
 # a dedicated "vfl" user, directories and /etc/vfl/env.
 #
@@ -8,6 +9,12 @@
 set -euo pipefail
 [ "$(id -u)" -eq 0 ] || { echo "Run with sudo"; exit 1; }
 export DEBIAN_FRONTEND=noninteractive
+
+. /etc/os-release
+case "${ID:-}" in
+  ubuntu|debian) echo "==> OS: ${PRETTY_NAME}" ;;
+  *) echo "Unsupported OS '${PRETTY_NAME:-unknown}'. Create the VM from an Ubuntu 24.04 LTS or Debian 12 image."; exit 1 ;;
+esac
 
 echo "==> 2 GB swap (npm install + Vite build need more than 1 GB RAM)"
 if ! swapon --show | grep -q /swapfile; then
@@ -19,7 +26,19 @@ fi
 echo "==> Base packages"
 apt-get update
 apt-get -y upgrade
-apt-get install -y git curl ca-certificates gnupg nginx certbot postgresql-16 unattended-upgrades
+apt-get install -y git curl ca-certificates gnupg openssl nginx certbot unattended-upgrades
+
+echo "==> PostgreSQL 16"
+if ! apt-cache show postgresql-16 >/dev/null 2>&1; then
+  # Debian 12 ships 15, Ubuntu 22.04 ships 14: use PostgreSQL's official repository.
+  echo "    postgresql-16 is not in ${PRETTY_NAME}'s repositories, so adding apt.postgresql.org"
+  install -d /usr/share/postgresql-common/pgdg
+  curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+  echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+    > /etc/apt/sources.list.d/pgdg.list
+  apt-get update
+fi
+apt-get install -y postgresql-16
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
 echo "==> Keep logs small (30 GB disk)"
@@ -35,6 +54,7 @@ fi
 node -v
 
 echo "==> PostgreSQL tuned for 1 GB RAM, local connections only"
+mkdir -p /etc/postgresql/16/main/conf.d
 cat > /etc/postgresql/16/main/conf.d/vfl.conf <<'PG'
 listen_addresses = 'localhost'
 shared_buffers = 64MB

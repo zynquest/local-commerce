@@ -36,6 +36,7 @@ async function nextSku(client, storeId) {
 }
 
 const REVIEWABLE = ['draft', 'rejected', 'suspended'];
+export const DEMO_WHATSAPP_LOCKED = 'Demo stores always take orders on the Vocal For Local WhatsApp number';
 
 /** What must be in place before a store can be submitted for review. */
 async function reviewChecklist(store) {
@@ -108,6 +109,8 @@ merchantRouter.post('/store/submit', async (req, res) => {
 /** Confirms a WhatsApp number change with the OTP sent to the new number (see POST /api/otp/request). */
 merchantRouter.post('/store/whatsapp/verify', async (req, res) => {
   const { phone, code } = parse(S.whatsappVerify, req.body);
+  const { rows: demo } = await query('SELECT is_demo FROM stores WHERE id = $1', [req.user.store_id]);
+  if (demo[0]?.is_demo) throw badRequest(DEMO_WHATSAPP_LOCKED);
   const context = await verifyOtp({ phone, purpose: 'whatsapp_change', code });
   if (context.store_id !== req.user.store_id) throw badRequest('This code was issued for a different store');
   await query('UPDATE stores SET whatsapp_number = $2, whatsapp_verified = true, updated_at = now() WHERE id = $1', [

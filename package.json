@@ -19,7 +19,9 @@
     "admin:create": "npm run admin:create -w server",
     "admin:reset-password": "npm run admin:reset-password -w server",
     "owner:set-phone": "npm run owner:set-phone -w server --",
-    "images:share-jpegs": "npm run images:share-jpegs -w server"
+    "images:share-jpegs": "npm run images:share-jpegs -w server",
+    "demo:create": "npm run demo:create -w server",
+    "demo:remove": "npm run demo:remove -w server --"
   },
   "devDependencies": {
     "concurrently": "^9.2.5"

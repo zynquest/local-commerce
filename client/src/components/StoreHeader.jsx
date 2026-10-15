@@ -1,4 +1,4 @@
-import { BadgeCheck, Clock, MapPin, Navigation, RefreshCw } from 'lucide-react';
+import { BadgeCheck, Clock, FlaskConical, MapPin, Navigation, RefreshCw } from 'lucide-react';
 import SmartImage from './SmartImage.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { getOpenStatus, mapsLink } from '../lib/format.js';
@@ -14,6 +14,12 @@ export default function StoreHeader() {
   const maps = mapsLink(config.maps_url, config.address_text);
 
   return (
+    <>
+    {config.is_demo && (
+      <p className="flex items-center justify-center gap-1.5 bg-amber-100 px-4 py-2 text-center text-xs font-medium text-amber-900" role="note">
+        <FlaskConical size={14} className="flex-none" /> {t('store.demoNotice')}
+      </p>
+    )}
     <header className="relative bg-white">
       <LanguageSwitcher variant="overlay" className="absolute top-3 end-3 z-10" />
       <div className="relative aspect-[16/5] max-h-64 w-full overflow-hidden bg-gradient-to-br from-brand to-emerald-900 sm:aspect-[16/4]">
@@ -40,6 +46,7 @@ export default function StoreHeader() {
             <h1 className="flex items-center gap-1.5 text-xl font-extrabold sm:text-2xl">
               <span className="truncate">{config.name}</span>
               {config.verified && <BadgeCheck size={22} className="flex-none fill-sky-500 text-white" aria-label={t('store.verified')} />}
+              {config.is_demo && <span className="flex-none rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">{t('store.demoBadge')}</span>}
             </h1>
             {status && (
               <span
@@ -70,5 +77,6 @@ export default function StoreHeader() {
         )}
       </div>
     </header>
+    </>
   );
 }

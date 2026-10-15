@@ -1,4 +1,5 @@
 // Row → API shapes. Public responses never include owner/plan internals beyond what the UI needs.
+import { config } from './config.js';
 
 export const slugify = (s) =>
   String(s || '')
@@ -11,7 +12,7 @@ export const slugify = (s) =>
 
 export const PUBLIC_STORE_COLUMNS = `s.id, s.slug, s.name, s.whatsapp_number, s.instagram_handle, s.logo_url, s.banner_url,
   s.address_text, s.maps_url, s.description, s.category, s.city, s.currency_symbol, s.minimum_order,
-  s.delivery_fee, s.opening_hours, s.closed_days, s.theme_color, s.verified, s.order_language, s.updated_at`;
+  s.delivery_fee, s.opening_hours, s.closed_days, s.theme_color, s.verified, s.order_language, s.is_demo, s.updated_at`;
 
 export const PRODUCT_COLUMNS = `p.id, p.sku_id, p.name, p.category, p.mrp, p.offer_price, p.images, p.description,
   p.specs, p.tags, p.rating, p.review_count, p.in_stock, p.status, p.position, p.updated_at`;
@@ -19,7 +20,8 @@ export const PRODUCT_COLUMNS = `p.id, p.sku_id, p.name, p.category, p.mrp, p.off
 export const publicStore = (s) => ({
   slug: s.slug,
   name: s.name,
-  whatsapp_number: s.whatsapp_number,
+  // Demo stores: orders always go to the company WhatsApp, whatever is stored.
+  whatsapp_number: s.is_demo ? config.demoWhatsApp : s.whatsapp_number,
   instagram_handle: s.instagram_handle,
   logo_url: s.logo_url,
   banner_url: s.banner_url,
@@ -35,8 +37,9 @@ export const publicStore = (s) => ({
   closed_days: s.closed_days,
   theme_color: s.theme_color,
   verified: s.verified,
+  is_demo: Boolean(s.is_demo),
   order_language: s.order_language || 'en',
-  accepting_orders: Boolean(s.whatsapp_number),
+  accepting_orders: Boolean(s.is_demo || s.whatsapp_number),
 });
 
 export const product = (p) => ({

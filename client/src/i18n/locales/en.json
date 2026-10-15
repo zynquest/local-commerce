@@ -75,7 +75,9 @@
     "noResults": "No products found",
     "noResultsFor": "No products found for “{q}”",
     "noResultsHint": "Add it to your unlisted items below — the store will try to arrange it.",
-    "pricesUpdated": "Prices updated {time}"
+    "pricesUpdated": "Prices updated {time}",
+    "demoBadge": "Demo",
+    "demoNotice": "Demo store: try ordering to see how it works. Orders go to the Vocal For Local team on WhatsApp, not a real shop."
   },
   "cart": {
     "unlistedTitle": "Unlisted Items & Special Instructions",
@@ -299,7 +301,7 @@
     "how": {
       "title": "How it works",
       "s1Title": "Register in a minute",
-      "s1Body": "Store name, mobile number and password — that’s it. We review and approve your store quickly.",
+      "s1Body": "Store name and mobile number, verified with a one-time code. That's it. We review and approve your store quickly.",
       "s2Title": "Add your products",
       "s2Body": "Snap photos from your phone or import an Excel/CSV sheet. Up to {limit} products free; {limit}+ on the paid plan.",
       "s3Title": "Share & get orders",

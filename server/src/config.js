@@ -23,6 +23,8 @@ export const config = {
   platformName: process.env.PLATFORM_NAME || 'Vocal For Local',
   // Canonical public origin for SEO (sitemap, canonical URLs, Open Graph). Falls back to the request host.
   publicUrl: (process.env.PUBLIC_URL || '').replace(/\/$/, ''),
+  // Demo stores (npm run demo:create) always take orders on the company WhatsApp — fixed on purpose, not configurable.
+  demoWhatsApp: '919353095481',
   // Optional search-engine ownership tokens (the content="" value of the verification meta tag).
   googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || '',
   bingSiteVerification: process.env.BING_SITE_VERIFICATION || '',

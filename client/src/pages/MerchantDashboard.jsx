@@ -161,7 +161,9 @@ export default function MerchantDashboard() {
             </div>
           </div>
           <div className="flex flex-none items-center gap-1">
-            <LanguageSwitcher className="me-1" />
+            {/* Phones: icon-only, so the store name and status keep their room. */}
+            <LanguageSwitcher variant="compact" className="sm:hidden" />
+            <LanguageSwitcher className="me-1 hidden sm:block" />
             <button onClick={shareStore} className="rounded-lg p-2 text-stone-600 hover:bg-stone-100" aria-label={t('merchant.shareLink')}>
               <Share2 size={18} />
             </button>

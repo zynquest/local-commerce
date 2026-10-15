@@ -27,12 +27,12 @@ publicRouter.get('/config', (_req, res) => {
 publicRouter.get('/stores', async (req, res) => {
   const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 60) : '';
   const { rows } = await query(
-    `SELECT s.slug, s.name, s.logo_url, s.category, s.city, s.description, s.verified,
+    `SELECT s.slug, s.name, s.logo_url, s.category, s.city, s.description, s.verified, s.is_demo,
             (SELECT count(*)::int FROM products p WHERE p.store_id = s.id AND p.status = 'active') AS product_count
        FROM stores s
       WHERE s.status = 'approved' AND s.whatsapp_number IS NOT NULL
         AND ($1 = '' OR s.name ILIKE '%' || $1 || '%' OR s.city ILIKE '%' || $1 || '%' OR s.category ILIKE '%' || $1 || '%')
-      ORDER BY s.verified DESC, s.created_at DESC
+      ORDER BY s.is_demo, s.verified DESC, s.created_at DESC
       LIMIT 100`,
     [q],
   );

@@ -311,7 +311,8 @@ The deploy script:
 1. runs `git pull`;
 2. runs `npm ci` for the client and server;
 3. builds the PWA into `client/dist`;
-4. installs the **systemd** unit `vfl-api` (`deploy/systemd/vfl-api.service`), restarts it, and waits for `/api/health`.
+4. sets `/opt/vfl` to `711` and checks that Nginx (`www-data`) can read `client/dist`. If it can't, the deploy stops instead of putting live a page whose CSS and JS return 404 ([fix](#unstyled-page-cssjs-404));
+5. installs the **systemd** unit `vfl-api` (`deploy/systemd/vfl-api.service`), restarts it, and waits for `/api/health`.
 
 The API applies **database migrations automatically on start**. The first run takes about 2 minutes on the e2-micro.
 
@@ -322,6 +323,13 @@ sudo journalctl -u vfl-api -n 20 --no-pager        # "[db] applied 001_init.sql"
 ```
 
 The service runs as user `vfl` with a read-only filesystem, except for `/var/lib/vfl`. It restarts automatically if it crashes or the VM reboots.
+
+**File permissions:** `/opt/vfl` is the home folder of the `vfl` user. It must be `drwx--x--x` (711): other users, including Nginx, can pass through to `app/client/dist` but can't list the folder, and the deploy key in `/opt/vfl/.ssh` stays private. Check it:
+
+```bash
+sudo namei -l /opt/vfl/app/client/dist/index.html      # vfl line: drwx--x--x vfl vfl vfl
+sudo -u www-data test -r /opt/vfl/app/client/dist/index.html && echo "nginx can read the build"
+```
 
 ---
 
@@ -396,10 +404,37 @@ Then:
 
 To rotate the admin password (this signs the admin out everywhere), run the same command with `reset-password` instead of `create`.
 
-The demo store isn't created in production. To add it anyway:
+### Demo stores (optional)
+
+Five ready-made demo stores show visitors how the platform works:
+
+| Store | Link | Products |
+|---|---|---|
+| Shree Shivam Groceries | `/s/demo` | 20 |
+| Hari Bhari Sabzi Mandi (vegetables & fruits) | `/s/demo-vegetables` | 12 |
+| Malligai Flower Stall | `/s/demo-flowers` | 12 |
+| Sri Ganesh Electricals | `/s/demo-electricals` | 12 |
+| Iyengar Fresh Bakery | `/s/demo-bakery` | 12 |
+
+Create them (deploy this version first, so the `is_demo` migration exists). It's safe to re-run:
 
 ```bash
-sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && SEED_DEMO_PHONE=91<your mobile> node src/seed.js'
+sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/demo-stores.js create'
+```
+
+What makes them different from real stores:
+- They're **approved and orderable**, but every order goes to the platform WhatsApp (`OTP_HELP_WHATSAPP`, +91 93530 95481).
+- Each one shows a **"Demo store"** notice and a **Demo** badge, and the directory lists them **after** real stores.
+- They're **`noindex`** and **not in the sitemap**, so made-up shops never compete with real merchants in Google.
+- The owners have **no mobile**, so nobody can log in to them. To edit one in the dashboard, attach your number (one store per mobile):
+  ```bash
+  sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/owner.js set-phone demo-bakery <10-digit mobile>'
+  ```
+
+Remove them all once you have enough real stores. This deletes their products, orders and images:
+
+```bash
+sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/demo-stores.js remove --yes'
 ```
 
 ---
@@ -638,7 +673,7 @@ When a merchant's own domain (e.g. `shopname.in`) should show their store:
 |---|---|---|
 | `deploy.sh`: API did not become healthy | `sudo journalctl -u vfl-api -n 50` | Usually a typo in `/etc/vfl/env`, or Postgres is down (`sudo systemctl start postgresql`) |
 | 502 Bad Gateway | `curl -s 127.0.0.1:4000/api/health` | `sudo systemctl restart vfl-api` |
-| Page shows plain unstyled text; console shows 404 for `/assets/*.js`, `.css`, `manifest.webmanifest` | `sudo -u www-data test -r /opt/vfl/app/client/dist/index.html && echo ok` | Nginx can't get through `/opt/vfl`: `sudo chmod 711 /opt/vfl` (setup/deploy scripts now do this), then hard-refresh |
+| Page shows plain unstyled text; console shows 404 for `/assets/*.js`, `.css`, `manifest.webmanifest` | `sudo -u www-data test -r /opt/vfl/app/client/dist/index.html && echo ok` | Nginx can't read the build. See [Unstyled page](#unstyled-page-cssjs-404) below |
 | `npm ci` or build killed / very slow | `free -m` | Make sure swap is on (`swapon --show`); re-run `setup-vm.sh` |
 | `git pull` asks for a password / permission denied | `sudo -u vfl -H ssh -T git@github.com` | Re-add the deploy key (B7); check `known_hosts` |
 | Certbot fails with "unauthorized" / timeout | `dig +short sonsari.in` | DNS must point to the static IP; firewall must allow tcp:80; bootstrap config must be active |
@@ -649,6 +684,41 @@ When a merchant's own domain (e.g. `shopname.in`) should show their store:
 | Store page says not found | Is the store approved? | Approve it in `/admin`; only approved stores are public |
 | Disk filling up | `df -h /`, `sudo du -sh /var/lib/vfl/*` | `sudo journalctl --vacuum-size=100M`; check old backups |
 | Unexpected charges | **Billing → Reports**, grouped by SKU | See the cost checklist below |
+
+### Unstyled page (CSS/JS 404)
+
+**Symptom:** the site shows plain black-and-white text with no styling. The browser console shows `Failed to load resource: 404` for `/assets/index-….js`, `/assets/index-….css` and `manifest.webmanifest`.
+
+**Cause:** the page text comes from Node (server-side SEO), but CSS, JS and the manifest are served by **Nginx** from `/opt/vfl/app/client/dist`. Nginx runs as `www-data`. `/opt/vfl` is the `vfl` user's home folder, and `useradd` creates it private (`drwxr-x---`, 750), so Nginx can't reach the build and returns 404.
+
+**Diagnose** (use `sudo`; as your own user `namei` stops at the same locked folder):
+```bash
+sudo namei -l /opt/vfl/app/client/dist/index.html
+```
+```text
+drwxr-xr-x root root /
+drwxr-xr-x root root opt
+drwxr-x--- vfl  vfl  vfl      ← the problem: no access for others
+drwxr-xr-x vfl  vfl  app
+...
+```
+
+**Fix:**
+```bash
+sudo chmod 711 /opt/vfl                                  # pass-through only, not listable
+sudo namei -l /opt/vfl/app/client/dist/index.html        # vfl line is now drwx--x--x
+sudo -u www-data test -r /opt/vfl/app/client/dist/index.html && echo "nginx can read the build"
+```
+No restart is needed. Hard-refresh the browser (**Cmd+Shift+R** / **Ctrl+Shift+R**).
+
+If the test still fails, a folder deeper in the path is locked too (check the `namei` output). Open the build up for reading:
+```bash
+sudo chmod -R o+rX /opt/vfl/app/client/dist
+```
+
+`setup-vm.sh` and `deploy.sh` now set `711` automatically, and `deploy.sh` stops with the `namei` output if Nginx still can't read the build.
+
+**Related:** for the same reason, `cd /opt/vfl/app/server` as your own user gives *Permission denied*. Run app commands as `vfl` (see [B10](#b10-create-the-platform-admin-and-the-first-store)), or open a shell as it with `sudo -iu vfl`.
 
 ---
 

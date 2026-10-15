@@ -16,6 +16,7 @@ cp .env.example .env
 npm install
 npm run db:up            # Postgres in Docker on localhost:5433
 npm run db:seed          # optional: demo store (owner mobile 9000000001, OTP 898989)
+npm run demo:create      # optional: 5 demo stores (grocery, vegetables, flowers, electricals, bakery); demo:remove -- --yes
 npm run admin:create     # the single platform admin (CLI only, strong password enforced)
 npm run dev              # API :4000 + UI :5173
 ```

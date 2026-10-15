@@ -173,8 +173,8 @@ function breadcrumbs(base, t, items) {
 
 async function storesPage(base, t, lang) {
   const { rows } = await query(
-    `SELECT slug, name, category, city FROM stores WHERE status = 'approved' AND whatsapp_number IS NOT NULL
-      ORDER BY verified DESC, created_at DESC LIMIT 200`,
+    `SELECT slug, name, category, city, is_demo FROM stores WHERE status = 'approved' AND whatsapp_number IS NOT NULL
+      ORDER BY is_demo, verified DESC, created_at DESC LIMIT 200`,
   );
   return {
     title: t('seo.storesTitle', { brand: BRAND }),
@@ -186,7 +186,7 @@ async function storesPage(base, t, lang) {
       {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        itemListElement: rows.map((s, i) => ({ '@type': 'ListItem', position: i + 1, url: `${base}/s/${s.slug}`, name: s.name })),
+        itemListElement: rows.filter((s) => !s.is_demo).map((s, i) => ({ '@type': 'ListItem', position: i + 1, url: `${base}/s/${s.slug}`, name: s.name })),
       },
     ],
     body: `<main><h1>${esc(t('stores.title'))}</h1><ul>${rows
@@ -233,7 +233,7 @@ async function storePage(base, slug, t) {
     image: abs(base, store.banner_url || store.logo_url) || undefined,
     logo: abs(base, store.logo_url) || undefined,
     description: store.description || undefined,
-    telephone: store.whatsapp_number ? `+${store.whatsapp_number}` : undefined,
+    telephone: store.is_demo ? `+${config.demoWhatsApp}` : store.whatsapp_number ? `+${store.whatsapp_number}` : undefined,
     address: store.address_text
       ? { '@type': 'PostalAddress', streetAddress: store.address_text, addressLocality: store.city || undefined, addressCountry: 'IN' }
       : undefined,
@@ -266,6 +266,7 @@ ${store.address_text ? `<address>${esc(store.address_text)}</address>` : ''}
     description,
     canonical: `${url}`,
     image: shareImage(base, store.banner_url) || shareImage(base, store.logo_url) || `${base}/og-image.png`,
+    noindex: store.is_demo, // demo stores are for trying the app, not for search results
     jsonLd: [ld, breadcrumbs(base, t, [[t('stores.title'), '/stores'], [store.name, `/s/${store.slug}`]])],
     body,
   };
@@ -311,6 +312,7 @@ async function productPage(base, slug, sku, t) {
     canonical: url,
     image: shareImage(base, p.images[0]) || shareImage(base, store.logo_url) || `${base}/og-image.png`,
     type: 'product',
+    noindex: store.is_demo,
     jsonLd: [
       ld,
       breadcrumbs(base, t, [[t('stores.title'), '/stores'], [store.name, `/s/${store.slug}`], [p.name, `/s/${store.slug}/p/${encodeURIComponent(p.sku_id)}`]]),
@@ -359,10 +361,10 @@ export async function seoHandler(req, res) {
 
 export async function sitemap(req, res) {
   const base = baseUrl(req);
-  const { rows: stores } = await query(`SELECT id, slug, updated_at FROM stores WHERE status = 'approved' ORDER BY created_at`);
+  const { rows: stores } = await query(`SELECT id, slug, updated_at FROM stores WHERE status = 'approved' AND NOT is_demo ORDER BY created_at`);
   const { rows: products } = await query(
     `SELECT s.slug, p.sku_id, p.updated_at FROM products p JOIN stores s ON s.id = p.store_id
-      WHERE s.status = 'approved' AND p.status = 'active' ORDER BY s.created_at, p.position LIMIT 45000`,
+      WHERE s.status = 'approved' AND NOT s.is_demo AND p.status = 'active' ORDER BY s.created_at, p.position LIMIT 45000`,
   );
   const langs = availableLanguages();
   const url = (loc, lastmod, priority, alts = '') =>

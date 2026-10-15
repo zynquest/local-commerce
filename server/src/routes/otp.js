@@ -9,6 +9,7 @@ import { query } from '../db.js';
 import { badRequest, conflict, parse } from '../errors.js';
 import { issueOtp } from '../otp/otp.js';
 import { getProvider } from '../otp/providers.js';
+import { DEMO_WHATSAPP_LOCKED } from './merchant.js';
 import * as S from '../schemas.js';
 
 export const otpRouter = Router();
@@ -52,7 +53,8 @@ otpRouter.post('/request', otpLimiter, async (req, res, next) => {
 // WhatsApp number change: the code goes to the NEW number to prove the owner controls it.
 otpRouter.post('/request', requireOwner, async (req, res) => {
   const { phone } = parse(S.otpRequest, req.body);
-  const { rows } = await query('SELECT name, whatsapp_number FROM stores WHERE id = $1', [req.user.store_id]);
+  const { rows } = await query('SELECT name, whatsapp_number, is_demo FROM stores WHERE id = $1', [req.user.store_id]);
+  if (rows[0]?.is_demo) throw badRequest(DEMO_WHATSAPP_LOCKED);
   if (rows[0]?.whatsapp_number === phone) throw badRequest('This is already your WhatsApp number for orders');
   res.json({ ok: true, ...(await issueOtp({ phone, purpose: 'whatsapp_change', context: { store_id: req.user.store_id }, meta: { name: rows[0]?.name, ip: req.ip } })) });
 });

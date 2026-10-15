@@ -384,6 +384,31 @@ describe('storefront + orders', () => {
   });
 });
 
+describe('demo stores', () => {
+  test('always take orders on 919353095481, are noindex/out of the sitemap, and cannot change the number', async () => {
+    const { rows } = await query(
+      `UPDATE stores SET is_demo = true, status = 'approved', whatsapp_number = '919111111111'
+        WHERE owner_id = (SELECT id FROM users WHERE phone = $1) RETURNING id, slug`,
+      [phoneB],
+    );
+    const { id, slug: demoSlug } = rows[0];
+    try {
+      const pub = await shopper('GET', `/api/stores/${demoSlug}`);
+      assert.equal(pub.body.store.whatsapp_number, '919353095481');
+      assert.equal(pub.body.store.is_demo, true);
+      const html = await fetch(`${base}/s/${demoSlug}`).then((r) => r.text());
+      assert.match(html, /noindex/);
+      assert.ok(html.includes('"telephone":"+919353095481"'));
+      assert.ok(!(await fetch(`${base}/sitemap.xml`).then((r) => r.text())).includes(`/s/${demoSlug}<`));
+      const change = await other('POST', '/api/otp/request', { phone: '9000022222', purpose: 'whatsapp_change' });
+      assert.equal(change.status, 400);
+      assert.match(change.body.error, /Demo stores always take orders/);
+    } finally {
+      await query(`UPDATE stores SET is_demo = false, status = 'draft', whatsapp_number = $2 WHERE id = $1`, [id, phoneB]);
+    }
+  });
+});
+
 describe('SEO endpoints', () => {
   test('/register is an indexable, translated page (it is in the sitemap)', async () => {
     const res = await fetch(`${base}/register?lang=hi`);

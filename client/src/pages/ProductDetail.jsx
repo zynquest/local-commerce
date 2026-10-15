@@ -52,7 +52,7 @@ export default function ProductDetail() {
     description: product ? product.description || t('seo.productDesc', { name: product.name, store: config?.name }) : '',
     path: product ? link(`/p/${encodeURIComponent(product.sku_id)}`) : undefined,
     image: product?.images?.[0],
-    noindex: Boolean(config?.preview),
+    noindex: Boolean(config?.preview || config?.is_demo),
   });
 
   const related = useMemo(

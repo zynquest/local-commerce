@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation, useNavigationType } from 'react-router-dom';
 import Storefront from './pages/Storefront.jsx';
 import ProductDetail from './pages/ProductDetail.jsx';
 import { DomainStoreLayout, PathStoreLayout } from './pages/StoreLayout.jsx';
@@ -19,6 +19,20 @@ const CustomerAccount = lazy(() => import('./pages/CustomerAccount.jsx'));
 
 const isPlatformHost = (host) =>
   PLATFORM.hosts.includes(host) || PLATFORM.hostSuffixes.some((s) => host.endsWith(s)) || /^\d+\.\d+\.\d+\.\d+$/.test(host);
+
+/**
+ * New pages open at the top (React Router keeps the old scroll position otherwise, so a store opened from far down
+ * the home page showed its bottom). Back/forward (POP) is left to the browser so returning keeps your place, and
+ * #anchor links still jump to their section.
+ */
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+  const navType = useNavigationType();
+  useEffect(() => {
+    if (navType !== 'POP' && !hash) window.scrollTo(0, 0);
+  }, [pathname, hash, navType]);
+  return null;
+}
 
 function NotFound() {
   const t = useT();
@@ -58,6 +72,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Suspense fallback={<LoadingScreen label="Loading…" />}>
         <Routes>
           {domainSlug ? (

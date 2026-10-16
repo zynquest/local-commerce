@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { BadgeCheck, Camera, Check, Loader2, Pencil, Save, X } from 'lucide-react';
+import AddressPicker from '../components/AddressPicker.jsx';
 import MobileInput from '../components/MobileInput.jsx';
 import OtpField from '../components/OtpField.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
@@ -15,13 +16,11 @@ const FIELDS = [
   ['slug', { prefix: '/s/', hint: true }],
   ['category', { required: true, tPlaceholder: true }],
   ['city', { required: true, tPlaceholder: true }],
-  ['address_text', { textarea: true, maxLength: 300 }],
-  ['maps_url', { placeholder: 'https://maps.app.goo.gl/…' }],
   ['description', { textarea: true, maxLength: 500 }],
   ['opening_hours', { placeholder: '09:00-21:00', hint: true }],
   ['closed_days', { placeholder: 'Sun' }],
-  ['minimum_order', { type: 'number', min: 0 }],
-  ['delivery_fee', { type: 'number', min: 0 }],
+  ['minimum_order', { type: 'number', min: 0, shopOnly: true }],
+  ['delivery_fee', { type: 'number', min: 0, shopOnly: true }],
   ['instagram_handle', { placeholder: 'yourstore' }],
   ['theme_color', { type: 'color' }],
 ];
@@ -96,13 +95,22 @@ function WhatsAppNumber({ store, onSaved }) {
   );
 }
 
+const APPT_DEFAULTS = { slot_minutes: 30, booking_days: 14, min_notice_minutes: 60 };
+
 export default function StoreSettings({ store, onSaved }) {
   const t = useT();
-  const [form, setForm] = useState(() =>
-    Object.fromEntries(
-      [...FIELDS.map(([k]) => k), 'logo_url', 'banner_url', 'order_language'].map((k) => [k, store[k] ?? (k === 'theme_color' ? '#15803d' : k === 'order_language' ? 'auto' : '')]),
+  const appointments = store.business_type === 'appointments';
+  const [form, setForm] = useState(() => ({
+    ...Object.fromEntries(
+      [...FIELDS.map(([k]) => k), 'logo_url', 'banner_url', 'order_language', 'address_text', 'maps_url', 'place_id'].map((k) => [
+        k,
+        store[k] ?? (k === 'theme_color' ? '#15803d' : k === 'order_language' ? 'auto' : ''),
+      ]),
     ),
-  );
+    lat: store.lat ?? null,
+    lng: store.lng ?? null,
+    ...Object.fromEntries(Object.entries(APPT_DEFAULTS).map(([k, d]) => [k, store[k] ?? d])),
+  }));
   const [fields, setFields] = useState({});
   const [status, setStatus] = useState({ busy: false, error: '', saved: false });
   const [uploading, setUploading] = useState('');
@@ -129,7 +137,8 @@ export default function StoreSettings({ store, onSaved }) {
     setStatus({ busy: true, error: '', saved: false });
     setFields({});
     try {
-      const { store: saved } = await put('/merchant/store', form);
+      const payload = appointments ? form : Object.fromEntries(Object.entries(form).filter(([k]) => !(k in APPT_DEFAULTS)));
+      const { store: saved } = await put('/merchant/store', payload);
       setStatus({ busy: false, error: '', saved: true });
       onSaved(saved, t('settings.saved'));
       setTimeout(() => setStatus((s) => ({ ...s, saved: false })), 2500);
@@ -167,6 +176,39 @@ export default function StoreSettings({ store, onSaved }) {
 
       <WhatsAppNumber store={store} onSaved={onSaved} />
 
+      <AddressPicker
+        value={form}
+        onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+        error={fields.lat || fields.address_text}
+      />
+
+      {appointments && (
+        <div className="grid gap-4 rounded-2xl border border-stone-200 p-4 sm:grid-cols-3">
+          <p className="label mb-0 sm:col-span-3">{t('appt.settingsTitle')}</p>
+          <div>
+            <label className="label" htmlFor="st-slot_minutes">{t('appt.slotMinutes')}</label>
+            <select id="st-slot_minutes" className="input" value={form.slot_minutes} onChange={set('slot_minutes')}>
+              {[10, 15, 20, 30, 45, 60].map((m) => <option key={m} value={m}>{t('appt.minutes', { count: m })}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label" htmlFor="st-booking_days">{t('appt.bookingDays')}</label>
+            <select id="st-booking_days" className="input" value={form.booking_days} onChange={set('booking_days')}>
+              {[3, 7, 14, 21, 30, 60].map((d) => <option key={d} value={d}>{t('appt.days', { count: d })}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label" htmlFor="st-min_notice_minutes">{t('appt.minNotice')}</label>
+            <select id="st-min_notice_minutes" className="input" value={form.min_notice_minutes} onChange={set('min_notice_minutes')}>
+              {[0, 30, 60, 120, 240, 720, 1440].map((m) => (
+                <option key={m} value={m}>{m === 0 ? t('appt.noNotice') : m < 60 ? t('appt.minutes', { count: m }) : t('appt.hours', { count: m / 60 })}</option>
+              ))}
+            </select>
+          </div>
+          <p className="text-[11px] text-stone-400 sm:col-span-3">{t('appt.settingsHint')}</p>
+        </div>
+      )}
+
       <div>
         <label className="label" htmlFor="st-order_language">{t('settings.orderLanguage')}</label>
         <select id="st-order_language" className="input" value={form.order_language} onChange={set('order_language')}>
@@ -181,7 +223,7 @@ export default function StoreSettings({ store, onSaved }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {FIELDS.map(([key, opts]) => (
+        {FIELDS.filter(([, opts]) => !(appointments && opts.shopOnly)).map(([key, opts]) => (
           <div key={key} className={opts.textarea || key === 'slug' ? 'sm:col-span-2' : ''}>
             <label className="label" htmlFor={`st-${key}`}>
               {t(`settings.f.${key}`)}
@@ -199,7 +241,7 @@ export default function StoreSettings({ store, onSaved }) {
                   value={form[key]}
                   onChange={set(key)}
                   inputMode={opts.inputMode}
-                  placeholder={opts.tPlaceholder ? t(`settings.p.${key}`) : opts.placeholder}
+                  placeholder={opts.tPlaceholder ? t(appointments && key === 'category' ? 'appt.categoryPlaceholder' : `settings.p.${key}`) : opts.placeholder}
                   min={opts.min}
                   maxLength={opts.maxLength}
                 />

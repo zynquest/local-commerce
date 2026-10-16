@@ -9,6 +9,7 @@ import { config } from './config.js';
 import { query } from './db.js';
 import { errorHandler, forbidden, notFound } from './errors.js';
 import { merchantRouter } from './routes/merchant.js';
+import { merchantAppointmentsRouter, publicAppointmentsRouter } from './routes/appointments.js';
 import { otpRouter } from './routes/otp.js';
 import { platformRouter } from './routes/platform.js';
 import { authRouter } from './routes/auth.js';
@@ -42,9 +43,12 @@ export function createApp() {
         directives: {
           defaultSrc: ["'self'"],
           imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
-          styleSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
           workerSrc: ["'self'", 'blob:'],
-          connectSrc: ["'self'"],
+          // Google Maps JS API (address search, map pin) loads its scripts and calls these hosts.
+          scriptSrc: ["'self'", 'https://maps.googleapis.com', 'https://maps.gstatic.com'],
+          connectSrc: ["'self'", 'https://maps.googleapis.com', 'https://places.googleapis.com', 'https://*.googleapis.com', 'https://maps.gstatic.com'],
+          fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
         },
       },
       crossOriginResourcePolicy: { policy: 'same-site' },
@@ -67,9 +71,11 @@ export function createApp() {
   );
   app.use('/api/auth', authRouter);
   app.use('/api/merchant', merchantRouter);
+  app.use('/api/merchant', merchantAppointmentsRouter);
   app.use('/api/platform', platformRouter);
   app.use('/api/otp', otpRouter);
   app.use('/api/customer', customerRouter);
+  app.use('/api', publicAppointmentsRouter);
   app.use('/api', publicRouter);
   app.use('/api', (_req, _res, next) => next(notFound('Unknown API route')));
 

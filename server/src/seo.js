@@ -211,9 +211,77 @@ async function loadApprovedStore(slug) {
   return rows[0] || null;
 }
 
+/** schema.org type for an appointment business, from its category text. */
+function bookingBusinessType(category = '') {
+  const c = category.toLowerCase();
+  if (/dent/.test(c)) return 'Dentist';
+  if (/physio/.test(c)) return 'Physiotherapy';
+  if (/clinic|doctor|medical|hospital/.test(c)) return 'MedicalClinic';
+  if (/spa/.test(c) && !/hair/.test(c)) return 'DaySpa';
+  if (/beauty|parlou?r|makeup|nail/.test(c)) return 'BeautySalon';
+  if (/hair|salon|barber/.test(c)) return 'HairSalon';
+  return 'HealthAndBeautyBusiness';
+}
+
+async function bookingPage(base, store, t) {
+  const { rows: services } = await query(
+    `SELECT name, category, description, duration_min, price FROM services WHERE store_id = $1 AND active ORDER BY position LIMIT 100`,
+    [store.id],
+  );
+  const url = `${base}/s/${store.slug}`;
+  const title = store.city
+    ? t('seo.storeTitleCity', { name: store.name, category: store.category || t('seo.storeWord'), city: store.city })
+    : t('seo.storeTitle', { name: store.name });
+  const ld = {
+    '@context': 'https://schema.org',
+    '@type': bookingBusinessType(store.category || ''),
+    '@id': url,
+    name: store.name,
+    url,
+    image: abs(base, store.banner_url || store.logo_url) || undefined,
+    logo: abs(base, store.logo_url) || undefined,
+    description: store.description || undefined,
+    telephone: store.is_demo ? `+${config.demoWhatsApp}` : store.whatsapp_number ? `+${store.whatsapp_number}` : undefined,
+    address: store.address_text
+      ? { '@type': 'PostalAddress', streetAddress: store.address_text, addressLocality: store.city || undefined, addressCountry: 'IN' }
+      : undefined,
+    geo: store.lat != null ? { '@type': 'GeoCoordinates', latitude: store.lat, longitude: store.lng } : undefined,
+    hasMap: store.maps_url || undefined,
+    openingHoursSpecification: openingSpec(store),
+    priceRange: '₹',
+    currenciesAccepted: 'INR',
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: `${store.name} services`,
+      itemListElement: services.map((sv) => ({
+        '@type': 'Offer',
+        price: sv.price,
+        priceCurrency: 'INR',
+        itemOffered: { '@type': 'Service', name: sv.name, description: sv.description || undefined },
+      })),
+    },
+  };
+  const body = `<main><h1>${esc(store.name)}</h1>
+${store.description ? `<p>${esc(store.description)}</p>` : ''}
+${store.address_text ? `<address>${esc(store.address_text)}</address>` : ''}
+<h2>${esc(t('book.services'))}</h2><ul>${services
+    .map((sv) => `<li>${esc(sv.name)} — ${esc(t('appt.minutes', { count: sv.duration_min }))} — ₹${Number(sv.price)}</li>`)
+    .join('')}</ul></main>`;
+  return {
+    title,
+    description: trim(store.description || t('book.seoDesc', { name: store.name }), 160),
+    canonical: url,
+    image: shareImage(base, store.banner_url) || shareImage(base, store.logo_url) || `${base}/og-image.png`,
+    noindex: store.is_demo,
+    jsonLd: [ld, breadcrumbs(base, t, [[t('stores.title'), '/stores'], [store.name, `/s/${store.slug}`]])],
+    body,
+  };
+}
+
 async function storePage(base, slug, t) {
   const store = await loadApprovedStore(slug);
   if (!store) return null;
+  if (store.business_type === 'appointments') return bookingPage(base, store, t);
   const { rows: products } = await query(
     `SELECT sku_id, name, category, mrp, offer_price, images, description, in_stock FROM products
       WHERE store_id = $1 AND status = 'active' ORDER BY position LIMIT 100`,
@@ -237,6 +305,7 @@ async function storePage(base, slug, t) {
     address: store.address_text
       ? { '@type': 'PostalAddress', streetAddress: store.address_text, addressLocality: store.city || undefined, addressCountry: 'IN' }
       : undefined,
+    geo: store.lat != null ? { '@type': 'GeoCoordinates', latitude: store.lat, longitude: store.lng } : undefined,
     hasMap: store.maps_url || undefined,
     openingHoursSpecification: openingSpec(store),
     priceRange: '₹',

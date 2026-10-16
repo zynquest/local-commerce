@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import {
-  Archive, ArchiveRestore, ExternalLink, FileUp, Loader2, LogOut, Package, Pencil, Plus, ReceiptText, Search, Settings,
-  Share2, Trash2, UserCog,
+  Archive, ArchiveRestore, CalendarDays, ExternalLink, FileUp, Loader2, LogOut, Package, Pencil, Plus, ReceiptText, Scissors, Search,
+  Settings, Share2, Trash2, UserCog, Users,
 } from 'lucide-react';
+import AppointmentsPanel from '../merchant/AppointmentsPanel.jsx';
+import ServicesPanel from '../merchant/ServicesPanel.jsx';
+import SpecialistsPanel from '../merchant/SpecialistsPanel.jsx';
 import ProductForm from '../merchant/ProductForm.jsx';
 import CsvImport from '../merchant/CsvImport.jsx';
 import MessageImport from '../merchant/MessageImport.jsx';
@@ -22,6 +25,14 @@ import { rich, useT } from '../i18n/index.jsx';
 import { PLATFORM } from '../config.js';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 
+// Appointment businesses (salon, spa, clinic) manage bookings, services and specialists instead of products.
+const TABS_APPOINTMENTS = [
+  { id: 'appointments', icon: CalendarDays },
+  { id: 'services', icon: Scissors },
+  { id: 'specialists', icon: Users },
+  { id: 'settings', icon: Settings },
+  { id: 'account', icon: UserCog },
+];
 const TABS = [
   { id: 'products', icon: Package },
   { id: 'orders', icon: ReceiptText },
@@ -34,7 +45,7 @@ const TABS = [
 export default function MerchantDashboard() {
   const { owner, loadOwner, logoutOwner } = useSession();
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') || 'products';
+  const tabParam = params.get('tab');
   const setTab = (t) => setParams({ tab: t }, { replace: true });
 
   const [store, setStore] = useState(null);
@@ -147,6 +158,9 @@ export default function MerchantDashboard() {
   if (!store) return products.error ? <p className="p-6 text-rose-600">{products.error}</p> : <LoadingScreen label={t('common.loading')} />;
 
   const cur = store.currency_symbol;
+  const isAppt = store.business_type === 'appointments';
+  const tabs = isAppt ? TABS_APPOINTMENTS : TABS;
+  const tab = tabs.some((x) => x.id === tabParam) ? tabParam : tabs[0].id;
   const atLimit = stats && stats.sku_used >= stats.sku_limit;
 
   return (
@@ -176,7 +190,7 @@ export default function MerchantDashboard() {
           </div>
         </div>
         <nav className="no-scrollbar mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4">
-          {TABS.map(({ id, icon: Icon }) => (
+          {tabs.map(({ id, icon: Icon }) => (
             <button
               key={id}
               onClick={() => {
@@ -191,6 +205,9 @@ export default function MerchantDashboard() {
               {id === 'orders' && stats?.orders_pending > 0 && (
                 <span className="rounded-full bg-rose-500 px-1.5 text-[10px] text-white">{stats.orders_pending}</span>
               )}
+              {id === 'appointments' && stats?.appointments_pending > 0 && (
+                <span className="rounded-full bg-rose-500 px-1.5 text-[10px] text-white">{stats.appointments_pending}</span>
+              )}
             </button>
           ))}
         </nav>
@@ -201,7 +218,7 @@ export default function MerchantDashboard() {
           <div className="card border-emerald-200 bg-emerald-50 p-4 text-sm">
             <p className="font-bold text-emerald-900">{t('merchant.welcome', { link: `/s/${store.slug}` })}</p>
             <p className="mt-1 text-emerald-800">
-              {t('merchant.welcomeBody')}
+              {isAppt ? t('appt.welcomeBody') : t('merchant.welcomeBody')}
             </p>
           </div>
         )}
@@ -209,12 +226,15 @@ export default function MerchantDashboard() {
 
         {stats && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {[
+            {(isAppt ? [
+              [t('appt.stats.today'), stats.appointments_today],
+              [t('appt.stats.pending'), stats.appointments_pending],
+            ] : [
               [t('merchant.stats.products'), `${stats.sku_used}/${stats.sku_limit}`],
               [t('merchant.stats.ordersToday'), stats.orders_today],
               [t('merchant.stats.newOrders'), stats.orders_pending],
               [t('merchant.stats.sales7d'), formatMoney(stats.revenue_7d, cur)],
-            ].map(([k, v]) => (
+            ]).map(([k, v]) => (
               <div key={k} className="card p-3">
                 <p className="text-[11px] font-semibold text-stone-500 uppercase">{k}</p>
                 <p className="mt-0.5 text-lg font-bold">{v}</p>
@@ -317,6 +337,9 @@ export default function MerchantDashboard() {
           ))}
 
         {tab === 'orders' && <OrdersPanel currency={cur} onChange={refreshStats} />}
+        {tab === 'appointments' && <AppointmentsPanel store={store} currency={cur} onChange={refreshStats} />}
+        {tab === 'services' && <ServicesPanel currency={cur} onChange={() => { refreshStats(); setTimeout(() => get('/merchant/store').then((r) => setStore(r.store)), 0); }} />}
+        {tab === 'specialists' && <SpecialistsPanel onChange={() => get('/merchant/store').then((r) => setStore(r.store))} />}
         {tab === 'import' && (
           <CsvImport
             existingProducts={products.items}

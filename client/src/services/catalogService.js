@@ -37,7 +37,15 @@ export async function fetchCatalog(slug, cached) {
   }
   if (!res.ok) throw new ApiError(res.status, getActiveT()('status.loadFailed'));
   const data = await res.json();
-  const entry = { slug, store: data.store, products: data.products, version: data.version, fetchedAt: Date.now() };
+  const entry = {
+    slug,
+    store: data.store,
+    products: data.products,
+    services: data.services || [],
+    specialists: data.specialists || [],
+    version: data.version,
+    fetchedAt: Date.now(),
+  };
   await db.catalogs.put(entry);
   return entry;
 }

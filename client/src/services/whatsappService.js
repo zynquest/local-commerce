@@ -92,6 +92,29 @@ export function buildOrderMessage(storeConfig, cartItems, unlistedNotes, custome
 }
 
 /** Official click-to-chat link. encodeURIComponent turns "\n" into %0A for WhatsApp app + Web. */
+/**
+ * WhatsApp message for an appointment request (sent by the customer to the business after the slot is held).
+ * `t` translates labels into the message language; `fmt` formats the date and clock times for that language.
+ */
+export function buildBookingMessage(storeConfig, appt, { t = makeT('en'), formatDay, formatClock } = {}) {
+  const cur = storeConfig.currency_symbol || '₹';
+  const day = formatDay ? formatDay(appt.date) : appt.date;
+  const clock = (x) => (formatClock ? formatClock(x) : x);
+  let m = `📅 *${t('wa.apptRequest', { code: appt.code })}*\n`;
+  m += `🏪 *${t('wa.store')}:* ${storeConfig.name}\n`;
+  m += `${DIVIDER}\n`;
+  m += `✨ *${t('wa.apptService')}:* ${appt.service_name} (${t('appt.minutes', { count: appt.duration_min })}) — ${formatMoney(appt.price, cur)}\n`;
+  m += `👤 *${t('wa.apptSpecialist')}:* ${appt.specialist_name}\n`;
+  m += `🗓️ *${t('wa.apptDate')}:* ${day}\n`;
+  m += `⏰ *${t('wa.apptTime')}:* ${clock(appt.time)} – ${clock(appt.end_time)}\n`;
+  m += `${DIVIDER}\n`;
+  m += `🙋 *${t('wa.name')}:* ${sanitizeText(appt.customer_name)}\n`;
+  m += `📞 *${t('wa.phone')}:* +${appt.customer_phone}\n`;
+  if (appt.notes) m += `📝 *${t('wa.notes')}:* ${sanitizeText(appt.notes)}\n`;
+  m += `\n${t('wa.apptPleaseConfirm')}`;
+  return m;
+}
+
 export const whatsappLink = (phone, message = '') =>
   `https://wa.me/${cleanPhone(phone)}${message ? `?text=${encodeURIComponent(message)}` : ''}`;
 

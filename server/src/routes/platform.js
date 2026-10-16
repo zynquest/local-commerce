@@ -49,7 +49,7 @@ platformRouter.get('/stats', async (_req, res) => {
   res.json({ ...rows[0], by_status: rows[0].by_status || {} });
 });
 
-const STORE_LIST_COLUMNS = `s.id, s.slug, s.name, s.status, s.plan, s.sku_limit, s.category, s.city, s.logo_url,
+const STORE_LIST_COLUMNS = `s.id, s.slug, s.name, s.status, s.plan, s.sku_limit, s.category, s.city, s.logo_url, s.business_type, s.lat,
   s.whatsapp_number, s.whatsapp_verified, s.submitted_at, s.reviewed_at, s.review_remarks, s.created_at,
   u.username AS owner_username, u.phone AS owner_phone,
   (SELECT count(*)::int FROM products p WHERE p.store_id = s.id AND p.status = 'active') AS product_count`;

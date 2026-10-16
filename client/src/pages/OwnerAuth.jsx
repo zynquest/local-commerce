@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Loader2, Store } from 'lucide-react';
+import { CalendarClock, Loader2, ShoppingBag, Store } from 'lucide-react';
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import OtpField from '../components/OtpField.jsx';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
@@ -15,7 +15,7 @@ export default function OwnerAuth({ mode }) {
   const t = useT();
   const navigate = useNavigate();
   const { owner, loadOwner, appConfig, registerOwner, loginOwner } = useSession();
-  const [form, setForm] = useState({ storeName: '', phone: '', code: '' });
+  const [form, setForm] = useState({ storeName: '', phone: '', code: '', businessType: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [fields, setFields] = useState({});
@@ -41,12 +41,13 @@ export default function OwnerAuth({ mode }) {
     e.preventDefault();
     setError('');
     setFields({});
+    if (isRegister && !form.businessType) return setFields({ businessType: t('biz.pickType') });
     if (isRegister && form.storeName.trim().length < 2) return setFields({ storeName: t('errors.storeNameShort') });
     if (!isMobile10(form.phone)) return setFields({ phone: t('errors.validMobile10') });
     setBusy(true);
     submitted.current = true;
     try {
-      if (isRegister) await registerOwner({ storeName: form.storeName, phone: form.phone, code: form.code });
+      if (isRegister) await registerOwner({ storeName: form.storeName, phone: form.phone, code: form.code, businessType: form.businessType });
       else await loginOwner({ phone: form.phone, code: form.code });
       navigate(isRegister ? '/merchant?welcome=1' : '/merchant', { replace: true });
     } catch (err) {
@@ -79,9 +80,32 @@ export default function OwnerAuth({ mode }) {
         </div>
 
         {isRegister && (
+          <fieldset>
+            <legend className="label">{t('biz.question')}</legend>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                ['shop', ShoppingBag, 'biz.shop', 'biz.shopHint'],
+                ['appointments', CalendarClock, 'biz.appointments', 'biz.appointmentsHint'],
+              ].map(([value, Icon, title, hint]) => (
+                <label
+                  key={value}
+                  className={`flex cursor-pointer flex-col gap-1 rounded-2xl border-2 p-3 text-sm ${form.businessType === value ? 'border-brand bg-emerald-50' : 'border-stone-200 hover:border-stone-300'}`}
+                >
+                  <input type="radio" name="businessType" value={value} checked={form.businessType === value} onChange={() => setForm((f) => ({ ...f, businessType: value }))} className="sr-only" />
+                  <Icon size={20} className={form.businessType === value ? 'text-brand' : 'text-stone-500'} />
+                  <span className="font-bold">{t(title)}</span>
+                  <span className="text-[11px] leading-snug text-stone-500">{t(hint)}</span>
+                </label>
+              ))}
+            </div>
+            {fieldError('businessType')}
+          </fieldset>
+        )}
+
+        {isRegister && (
           <div>
-            <label className="label" htmlFor="storeName">{t('owner.storeName')}</label>
-            <input id="storeName" className="input" value={form.storeName} onChange={set('storeName')} placeholder="Gupta Kirana Store" maxLength={60} required />
+            <label className="label" htmlFor="storeName">{form.businessType === 'appointments' ? t('biz.businessName') : t('owner.storeName')}</label>
+            <input id="storeName" className="input" value={form.storeName} onChange={set('storeName')} placeholder={form.businessType === 'appointments' ? 'Glow Hair & Beauty Studio' : 'Gupta Kirana Store'} maxLength={60} required />
             {fieldError('storeName')}
           </div>
         )}

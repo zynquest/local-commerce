@@ -31,8 +31,19 @@ export function pickLanguage(value) {
 export function makeServerT(code) {
   const cat = load(code) || {};
   const en = load('en') || {};
+  let rules;
+  try {
+    rules = new Intl.PluralRules(code === 'en' ? 'en-IN' : code);
+  } catch {
+    rules = new Intl.PluralRules('en');
+  }
   return (key, vars) => {
-    const msg = lookup(cat, key) ?? lookup(en, key) ?? key;
+    let msg;
+    if (vars && typeof vars.count === 'number') {
+      const form = rules.select(vars.count);
+      msg = lookup(cat, `${key}_${form}`) ?? lookup(cat, `${key}_other`) ?? lookup(en, `${key}_${form}`) ?? lookup(en, `${key}_other`);
+    }
+    msg ??= lookup(cat, key) ?? lookup(en, key) ?? key;
     return typeof msg === 'string' && vars ? msg.replace(/\{(\w+)\}/g, (m, k) => (vars[k] ?? m)) : msg;
   };
 }

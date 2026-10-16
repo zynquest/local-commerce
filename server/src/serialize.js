@@ -12,7 +12,8 @@ export const slugify = (s) =>
 
 export const PUBLIC_STORE_COLUMNS = `s.id, s.slug, s.name, s.whatsapp_number, s.instagram_handle, s.logo_url, s.banner_url,
   s.address_text, s.maps_url, s.description, s.category, s.city, s.currency_symbol, s.minimum_order,
-  s.delivery_fee, s.opening_hours, s.closed_days, s.theme_color, s.verified, s.order_language, s.is_demo, s.updated_at`;
+  s.delivery_fee, s.opening_hours, s.closed_days, s.theme_color, s.verified, s.order_language, s.is_demo, s.updated_at,
+  s.business_type, s.lat, s.lng, s.slot_minutes, s.booking_days, s.min_notice_minutes`;
 
 export const PRODUCT_COLUMNS = `p.id, p.sku_id, p.name, p.category, p.mrp, p.offer_price, p.images, p.description,
   p.specs, p.tags, p.rating, p.review_count, p.in_stock, p.status, p.position, p.updated_at`;
@@ -38,6 +39,10 @@ export const publicStore = (s) => ({
   theme_color: s.theme_color,
   verified: s.verified,
   is_demo: Boolean(s.is_demo),
+  business_type: s.business_type || 'shop',
+  lat: s.lat ?? null,
+  lng: s.lng ?? null,
+  ...(s.business_type === 'appointments' ? { slot_minutes: s.slot_minutes, booking_days: s.booking_days, min_notice_minutes: s.min_notice_minutes } : {}),
   order_language: s.order_language || 'auto',
   accepting_orders: Boolean(s.is_demo || s.whatsapp_number),
 });

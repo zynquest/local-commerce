@@ -41,7 +41,8 @@ export const mobile10 = z.preprocess(normalizePhone, z.string().regex(/^91[6-9]\
 const storeName = z.preprocess(cleanText, z.string().min(2, 'Store name is too short').max(60, 'Max 60 characters'));
 const otpCode = z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit code');
 
-export const registerOwner = z.object({ storeName, phone: mobile10, code: otpCode });
+export const BUSINESS_TYPES = ['shop', 'appointments'];
+export const registerOwner = z.object({ storeName, phone: mobile10, code: otpCode, businessType: z.enum(BUSINESS_TYPES).default('shop') });
 export const phoneLogin = z.object({ phone: mobile10, code: otpCode });
 export const otpRequest = z.object({
   phone: mobile10,
@@ -103,8 +104,20 @@ export const storeSettings = z
     closed_days: optText(40),
     theme_color: z.preprocess((v) => (v ? v : null), z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable()),
     order_language: z.enum(['auto', ...LANGUAGE_CODES]), // auto = the customer's language
+    // Map pin (from Google Maps search, the phone's GPS or dragging the pin). Both or neither.
+    lat: z.preprocess((v) => (v === '' || v == null ? null : v), z.coerce.number().min(-90).max(90).nullable()),
+    lng: z.preprocess((v) => (v === '' || v == null ? null : v), z.coerce.number().min(-180).max(180).nullable()),
+    place_id: optText(300),
+    // Appointment businesses
+    slot_minutes: z.coerce.number().int().refine((n) => [10, 15, 20, 30, 45, 60].includes(n), 'Slot length must be 10, 15, 20, 30, 45 or 60 minutes'),
+    booking_days: z.coerce.number().int().min(1, 'At least 1 day').max(60, 'At most 60 days'),
+    min_notice_minutes: z.coerce.number().int().min(0).max(2880),
   })
-  .partial();
+  .partial()
+  .refine((s) => (s.lat === undefined) === (s.lng === undefined) && (s.lat === null) === (s.lng === null), {
+    message: 'Set both latitude and longitude',
+    path: ['lat'],
+  });
 
 // "List price" is the selling price shown to shoppers (stored as offer_price). Only name, MRP and list price
 // are required; the SKU code is optional and auto-assigned when missing.
@@ -220,3 +233,49 @@ export const customerProfile = z.object({
 export const orderStatus = z.object({
   status: z.enum(['placed', 'confirmed', 'out_for_delivery', 'delivered', 'cancelled']),
 });
+
+// ---------------------------------------------------------------------------
+// Appointments
+// ---------------------------------------------------------------------------
+
+const uuid = z.string().uuid('Invalid id');
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD');
+const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM');
+
+export const service = z.object({
+  name: z.preprocess(cleanText, z.string().min(1, 'Name is required').max(80, 'Max 80 characters')),
+  category: z.preprocess((v) => cleanText(v) || 'Other', z.string().max(60)),
+  description: text(1000).default(''),
+  duration_min: z.coerce.number({ error: 'Duration must be a number' }).int().min(5, 'At least 5 minutes').max(480, 'At most 8 hours'),
+  price: money,
+  active: z.boolean().default(true),
+});
+
+export const specialist = z.object({
+  name: z.preprocess(cleanText, z.string().min(1, 'Name is required').max(60, 'Max 60 characters')),
+  title: text(80).default(''),
+  photo_url: optUrl.optional(),
+  schedule: z.record(z.string(), z.unknown()), // validated by normaliseSchedule
+  service_ids: z.array(uuid).max(100).default([]),
+  active: z.boolean().default(true),
+});
+
+export const availabilityQuery = z.object({
+  service: uuid,
+  date: isoDate,
+  specialist: uuid.optional(),
+});
+
+export const bookAppointment = z.object({
+  service_id: uuid,
+  specialist_id: uuid.optional(), // omitted = any available specialist
+  date: isoDate,
+  time: hhmm,
+  name: z.preprocess(cleanText, z.string().min(1, 'Enter your name').max(60)),
+  phone: mobile10,
+  notes: text(500).default(''),
+  language: z.enum(LANGUAGE_CODES).default('en'),
+});
+
+export const APPOINTMENT_STATUSES = ['requested', 'confirmed', 'completed', 'cancelled', 'no_show'];
+export const appointmentStatus = z.object({ status: z.enum(APPOINTMENT_STATUSES) });

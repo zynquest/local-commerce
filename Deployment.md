@@ -406,15 +406,17 @@ To rotate the admin password (this signs the admin out everywhere), run the same
 
 ### Demo stores (optional)
 
-Five ready-made demo stores show visitors how the platform works:
+Seven ready-made demo businesses (all in Bengaluru) show visitors how the platform works:
 
-| Store | Link | Products |
+| Business | Link | Catalog |
 |---|---|---|
 | Shree Shivam Groceries | `/s/demo` | 20 |
 | Hari Bhari Sabzi Mandi (vegetables & fruits) | `/s/demo-vegetables` | 12 |
 | Malligai Flower Stall | `/s/demo-flowers` | 12 |
 | Sri Ganesh Electricals | `/s/demo-electricals` | 12 |
 | Iyengar Fresh Bakery | `/s/demo-bakery` | 12 |
+| Glow Hair & Beauty Studio (appointments) | `/s/demo-salon` | 8 services, 3 specialists |
+| SmileCare Dental & Physio Clinic (appointments) | `/s/demo-clinic` | 6 services, 2 specialists |
 
 Create them (deploy this version first, so the `is_demo` migration exists). It's safe to re-run:
 
@@ -731,7 +733,48 @@ sudo chmod -R o+rX /opt/vfl/app/client/dist
 - [ ] No snapshots, load balancers, Cloud NAT or Cloud SQL.
 - [ ] Backup bucket (if any) is in the same US region and under 5 GB.
 - [ ] Budget alert is configured; expected spend is about ₹310/month for the IPv4 address.
+- [ ] Google Maps (if enabled, [B19](#b19-google-maps-address-search-and-near-me)): key restricted to your domain and the 3 APIs, daily quota caps set.
 
 Pricing references:
 - https://cloud.google.com/free/docs/free-cloud-features#compute
 - https://cloud.google.com/vpc/network-pricing
+
+---
+
+## B19. Google Maps: address search and "near me"
+
+Merchants pick their shop address from **Google Maps search** (India only), or use **"Use my current location"** and drag a pin. Shoppers see only businesses within **5 km** of their location, from GPS or an area search. Without a key, everything still works: merchants type the address and set the pin with their phone's GPS, and shoppers use GPS.
+
+**1. Enable the APIs.** In Cloud Console (same project), go to **APIs & Services → Library** and enable:
+- **Maps JavaScript API**
+- **Places API (New)**
+- **Geocoding API**
+
+Google Maps needs a billing account (the same one as the VM). Each Maps API has a free monthly usage allowance. Check current numbers at https://mapsplatform.google.com/pricing/.
+
+**2. Create a browser key.** Go to **APIs & Services → Credentials → Create credentials → API key**, then **Edit**:
+- *Application restrictions* → **Websites**: `https://sonsari.in/*` and `https://www.sonsari.in/*`
+- *API restrictions* → **Restrict key** → the 3 APIs above
+
+The key is visible in the browser by design; these restrictions are what protect it. For local testing, use a second key restricted to `http://localhost:5173/*`.
+
+**3. (Recommended) Create a Map ID** for the draggable-pin map: **Google Maps Platform → Map management → Create Map ID** (type *JavaScript*, *Vector*). Without one, the built-in `DEMO_MAP_ID` is used, which is fine for testing.
+
+**4. Cap the spend.** For **APIs & Services → Places API (New) → Quotas**, set a daily limit (e.g. 1,000 requests/day), and do the same for Geocoding. The budget alert from B3 covers the rest.
+
+**5. Configure the VM**:
+```bash
+sudo nano /etc/vfl/env
+# GOOGLE_MAPS_API_KEY=AIza…
+# GOOGLE_MAPS_MAP_ID=<your map id>      # optional
+# NEARBY_RADIUS_KM=5                    # shoppers see businesses within this distance
+sudo systemctl restart vfl-api
+```
+Check: `curl -s https://sonsari.in/api/config` should show `"mapsKey":"AIza…"` and `"nearbyKm":5`.
+
+**How "near me" works:**
+- The store directory and the home page list only approved businesses within the radius, nearest first, with the distance shown.
+- Demo stores are always listed, with a Demo label.
+- A store's own link (`/s/<store>`) always works, whatever the distance.
+- Every business needs a map location before it can be submitted for approval (the checklist shows "Location on the map").
+

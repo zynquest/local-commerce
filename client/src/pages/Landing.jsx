@@ -7,7 +7,7 @@ import {
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import SiteHeader from '../components/SiteHeader.jsx';
 import { useSeo } from '../lib/seo.js';
-import { StoreList } from './StoreDirectory.jsx';
+import { NearbyBar, StoreList } from './StoreDirectory.jsx';
 import { PLATFORM } from '../config.js';
 import { formatMoney } from '../lib/format.js';
 import { buildOrderMessage, whatsappLink } from '../services/whatsappService.js';
@@ -350,7 +350,8 @@ export default function Landing() {
           </div>
           <Link to="/stores" className="flex-none text-sm font-semibold text-brand">{t('common.seeAll')} <span className="inline-block rtl:rotate-180">→</span></Link>
         </div>
-        <div className="mt-8">
+        <NearbyBar className="mt-4" />
+        <div className="mt-4">
           <StoreList limit={6} />
         </div>
       </section>

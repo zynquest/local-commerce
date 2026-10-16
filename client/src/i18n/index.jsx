@@ -124,6 +124,15 @@ export function I18nProvider({ children }) {
       locale,
       formatDate: (d, opts = { dateStyle: 'medium', timeStyle: 'short' }) => new Intl.DateTimeFormat(locale, opts).format(new Date(d)),
       formatTime: (d) => new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date(d)),
+      // Appointment helpers. Day keys: 'sun' … 'sat'; dates "YYYY-MM-DD" and times "HH:MM" are shop-local (IST).
+      dayName: (day, style = 'long') =>
+        new Intl.DateTimeFormat(locale, { weekday: style, timeZone: 'UTC' }).format(
+          new Date(Date.UTC(2026, 9, 18 + ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].indexOf(day))),
+        ),
+      formatDay: (date, opts = { weekday: 'short', day: 'numeric', month: 'short' }) =>
+        new Intl.DateTimeFormat(locale, { ...opts, timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`)),
+      formatClock: (hhmm) =>
+        new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }).format(new Date(`2026-01-01T${hhmm}:00Z`)),
     };
   }, [lang, ready, setLang]);
 

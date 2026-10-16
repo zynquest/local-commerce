@@ -9,6 +9,7 @@ import { query, tx } from '../db.js';
 import { badRequest, notFound, parse } from '../errors.js';
 import * as S from '../schemas.js';
 import { PRODUCT_COLUMNS, PUBLIC_STORE_COLUMNS, product as serializeProduct, publicStore, round2 } from '../serialize.js';
+import { publicBookingCatalog } from './appointments.js';
 
 export const publicRouter = Router();
 
@@ -21,22 +22,57 @@ publicRouter.get('/config', (_req, res) => {
     // How OTPs reach users: 'manual' = WhatsApp otpHelpWhatsApp to receive the code (until an SMS gateway exists).
     otpDelivery: getProvider().delivery,
     otpHelpWhatsApp: config.otpHelpWhatsApp,
+    mapsKey: config.googleMapsKey,
+    mapId: config.googleMapId,
+    nearbyKm: config.nearbyRadiusKm,
   });
 });
 
+// Great-circle distance in km between the store and ($lat, $lng) — fine at city scale, no PostGIS needed.
+const DISTANCE_SQL = (latParam, lngParam) => `(6371 * 2 * asin(sqrt(
+    power(sin(radians(s.lat - ${latParam}) / 2), 2) +
+    cos(radians(${latParam})) * cos(radians(s.lat)) * power(sin(radians(s.lng - ${lngParam}) / 2), 2))))`;
+
+/**
+ * Directory. With ?lat=&lng= (the shopper's location) only businesses within the radius are returned, nearest
+ * first, plus demo stores (labelled, so new visitors anywhere can try the app). Without a location: every
+ * approved store (used for SEO pages and links that don't need "near me").
+ * ?type=shop|appointments filters by business type.
+ */
 publicRouter.get('/stores', async (req, res) => {
   const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 60) : '';
+  const lat = Number(req.query.lat);
+  const lng = Number(req.query.lng);
+  const near = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+  const radius = Math.min(config.nearbyRadiusKm, Math.max(0.5, Number(req.query.radius) || config.nearbyRadiusKm));
+  const type = ['shop', 'appointments'].includes(req.query.type) ? req.query.type : '';
+  const params = [q, type];
+  let distance = 'NULL::float';
+  let where = '';
+  let order = 's.is_demo, s.verified DESC, s.created_at DESC';
+  if (near) {
+    params.push(lat, lng, radius, radius / 111, radius / (111 * Math.max(0.2, Math.cos((lat * Math.PI) / 180))));
+    distance = DISTANCE_SQL('$3', '$4');
+    // Bounding box first (uses the index), exact distance second. Demo stores are always included.
+    where = `AND (s.is_demo OR (s.lat BETWEEN $3 - $6 AND $3 + $6 AND s.lng BETWEEN $4 - $7 AND $4 + $7 AND ${distance} <= $5))`;
+    order = `s.is_demo, ${distance} NULLS LAST, s.verified DESC`;
+  }
   const { rows } = await query(
-    `SELECT s.slug, s.name, s.logo_url, s.category, s.city, s.description, s.verified, s.is_demo,
-            (SELECT count(*)::int FROM products p WHERE p.store_id = s.id AND p.status = 'active') AS product_count
+    `SELECT s.slug, s.name, s.logo_url, s.category, s.city, s.description, s.verified, s.is_demo, s.business_type,
+            round((${distance})::numeric, 1)::float AS distance_km,
+            CASE WHEN s.business_type = 'appointments'
+                 THEN (SELECT count(*)::int FROM services sv WHERE sv.store_id = s.id AND sv.active)
+                 ELSE (SELECT count(*)::int FROM products p WHERE p.store_id = s.id AND p.status = 'active') END AS product_count
        FROM stores s
       WHERE s.status = 'approved' AND s.whatsapp_number IS NOT NULL
         AND ($1 = '' OR s.name ILIKE '%' || $1 || '%' OR s.city ILIKE '%' || $1 || '%' OR s.category ILIKE '%' || $1 || '%')
-      ORDER BY s.is_demo, s.verified DESC, s.created_at DESC
+        AND ($2 = '' OR s.business_type = $2)
+        ${where}
+      ORDER BY ${order}
       LIMIT 100`,
-    [q],
+    params,
   );
-  res.json({ stores: rows });
+  res.json({ stores: rows, near: near ? { lat, lng, radius_km: radius } : null });
 });
 
 publicRouter.get('/domains/:host', async (req, res) => {
@@ -67,19 +103,24 @@ publicRouter.get('/stores/:slug', async (req, res) => {
     preview = true;
   }
 
-  const version = `${store.id}-${new Date(store.updated_at).getTime()}-${store.status}`;
+  // b2: payload shape version (appointment stores added services/specialists) so old device caches refetch.
+  const version = `${store.id}-${new Date(store.updated_at).getTime()}-${store.status}-b2`;
   const etag = `"${version}"`;
   res.set('ETag', etag);
   res.set('Cache-Control', 'no-cache');
   // Proxies/CDNs may weaken or suffix the tag (W/"…", "…-gzip"), so match on the version itself.
   if ((req.get('If-None-Match') || '').includes(version)) return res.status(304).end();
 
+  const pub = publicStore(store);
+  if (preview) Object.assign(pub, { preview: true, status: store.status, accepting_orders: false });
+  if (store.business_type === 'appointments') {
+    const { services, specialists } = await publicBookingCatalog(store.id);
+    return res.json({ store: pub, products: [], services, specialists, version: etag });
+  }
   const products = await query(
     `SELECT ${PRODUCT_COLUMNS} FROM products p WHERE p.store_id = $1 AND p.status = 'active' ORDER BY p.position, p.created_at`,
     [store.id],
   );
-  const pub = publicStore(store);
-  if (preview) Object.assign(pub, { preview: true, status: store.status, accepting_orders: false });
   res.json({ store: pub, products: products.rows.map(serializeProduct), version: etag });
 });
 
@@ -94,9 +135,10 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
   const o = parse(S.placeOrder, req.body);
   if (!o.items.length && !o.notes) throw badRequest('Add at least one item or a note');
 
-  const storeRes = await query(`SELECT id, delivery_fee, whatsapp_number FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
+  const storeRes = await query(`SELECT id, delivery_fee, whatsapp_number, business_type FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
   const store = storeRes.rows[0];
   if (!store) throw notFound('Store not found');
+  if (store.business_type === 'appointments') throw badRequest('This business takes appointments, not orders');
 
   const existing = await query('SELECT id, order_code, total, status FROM orders WHERE store_id = $1 AND order_code = $2', [
     store.id,

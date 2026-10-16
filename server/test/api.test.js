@@ -12,6 +12,7 @@ const digits = String(Date.now()).slice(-8);
 const phoneA = `91${'7'}${digits}0`.slice(0, 12); // 12 digits: 91 + 10-digit mobile
 const phoneB = `91${'8'}${digits}1`.slice(0, 12);
 const phoneShopper = `91${'6'}${digits}2`.slice(0, 12);
+const phoneC = `91${'9'}${digits}3`.slice(0, 12); // appointment business owner
 let server;
 let base;
 let createdAdminId = null;
@@ -70,9 +71,9 @@ before(async () => {
 });
 
 after(async () => {
-  await query(`DELETE FROM users WHERE phone = ANY($1) AND role = 'owner'`, [[phoneA, phoneB]]);
+  await query(`DELETE FROM users WHERE phone = ANY($1) AND role = 'owner'`, [[phoneA, phoneB, phoneC]]);
   await query(`DELETE FROM customers WHERE name = $1`, [`Tester ${run}`]);
-  await query(`DELETE FROM otp_codes WHERE phone = ANY($1)`, [[phoneA, phoneB, phoneShopper, '919000011111']]);
+  await query(`DELETE FROM otp_codes WHERE phone = ANY($1)`, [[phoneA, phoneB, phoneC, phoneShopper, '919000011111']]);
   if (createdAdminId) await query('DELETE FROM users WHERE id = $1', [createdAdminId]);
   server.close();
   await pool.end();
@@ -272,8 +273,9 @@ describe('approval workflow', () => {
 
   test('submit requires checklist; then admin rejects with remarks; owner resubmits; admin approves', async () => {
     const early = await owner('POST', '/api/merchant/store/submit', {});
-    assert.equal(early.status, 400, 'category missing');
-    await owner('PUT', '/api/merchant/store', { category: 'Grocery', delivery_fee: 20 });
+    assert.equal(early.status, 400, 'category + map location missing');
+    assert.match(early.body.error, /Location on the map/);
+    await owner('PUT', '/api/merchant/store', { category: 'Grocery', delivery_fee: 20, lat: 12.9716, lng: 77.5946 });
     const sub = await owner('POST', '/api/merchant/store/submit', { note: 'Please review' });
     assert.equal(sub.status, 200, JSON.stringify(sub.body));
     assert.equal(sub.body.store.status, 'pending_review');
@@ -414,6 +416,106 @@ describe('demo stores', () => {
     } finally {
       await query(`UPDATE stores SET is_demo = false, status = 'draft', whatsapp_number = $2 WHERE id = $1`, [id, phoneB]);
     }
+  });
+});
+
+describe('appointments: services, specialists, slots, WhatsApp bookings', () => {
+  const pro = client();
+  let apSlug;
+  let apId;
+  let cut;
+  let spa;
+  let spec;
+  const tomorrow = () => new Date(Date.now() + 330 * 60_000 + 86_400_000).toISOString().slice(0, 10); // IST
+
+  test('owner registers as an appointment business', async () => {
+    const code = await otpFor(pro, phoneC, 'owner_register', { name: `Glow Salon ${run}` });
+    const r = await pro('POST', '/api/auth/register', { storeName: `Glow Salon ${run}`, phone: phoneC, code, businessType: 'appointments' });
+    assert.equal(r.status, 201, JSON.stringify(r.body));
+    assert.equal(r.body.user.business_type, 'appointments');
+    apSlug = r.body.user.store_slug;
+    const s = await pro('GET', '/api/merchant/store');
+    apId = s.body.store.id;
+    assert.deepEqual(s.body.store.checklist.map((c) => c.key), ['name', 'whatsapp', 'location', 'category', 'services', 'specialists']);
+  });
+
+  test('services and specialists (schedule validated, services must be the store\'s own)', async () => {
+    cut = (await pro('POST', '/api/merchant/services', { name: 'Hair Cut', category: 'Hair', duration_min: 30, price: 200 })).body.service;
+    spa = (await pro('POST', '/api/merchant/services', { name: 'Hair Spa', category: 'Hair', duration_min: 60, price: 800 })).body.service;
+    assert.equal(spa.duration_min, 60);
+    assert.equal((await pro('POST', '/api/merchant/services', { name: 'X', duration_min: 2, price: 1 })).status, 400);
+    const bad = await pro('POST', '/api/merchant/specialists', { name: 'Asha', schedule: { mon: [['18:00', '10:00']] }, service_ids: [cut.id] });
+    assert.equal(bad.status, 400);
+    const allWeek = Object.fromEntries(['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((d) => [d, [['10:00', '18:00']]]));
+    const r = await pro('POST', '/api/merchant/specialists', { name: 'Asha', title: 'Senior Stylist', schedule: allWeek, service_ids: [cut.id, spa.id] });
+    assert.equal(r.status, 201, JSON.stringify(r.body));
+    spec = r.body.specialist;
+    assert.equal((await other('POST', '/api/merchant/specialists', { name: 'Hack', schedule: allWeek, service_ids: [cut.id] })).status, 400, 'other store cannot use these services');
+  });
+
+  test('location + category complete the checklist; admin approves', async () => {
+    await pro('PUT', '/api/merchant/store', { category: 'Hair Salon', city: 'Bengaluru', address_text: 'MG Road', lat: 12.9756, lng: 77.6066 });
+    const sub = await pro('POST', '/api/merchant/store/submit', {});
+    assert.equal(sub.status, 200, JSON.stringify(sub.body));
+    assert.equal((await admin('POST', `/api/platform/stores/${apId}/approve`, {})).status, 200);
+    const pub = await shopper('GET', `/api/stores/${apSlug}`);
+    assert.equal(pub.body.store.business_type, 'appointments');
+    assert.deepEqual(pub.body.services.map((s) => s.name), ['Hair Cut', 'Hair Spa']);
+    assert.equal(pub.body.specialists[0].name, 'Asha');
+    assert.equal(pub.body.specialists[0].schedule, undefined, 'working hours stay private');
+  });
+
+  test('availability: days summary and free times for a date', async () => {
+    const days = await shopper('GET', `/api/stores/${apSlug}/availability?service=${spa.id}`);
+    assert.equal(days.body.days.length, 14);
+    const r = await shopper('GET', `/api/stores/${apSlug}/availability?service=${spa.id}&date=${tomorrow()}`);
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.slots[0].time, '10:00');
+    assert.equal(r.body.slots.at(-1).time, '17:00', '60-minute service must end by 18:00');
+    assert.equal((await shopper('GET', `/api/stores/${apSlug}/availability?service=${spa.id}&date=2020-01-01`)).status, 400, 'past date');
+  });
+
+  test('booking holds the slot: same or overlapping time is refused; parallel requests cannot double-book', async () => {
+    const book = (time, extra = {}) =>
+      shopper('POST', `/api/stores/${apSlug}/appointments`, { service_id: spa.id, date: tomorrow(), time, name: `Tester ${run}`, phone: phoneShopper, language: 'hi', ...extra });
+    const a = await book('10:00');
+    assert.equal(a.status, 201, JSON.stringify(a.body));
+    assert.match(a.body.appointment.code, /^APT-[A-Z0-9]{6}$/);
+    assert.deepEqual([a.body.appointment.time, a.body.appointment.end_time, a.body.appointment.specialist_name], ['10:00', '11:00', 'Asha']);
+    assert.equal((await book('10:00')).status, 409);
+    assert.equal((await book('10:30')).status, 409, 'overlaps 10:00–11:00');
+    const free = await shopper('GET', `/api/stores/${apSlug}/availability?service=${cut.id}&date=${tomorrow()}`);
+    assert.ok(!free.body.slots.some((s) => ['10:00', '10:30'].includes(s.time)) && free.body.slots.some((s) => s.time === '11:00'));
+    const [x, y] = await Promise.all([book('14:00', { phone: '9876500001' }), book('14:00', { phone: '9876500002' })]);
+    assert.deepEqual([x.status, y.status].sort(), [201, 409]);
+  });
+
+  test('merchant sees bookings, confirms/cancels; cancelling frees the slot; orders are refused', async () => {
+    const list = await pro('GET', `/api/merchant/appointments?from=${tomorrow()}&to=${tomorrow()}`);
+    assert.equal(list.body.appointments.length, 2);
+    const first = list.body.appointments[0];
+    assert.equal(first.status, 'requested');
+    assert.equal((await pro('PATCH', `/api/merchant/appointments/${first.id}`, { status: 'confirmed' })).body.appointment.status, 'confirmed');
+    assert.equal((await other('PATCH', `/api/merchant/appointments/${first.id}`, { status: 'cancelled' })).status, 404, 'other store');
+    await pro('PATCH', `/api/merchant/appointments/${first.id}`, { status: 'cancelled' });
+    const again = await shopper('GET', `/api/stores/${apSlug}/availability?service=${spa.id}&date=${tomorrow()}`);
+    assert.equal(again.body.slots[0].time, '10:00');
+    const stats = await pro('GET', '/api/merchant/stats');
+    assert.equal(typeof stats.body.appointments_pending, 'number');
+    assert.equal((await shopper('POST', `/api/stores/${apSlug}/orders`, { order_code: 'ORD-APPT01', items: [], notes: 'x' })).status, 400);
+  });
+
+  test('directory: only businesses within 5 km of the shopper (plus demo stores)', async () => {
+    const near = await shopper('GET', '/api/stores?lat=12.9716&lng=77.5946');
+    const hit = near.body.stores.find((s) => s.slug === apSlug);
+    assert.ok(hit, 'MG Road salon is ~1.3 km from the city centre');
+    assert.ok(hit.distance_km > 0.5 && hit.distance_km < 3, String(hit.distance_km));
+    assert.equal(hit.business_type, 'appointments');
+    const far = await shopper('GET', '/api/stores?lat=28.6139&lng=77.2090'); // Delhi
+    assert.ok(!far.body.stores.some((s) => s.slug === apSlug));
+    assert.ok(far.body.stores.every((s) => s.is_demo), 'only demo stores outside the radius');
+    const typed = await shopper('GET', '/api/stores?lat=12.9716&lng=77.5946&type=shop');
+    assert.ok(!typed.body.stores.some((s) => s.slug === apSlug));
   });
 });
 

@@ -16,7 +16,7 @@ cp .env.example .env
 npm install
 npm run db:up            # Postgres in Docker on localhost:5433
 npm run db:seed          # optional: demo store (owner mobile 9000000001, OTP 898989)
-npm run demo:create      # optional: 5 demo stores (grocery, vegetables, flowers, electricals, bakery); demo:remove -- --yes
+npm run demo:create      # optional: 7 demo businesses (5 shops + salon + clinic); demo:remove -- --yes
 npm run admin:create     # the single platform admin (CLI only, strong password enforced)
 npm run dev              # API :4000 + UI :5173
 ```
@@ -64,6 +64,13 @@ npm run admin:reset-password
   - Only **name, MRP and list price** are required.
   - The SKU (item code) is auto-assigned (`P0001`, `P0002`, …) and never shown to shoppers.
   - Free plan: 50 active products; paid: 50+. The limit is enforced on the server under a row lock.
+- **Two business types**, chosen at registration:
+  - **Store**: products, cart, WhatsApp orders.
+  - **Appointments**: salon, spa, beauty parlour, clinic. The business manages **services** (duration, price), **specialists** (weekly hours, which services they do) and **bookings**. Customers pick service → specialist (or "any") → date → free slot, then send the booking on WhatsApp.
+  - The slot is held as a `requested` booking. A Postgres exclusion constraint makes overlapping bookings for one specialist impossible, even under concurrent requests.
+  - The business confirms, cancels, or marks done / no-show, and replies on WhatsApp with a pre-filled message in the customer's language.
+  - Code: `server/src/routes/appointments.js`, slot maths in `server/src/appointments/slots.js` (IST).
+- **Location / near me:** merchants set the shop location with Google Maps search, GPS and a draggable pin (`client/src/components/AddressPicker.jsx`). Shoppers see only businesses within `NEARBY_RADIUS_KM` (default 5) of their location (`GET /api/stores?lat=&lng=`); demo stores are always listed. A Google Maps key is optional (Deployment.md §B19).
 - **Products from a WhatsApp message** (Products tab, `POST /api/merchant/products/from-message`, parser in `server/src/catalog/messageParser.js`):
   - Format 1 is three lines per product (`Name` / `MRP` / `List price`). Format 2 is `Name,MRP,List price|Name,MRP,List price`. The two can be mixed.
   - WhatsApp timestamps and sender names, `*bold*`, bullets, `₹`/`Rs`/`MRP:` labels, `/-` and `1,250` are tolerated.

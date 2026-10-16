@@ -24,7 +24,7 @@ async function uniqueSlug(client, name) {
 
 async function ownerProfile(userId) {
   const { rows } = await query(
-    `SELECT u.id, u.username, u.phone, s.slug AS store_slug, s.name AS store_name, s.status AS store_status
+    `SELECT u.id, u.username, u.phone, s.slug AS store_slug, s.name AS store_name, s.status AS store_status, s.business_type
        FROM users u LEFT JOIN stores s ON s.owner_id = u.id WHERE u.id = $1`,
     [userId],
   );
@@ -37,7 +37,7 @@ async function assertPhoneFree(client, phone) {
 }
 
 /** Creates owner + draft store. The verified registration mobile becomes the store's WhatsApp number. */
-async function createOwner({ storeName, phone }) {
+async function createOwner({ storeName, phone, businessType = 'shop' }) {
   const username = `m${phone}`; // internal identifier; owners log in with their mobile number
   return tx(async (client) => {
     await assertPhoneFree(client, phone);
@@ -47,9 +47,9 @@ async function createOwner({ storeName, phone }) {
       [username, phone],
     );
     await client.query(
-      `INSERT INTO stores (owner_id, slug, name, whatsapp_number, whatsapp_verified, sku_limit)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [rows[0].id, await uniqueSlug(client, storeName), storeName, phone, true, config.freeSkuLimit],
+      `INSERT INTO stores (owner_id, slug, name, whatsapp_number, whatsapp_verified, sku_limit, business_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [rows[0].id, await uniqueSlug(client, storeName), storeName, phone, true, config.freeSkuLimit, businessType],
     );
     return rows[0].id;
   });
@@ -57,9 +57,9 @@ async function createOwner({ storeName, phone }) {
 
 // Registration: store name + 10-digit mobile verified by OTP (POST /api/otp/request, purpose owner_register).
 authRouter.post('/register', async (req, res) => {
-  const { storeName, phone, code } = parse(S.registerOwner, req.body);
+  const { storeName, phone, code, businessType } = parse(S.registerOwner, req.body);
   await verifyOtp({ phone, purpose: 'owner_register', code });
-  const userId = await createOwner({ storeName, phone });
+  const userId = await createOwner({ storeName, phone, businessType });
   await createSession(res, 'user', userId);
   res.status(201).json({ user: await ownerProfile(userId) });
 });

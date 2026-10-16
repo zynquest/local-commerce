@@ -103,6 +103,8 @@ export function StoreProvider({ slug, basePath, children }) {
       slug,
       store,
       products: state.entry?.products || [],
+      services: state.entry?.services || [],
+      specialists: state.entry?.specialists || [],
       fetchedAt: state.entry?.fetchedAt || null,
       expiresAt: state.entry ? state.entry.fetchedAt + CATALOG_TTL_MS : null,
       refreshing,

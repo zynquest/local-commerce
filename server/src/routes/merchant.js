@@ -39,13 +39,32 @@ const REVIEWABLE = ['draft', 'rejected', 'suspended'];
 export const DEMO_WHATSAPP_LOCKED = 'Demo stores always take orders on the Vocal For Local WhatsApp number';
 
 /** What must be in place before a store can be submitted for review. */
-async function reviewChecklist(store) {
-  const { rows } = await query(`SELECT count(*)::int AS n FROM products WHERE store_id = $1 AND status = 'active'`, [store.id]);
-  return [
+export async function reviewChecklist(store) {
+  const common = [
     { key: 'name', label: 'Store name', done: Boolean(store.name) },
     { key: 'whatsapp', label: 'WhatsApp number for orders', done: Boolean(store.whatsapp_number) },
-    { key: 'address', label: 'Address or city', done: Boolean(store.address_text || store.city) },
+    // Shoppers only see businesses near them, so the map pin is required.
+    { key: 'location', label: 'Location on the map', done: store.lat != null && store.lng != null && Boolean(store.address_text || store.city) },
     { key: 'category', label: 'Store type (e.g. Grocery, Bakery)', done: Boolean(store.category) },
+  ];
+  if (store.business_type === 'appointments') {
+    const { rows } = await query(
+      `SELECT (SELECT count(*)::int FROM services WHERE store_id = $1 AND active) AS services,
+              (SELECT count(*)::int FROM specialists sp WHERE sp.store_id = $1 AND sp.active
+                  AND EXISTS (SELECT 1 FROM specialist_services ss JOIN services sv ON sv.id = ss.service_id
+                               WHERE ss.specialist_id = sp.id AND sv.active)
+                  AND EXISTS (SELECT 1 FROM jsonb_each(sp.schedule) d WHERE jsonb_array_length(d.value) > 0)) AS specialists`,
+      [store.id],
+    );
+    return [
+      ...common,
+      { key: 'services', label: 'At least 1 service', done: rows[0].services > 0 },
+      { key: 'specialists', label: 'At least 1 specialist with working hours and services', done: rows[0].specialists > 0 },
+    ];
+  }
+  const { rows } = await query(`SELECT count(*)::int AS n FROM products WHERE store_id = $1 AND status = 'active'`, [store.id]);
+  return [
+    ...common,
     {
       key: 'products',
       label: `At least ${config.minProductsForReview} product${config.minProductsForReview > 1 ? 's' : ''}`,
@@ -141,7 +160,11 @@ merchantRouter.get('/stats', async (req, res) => {
        (SELECT count(*)::int FROM orders WHERE store_id = $1 AND created_at >= date_trunc('day', now())) AS orders_today,
        (SELECT count(*)::int FROM orders WHERE store_id = $1 AND status = 'placed') AS orders_pending,
        (SELECT coalesce(sum(total), 0) FROM orders
-          WHERE store_id = $1 AND status <> 'cancelled' AND created_at >= now() - interval '7 days') AS revenue_7d`,
+          WHERE store_id = $1 AND status <> 'cancelled' AND created_at >= now() - interval '7 days') AS revenue_7d,
+       (SELECT count(*)::int FROM appointments WHERE store_id = $1 AND status IN ('requested', 'confirmed')
+          AND starts_at >= date_trunc('day', now() AT TIME ZONE 'Asia/Kolkata') AT TIME ZONE 'Asia/Kolkata'
+          AND starts_at < (date_trunc('day', now() AT TIME ZONE 'Asia/Kolkata') + interval '1 day') AT TIME ZONE 'Asia/Kolkata') AS appointments_today,
+       (SELECT count(*)::int FROM appointments WHERE store_id = $1 AND status = 'requested' AND ends_at > now()) AS appointments_pending`,
     [req.user.store_id],
   );
   res.json(rows[0]);

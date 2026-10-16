@@ -108,7 +108,10 @@ function StoreDetail({ id, onClose, onChanged }) {
                     <StatusPill status={s.status} />
                     <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold">{s.plan === 'paid' ? `Paid · ${s.sku_limit}` : `Free · ${s.sku_limit}`} products</span>
                   </div>
-                  <p className="mt-1 text-sm text-stone-600">{[s.category, s.city].filter(Boolean).join(' · ') || 'No category/city'}</p>
+                  <p className="mt-1 text-sm text-stone-600">
+                    <b>{s.business_type === 'appointments' ? 'Appointments' : 'Store'}</b> · {[s.category, s.city].filter(Boolean).join(' · ') || 'No category/city'}
+                    {s.lat == null && <span className="ms-1 text-rose-600">· no map location</span>}
+                  </p>
                   {s.address_text && <p className="flex gap-1 text-xs text-stone-500"><MapPin size={12} className="mt-0.5" /> {s.address_text}</p>}
                 </div>
                 <a href={`/s/${s.slug}`} target="_blank" rel="noreferrer" className="btn-ghost h-fit py-1.5 text-xs">
@@ -338,7 +341,7 @@ export default function AdminConsole() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{s.name}</p>
                   <p className="truncate text-xs text-stone-500">
-                    {[s.category, s.city].filter(Boolean).join(' · ') || '—'} · {s.product_count} products · owner {s.owner_username} ({phoneText(s.owner_phone)})
+                    {s.business_type === 'appointments' ? 'Appointments · ' : ''}{[s.category, s.city].filter(Boolean).join(' · ') || '—'} · {s.product_count} products · owner {s.owner_username} ({phoneText(s.owner_phone)})
                   </p>
                 </div>
                 <div className="flex flex-none flex-col items-end gap-1">

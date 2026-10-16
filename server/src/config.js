@@ -25,6 +25,13 @@ export const config = {
   publicUrl: (process.env.PUBLIC_URL || '').replace(/\/$/, ''),
   // Demo stores (npm run demo:create) always take orders on the company WhatsApp — fixed on purpose, not configurable.
   demoWhatsApp: '919353095481',
+  // Google Maps (address search for merchants, "near me" for shoppers). A browser key restricted to your domain;
+  // enable Maps JavaScript API, Places API (New) and Geocoding API. Without it, addresses are typed and the pin
+  // comes from the phone's GPS.
+  googleMapsKey: process.env.GOOGLE_MAPS_API_KEY || '',
+  googleMapId: process.env.GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
+  // Shoppers see businesses within this distance of their location.
+  nearbyRadiusKm: Math.min(50, Math.max(1, Number(process.env.NEARBY_RADIUS_KM) || 5)),
   // Optional search-engine ownership tokens (the content="" value of the verification meta tag).
   googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || '',
   bingSiteVerification: process.env.BING_SITE_VERIFICATION || '',

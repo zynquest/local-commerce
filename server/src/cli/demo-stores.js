@@ -1,4 +1,5 @@
-// Five demo stores (Grocery, Vegetables, Flowers, Electricals, Bakery) for showing the platform. They're approved
+// Demo businesses: five shops (Grocery, Vegetables, Flowers, Electricals, Bakery) and two appointment businesses
+// (hair & beauty salon, dental & physio clinic) for showing the platform. They're approved
 // and orderable (orders always go to the company WhatsApp, config.demoWhatsApp = 919353095481) but marked is_demo: labelled "Demo", listed after real stores,
 // noindex and left out of the sitemap. Safe to re-run: stores and products are upserted.
 //
@@ -27,6 +28,47 @@ async function writeFile(storeId, name, content) {
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(dir, name), content);
   return `/uploads/${storeId}/${name}`;
+}
+
+/** Services + specialists (with weekly hours) for a demo appointment business. Matched by name, so re-runs update. */
+async function seedBooking(client, storeId, demo) {
+  const ids = {};
+  let position = 0;
+  for (const [name, category, duration, price, description] of demo.services) {
+    const found = await client.query('SELECT id FROM services WHERE store_id = $1 AND name = $2', [storeId, name]);
+    if (found.rows[0]) {
+      await client.query(
+        `UPDATE services SET category = $2, duration_min = $3, price = $4, description = $5, active = true, position = $6, updated_at = now() WHERE id = $1`,
+        [found.rows[0].id, category, duration, price, description, ++position],
+      );
+      ids[name] = found.rows[0].id;
+    } else {
+      const { rows } = await client.query(
+        `INSERT INTO services (store_id, name, category, duration_min, price, description, position) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+        [storeId, name, category, duration, price, description, ++position],
+      );
+      ids[name] = rows[0].id;
+    }
+  }
+  await client.query('DELETE FROM services WHERE store_id = $1 AND NOT (name = ANY($2))', [storeId, demo.services.map((x) => x[0])]);
+  position = 0;
+  for (const [name, title, schedule, serviceNames] of demo.specialists) {
+    const full = Object.fromEntries(['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((d) => [d, schedule[d] || []]));
+    const found = await client.query('SELECT id FROM specialists WHERE store_id = $1 AND name = $2', [storeId, name]);
+    let id = found.rows[0]?.id;
+    if (id) {
+      await client.query(`UPDATE specialists SET title = $2, schedule = $3, active = true, position = $4, updated_at = now() WHERE id = $1`, [id, title, full, ++position]);
+    } else {
+      ({ rows: [{ id }] } = await client.query(
+        `INSERT INTO specialists (store_id, name, title, schedule, position) VALUES ($1,$2,$3,$4,$5) RETURNING id`,
+        [storeId, name, title, full, ++position],
+      ));
+    }
+    await client.query('DELETE FROM specialist_services WHERE specialist_id = $1', [id]);
+    for (const sn of serviceNames) await client.query('INSERT INTO specialist_services (specialist_id, service_id) VALUES ($1, $2)', [id, ids[sn]]);
+  }
+  await client.query('DELETE FROM specialists WHERE store_id = $1 AND NOT (name = ANY($2))', [storeId, demo.specialists.map((x) => x[0])]);
+  return demo.services.length;
 }
 
 async function create() {
@@ -73,6 +115,7 @@ async function create() {
           await writeFile(storeId, 'banner.svg', banner(demo.emoji, s.name, color)),
         ]);
 
+        if (demo.services) return { slug: s.slug, products: await seedBooking(client, storeId, demo), what: 'services' };
         let position = 0;
         for (const p of demo.products) {
           const { emoji, alt, palette } = p.images;
@@ -97,7 +140,7 @@ async function create() {
         await client.query('DELETE FROM products WHERE store_id = $1 AND NOT (sku_id = ANY($2))', [storeId, demo.products.map((p) => p.sku_id)]);
         return { slug: s.slug, products: demo.products.length };
       });
-      console.log(`[demo] ✓ ${demo.store.name.padEnd(28)} /s/${slug}  (${products} products)`);
+      console.log(`[demo] ✓ ${demo.store.name.padEnd(32)} /s/${slug}  (${products} ${demo.services ? 'services' : 'products'})`);
     } catch (err) {
       console.error(`[demo] ✗ ${demo.store.name}: ${err.message}`);
       process.exitCode = 1;

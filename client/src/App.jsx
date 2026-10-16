@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes, useLocation, useNavigationType } from 'react-router-dom';
-import Storefront from './pages/Storefront.jsx';
+import StoreHome from './pages/StoreHome.jsx';
 import ProductDetail from './pages/ProductDetail.jsx';
 import { DomainStoreLayout, PathStoreLayout } from './pages/StoreLayout.jsx';
 import { LoadingScreen, MessageScreen } from './components/StatusScreens.jsx';
@@ -41,7 +41,7 @@ function NotFound() {
 
 const storeRoutes = (
   <>
-    <Route index element={<Storefront />} />
+    <Route index element={<StoreHome />} />
     <Route path="p/:skuId" element={<ProductDetail />} />
   </>
 );

@@ -15,7 +15,7 @@ export const demoStore = {
   slug: 'demo',
   name: 'Shree Shivam Groceries',
   whatsapp_number: '919353095481',
-  instagram_handle: 'vocalforlocal',
+  instagram_handle: 'sonsariofficial',
   address_text: 'Shop 4, Green View Complex, Main Market Road, Indiranagar, Bengaluru 560038',
   maps_url: 'https://www.google.com/maps/search/?api=1&query=Indiranagar+Bengaluru',
   description:

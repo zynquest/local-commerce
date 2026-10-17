@@ -89,7 +89,7 @@ async function create() {
         const s = {
           maps_url: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(demo.store.address_text)}`,
           closed_days: null,
-          instagram_handle: null,
+          instagram_handle: 'sonsariofficial', // the platform's own Instagram for every demo store
           ...demo.store,
           whatsapp_number: config.demoWhatsApp,
           whatsapp_verified: true,

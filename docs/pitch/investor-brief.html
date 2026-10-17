@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8" />
+<title>Vocal For Local — Investor Brief & Startup India Submission</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+  :root { --brand: #15803d; --brand-d: #14532d; --ink: #1c1917; --mute: #57534e; --line: #e7e5e4; --soft: #f0fdf4; --violet: #6d28d9; --amber: #b45309; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: Inter, -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, 'Noto Sans', sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.5; margin: 0; }
+  h1, h2, h3 { line-height: 1.2; margin: 0 0 6pt; }
+  h2 { font-size: 19pt; color: var(--brand-d); letter-spacing: -0.3pt; }
+  h2 .num { color: var(--brand); font-weight: 800; margin-right: 6pt; }
+  h3 { font-size: 12pt; margin-top: 12pt; }
+  p { margin: 0 0 7pt; }
+  ul, ol { margin: 0 0 8pt; padding-left: 15pt; }
+  li { margin-bottom: 3pt; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  .lead { font-size: 11.5pt; color: var(--mute); }
+  .kicker { font-size: 8.5pt; font-weight: 800; letter-spacing: 1.2pt; text-transform: uppercase; color: var(--brand); margin-bottom: 4pt; }
+  .muted { color: var(--mute); }
+  .small { font-size: 8.6pt; }
+  .tiny { font-size: 7.6pt; color: var(--mute); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9pt; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8pt; }
+  .card { border: 1px solid var(--line); border-radius: 9pt; padding: 9pt 11pt; background: #fff; break-inside: avoid; }
+  .card.soft { background: var(--soft); border-color: #bbf7d0; }
+  .card.violet { background: #f5f3ff; border-color: #ddd6fe; }
+  .card.amber { background: #fffbeb; border-color: #fde68a; }
+  .card h4 { margin: 0 0 3pt; font-size: 10.5pt; }
+  .stat { font-size: 20pt; font-weight: 800; color: var(--brand-d); line-height: 1.1; }
+  .stat-l { font-size: 8.6pt; color: var(--mute); }
+  table { width: 100%; border-collapse: collapse; margin: 4pt 0 9pt; font-size: 9pt; break-inside: avoid; }
+  th, td { text-align: left; padding: 5pt 6pt; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #f5f5f4; font-weight: 700; font-size: 8.4pt; text-transform: uppercase; letter-spacing: 0.4pt; color: var(--mute); }
+  td.r, th.r { text-align: right; white-space: nowrap; }
+  tr.total td { font-weight: 800; border-top: 2px solid var(--ink); }
+  .pill { display: inline-block; border-radius: 99pt; padding: 1pt 7pt; font-size: 7.8pt; font-weight: 700; background: #dcfce7; color: var(--brand-d); }
+  .pill.v { background: #ede9fe; color: var(--violet); }
+  .pill.a { background: #fef3c7; color: var(--amber); }
+  .ph { background: #fef9c3; border: 1px dashed #ca8a04; border-radius: 4pt; padding: 0 4pt; color: #854d0e; font-weight: 600; }
+  .phones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9pt; margin-top: 6pt; }
+  .phone { border: 5pt solid #1c1917; border-radius: 14pt; overflow: hidden; background: #fff; box-shadow: 0 2pt 6pt rgba(0,0,0,.12); }
+  .phone img { display: block; width: 100%; height: 64mm; object-fit: cover; object-position: top; }
+  .cap { font-size: 8pt; text-align: center; color: var(--mute); margin-top: 3pt; }
+  .quote { border-left: 3pt solid var(--brand); padding: 4pt 0 4pt 10pt; margin: 8pt 0; font-size: 10.6pt; font-weight: 600; color: var(--brand-d); }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps li { counter-increment: s; position: relative; padding-left: 22pt; margin-bottom: 6pt; }
+  .steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 15pt; height: 15pt; border-radius: 50%; background: var(--brand); color: #fff; font-size: 8pt; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .wa { background: #e7fbe9; border-radius: 9pt; padding: 8pt 10pt; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 7.8pt; white-space: pre-wrap; line-height: 1.45; border: 1px solid #bbf7d0; }
+  .footer-note { font-size: 7.6pt; color: var(--mute); border-top: 1px solid var(--line); padding-top: 4pt; margin-top: 10pt; }
+  /* Cover */
+  .cover { height: 258mm; display: flex; flex-direction: column; justify-content: space-between; background: linear-gradient(160deg, #052e16 0%, #14532d 45%, #15803d 100%); color: #fff; border-radius: 14pt; padding: 26mm 18mm 16mm; margin: -2mm 0 0; }
+  .cover .logo { display: flex; align-items: center; gap: 10pt; font-weight: 800; font-size: 15pt; }
+  .cover .logo span.b { width: 30pt; height: 30pt; border-radius: 8pt; background: #22c55e; display: inline-flex; align-items: center; justify-content: center; font-size: 17pt; }
+  .cover h1 { font-size: 33pt; letter-spacing: -1pt; margin-top: 14mm; }
+  .cover h1 em { font-style: normal; color: #86efac; }
+  .cover .sub { font-size: 14pt; color: #d1fae5; max-width: 140mm; margin-top: 8pt; }
+  .cover .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8pt 18pt; font-size: 9.5pt; color: #d1fae5; }
+  .cover .meta b { color: #fff; display: block; font-size: 10.5pt; }
+  .cover .tags span { display: inline-block; border: 1px solid #4ade80; border-radius: 99pt; padding: 2pt 9pt; margin: 0 5pt 5pt 0; font-size: 9pt; color: #dcfce7; }
+  svg text { font-family: Inter, -apple-system, 'Segoe UI', sans-serif; }
+</style>
+</head>
+<body>
+
+<!-- ============================== COVER ============================== -->
+<section class="page">
+  <div class="cover">
+    <div>
+      <div class="logo"><span class="b">🏪</span> Vocal For Local · sonsari.in</div>
+      <h1>Every neighbourhood business,<br /><em>online in 10 minutes.</em><br />Orders &amp; bookings on WhatsApp.</h1>
+      <p class="sub">A zero-commission, vernacular, WhatsApp-first platform that lets India's kirana stores, local shops, salons and small clinics sell and take appointments online, and helps customers discover what's within 5 km.</p>
+      <div class="tags" style="margin-top:14pt">
+        <span>Hyperlocal commerce</span><span>WhatsApp-first</span><span>23 Indian languages</span><span>SaaS for MSMEs</span><span>Appointments</span>
+      </div>
+    </div>
+    <div>
+      <div class="meta">
+        <div><b>Document</b>Investor brief &amp; Startup India (DPIIT) submission</div>
+        <div><b>Date</b>October 2026</div>
+        <div><b>Product</b>Live at https://sonsari.in</div>
+        <div><b>Stage</b>Product launched · pilot onboarding</div>
+        <div><b>Founder</b><span class="ph">[Founder name]</span></div>
+        <div><b>Contact</b><span class="ph">[email]</span> · WhatsApp +91 93530 95481</div>
+        <div><b>Legal entity</b><span class="ph">[Pvt Ltd / LLP name, CIN]</span></div>
+        <div><b>Location</b><span class="ph">[City, State]</span></div>
+      </div>
+      <p class="tiny" style="color:#a7f3d0;margin-top:12pt">Confidential. Market figures are from cited public sources (see Sources). Financial projections are management estimates based on stated assumptions, not guarantees. Fields marked <span style="background:#fef9c3;color:#854d0e;padding:0 3pt;border-radius:3pt">[like this]</span> are for the founder to complete.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== EXEC SUMMARY ============================== -->
+<section class="page">
+  <div class="kicker">Executive summary</div>
+  <h2>India's local businesses need a simple way online. Not another marketplace.</h2>
+  <p class="lead">More than 12 million kirana stores still hold about 91% of India's grocery retail, but quick-commerce apps are taking share in cities, and most neighbourhood businesses have no online storefront, no booking system and no way to be found nearby. Vocal For Local gives them one link where customers browse, order or book. The order arrives on the owner's WhatsApp, with no commission and no app to install.</p>
+
+  <div class="grid4" style="margin:10pt 0">
+    <div class="card soft"><div class="stat">12M+</div><div class="stat-l">kirana stores in India; ~91% of grocery retail</div></div>
+    <div class="card soft"><div class="stat">7.2 Cr</div><div class="stat-l">MSMEs on Udyam / Udyam Assist (Nov 2025)</div></div>
+    <div class="card soft"><div class="stat">535M+</div><div class="stat-l">WhatsApp users in India, its largest market</div></div>
+    <div class="card soft"><div class="stat">24.5 B</div><div class="stat-l">UPI transactions in a single month (Aug 2026)</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Problem</h4>
+      <ul class="small">
+        <li>Local shops lose customers to apps that charge commissions and run dark stores. Quick commerce reportedly took 25–30% of kirana sales in cities in 2024.</li>
+        <li>About 70% of MSMEs still rely on conventional customer engagement; only about 13% use social or digital marketing (SIDBI, May 2025).</li>
+        <li>Existing store builders are English-first, priced per order or per month, and built for D2C brands, not a kirana or a neighbourhood salon.</li>
+        <li>Salons and clinics take bookings by phone: double bookings, no-shows, no discovery.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Solution</h4>
+      <ul class="small">
+        <li><b>Store mode:</b> online catalog in minutes (paste a WhatsApp list or upload Excel). Customers order and the full bill lands on the owner's WhatsApp; payment by UPI or cash.</li>
+        <li><b>Appointment mode:</b> services, specialists and live time slots. Customers book a free slot, it's held instantly, and they confirm on WhatsApp.</li>
+        <li><b>Near me:</b> shoppers see only businesses within 5 km.</li>
+        <li><b>23 Indian languages</b>, works offline for 30 minutes, installable app (PWA), mobile OTP login.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid3" style="margin-top:10pt">
+    <div class="card"><h4>Business model</h4><p class="small">Freemium SaaS. Free up to 50 products. Paid plans of ₹299–₹799/month for growth, own domain and appointment automation, plus local promotion and messaging add-ons. <b>Zero commission on orders.</b></p></div>
+    <div class="card"><h4>Why now</h4><p class="small">Near-universal WhatsApp and UPI. MSME formalisation (Udyam). The quick-commerce threat is pushing kiranas to go digital. New DPIIT framework (Feb 2026) widens startup eligibility.</p></div>
+    <div class="card"><h4>The ask</h4><p class="small">Raising <span class="ph">₹1.5 Cr pre-seed (suggested)</span> for 18 months: field onboarding in 3 cities, the SMS/WhatsApp messaging stack, payments and a 6-person team. Target: 40,000 live businesses and ₹1 Cr annual revenue run-rate by month 24.</p></div>
+  </div>
+  <div class="footer-note">Sources for all figures are listed on the last page. "Quick commerce took 25–30% of kirana sales" and "2 lakh closures" are industry-body (AICPDF) estimates reported in the press.</div>
+</section>
+
+<!-- ============================== ELEVATOR PITCH ============================== -->
+<section class="page">
+  <div class="kicker">The pitch</div>
+  <h2>30-second and 2-minute versions</h2>
+  <h3>Elevator pitch (30 seconds)</h3>
+  <div class="quote">"India has over 12 million kirana stores and lakhs of salons and clinics, and almost none of them can take orders or bookings online without paying commission to an app that competes with them. Vocal For Local gives any local business a free online store or booking page in 10 minutes, in 23 Indian languages. Orders and bookings arrive on the owner's WhatsApp, and customers pay by UPI. Shoppers see only what's within 5 km. We charge a small monthly fee for growth features, never a commission."</div>
+
+  <h3>2-minute pitch script</h3>
+  <ol class="small" style="margin-bottom:4pt">
+    <li><b>Hook.</b> "Your neighbourhood kirana knows your name, but it can't take your order at 9 pm unless you call. Meanwhile a quick-commerce app 2 km away delivers in 10 minutes, and the kirana loses a quarter of its sales."</li>
+    <li><b>Problem.</b> "12 million kiranas and lakhs of salons and clinics run on phone calls and paper. Store builders like Shopify and Dukaan are English-first, charge per order or per month, and expect the owner to manage an app. Marketplaces take 15–30% and own the customer."</li>
+    <li><b>Solution.</b> "Vocal For Local is a link: <i>sonsari.in/s/your-shop</i>. The owner registers with their mobile number and OTP. They add products by pasting their WhatsApp price list or uploading an Excel sheet, and they're live after a quick review. A customer opens the link, adds items and taps <i>Place order on WhatsApp</i>. The owner gets a clean, itemised bill on WhatsApp and the customer pays by UPI. For salons and clinics, customers pick a service, a specialist and a free time slot. The slot is held instantly so it can't be double-booked, and they confirm on WhatsApp."</li>
+    <li><b>Why us / moat.</b> "We built for Bharat: 23 languages including Urdu, Santali and Kashmiri, offline catalogues for patchy networks, WhatsApp instead of a new app, and hyperlocal discovery within 5 km. Our infrastructure costs a few hundred rupees a month today, so we can keep a genuinely free tier."</li>
+    <li><b>Business.</b> "Free up to 50 products. ₹299–₹799 a month for more products, own domain, staff logins and automated WhatsApp reminders. Add-ons for local promotion and messaging. No commission, ever, which is how we win the shopkeeper's trust."</li>
+    <li><b>Traction &amp; plan.</b> "The product is live with stores and appointment businesses onboarding in <span class="ph">[city]</span>. We'll win one neighbourhood at a time with field champions and distributor partners. The target is 40,000 businesses in 24 months."</li>
+    <li><b>Ask.</b> "We're raising <span class="ph">₹1.5 crore</span> to scale onboarding across 3 cities and launch payments and automated messaging. Help us keep India's neighbourhood businesses in business."</li>
+  </ol>
+
+  <h3>Answers to the three questions investors always ask</h3>
+  <div class="grid3">
+    <div class="card"><h4>"Why won't WhatsApp Business do this?"</h4><p class="small">WhatsApp Business offers a catalog, but no cart with totals, delivery fees or minimum orders, no order dashboard, no appointment slots, no 5 km discovery, no Excel import and no store website or SEO. We sit on top of WhatsApp and add the commerce layer.</p></div>
+    <div class="card"><h4>"Why will a kirana pay?"</h4><p class="small">The free tier proves value (orders) first. Owners upgrade when they hit 50 products or want automated reminders, their own domain or promotion to nearby shoppers. ₹299 is less than one lost order a day.</p></div>
+    <div class="card"><h4>"What stops copycats?"</h4><p class="small">Distribution, not code: dense neighbourhood clusters, where every store's link markets the platform to its customers; vernacular trust; distributor partnerships; and a growing local directory where shoppers start their search.</p></div>
+  </div>
+</section>
+
+<!-- ============================== PROBLEM ============================== -->
+<section class="page">
+  <div class="kicker">01 · Problem</div>
+  <h2><span class="num">01</span>Neighbourhood businesses are offline and under pressure</h2>
+  <div class="grid2">
+    <div>
+      <h3>Kirana &amp; local retail</h3>
+      <ul>
+        <li><b>Huge but fragmented:</b> industry estimates put India's kirana stores at 12 million or more, and Redseer found kiranas still held about 91% of grocery retail in 2025.</li>
+        <li><b>Losing share in cities:</b> AICPDF, the distributors' federation, says about 2 lakh kiranas closed in a year amid aggressive quick-commerce expansion. 45% of closures were in metros, and 25–30% of kirana sales moved to quick commerce in 2024.</li>
+        <li><b>Digital gap:</b> about 36% of retail MSMEs had no online presence (FIRST survey, 2023). About 70% of MSMEs still use only conventional customer engagement (SIDBI, May 2025).</li>
+        <li><b>Wrong tools:</b> store builders are built for D2C brands, in English, charging monthly fees <i>plus</i> per-order fees (e.g. Dukaan's 1.99–4.99%). Marketplaces charge high commissions and own the customer relationship.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Salons, spas &amp; small clinics</h3>
+      <ul>
+        <li><b>Large, growing segment:</b> India's beauty salon market is estimated at roughly US$8–12.5 billion in 2025, growing at about 8% CAGR, and dominated by independent neighbourhood salons. Branded chains have only hundreds of outlets each.</li>
+        <li><b>Bookings by phone and walk-in:</b> no live availability, double bookings, idle chairs and no-shows. Staff spend time on calls, not customers.</li>
+        <li><b>Small clinics</b> (dentists, physiotherapists) face the same scheduling problem. Large doctor-booking platforms focus on doctors' discovery, not a small clinic's own booking page.</li>
+      </ul>
+      <div class="card amber" style="margin-top:8pt">
+        <h4>The customer's side</h4>
+        <p class="small" style="margin:0">Customers want to order from the shop they trust, or book their regular stylist, from their phone, in their language, and see what's genuinely near them rather than a city-wide list.</p>
+      </div>
+    </div>
+  </div>
+  <div class="quote" style="margin-top:12pt">The gap: a free, vernacular, WhatsApp-native way for any local business to sell or take bookings online, without giving up margin or customers.</div>
+</section>
+
+<!-- ============================== SOLUTION ============================== -->
+<section class="page">
+  <div class="kicker">02 · Solution</div>
+  <h2><span class="num">02</span>One link. Orders and bookings on WhatsApp.</h2>
+  <div class="grid2">
+    <div class="card soft">
+      <h4>🛒 Store mode (kirana, bakery, florist, electricals, pharmacy…)</h4>
+      <ol class="steps small">
+        <li><b>Register</b> with a 10-digit mobile and OTP, then choose "Store".</li>
+        <li><b>Add products</b>: manually, from Excel/CSV, or by <b>pasting a WhatsApp price list</b>. Only name, MRP and price are required.</li>
+        <li><b>Set your shop location</b> on Google Maps. A quick platform review keeps listings genuine.</li>
+        <li><b>Share the link</b>. Customers browse, add to bag and tap <i>Place order via WhatsApp</i>. You get an itemised bill (items, savings, delivery fee, address) on WhatsApp. Pay on delivery: cash or UPI.</li>
+      </ol>
+    </div>
+    <div class="card violet">
+      <h4>📅 Appointment mode (salon, spa, beauty parlour, dentist, physio)</h4>
+      <ol class="steps small">
+        <li><b>Register</b> and choose "Appointments".</li>
+        <li><b>Add services</b> (Haircut 30 min ₹250, Hair Spa 60 min ₹900…) and <b>specialists</b> with weekly hours.</li>
+        <li><b>Customers book</b>: service → specialist (or "any") → date → a free slot. The slot is <b>held instantly</b>, so two people can never get the same time.</li>
+        <li>The customer <b>sends the booking on WhatsApp</b>. The owner confirms in one tap and replies with a pre-filled message in the customer's language.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>Built for Bharat</h3>
+  <div class="grid3">
+    <div class="card"><h4>🗣️ 23 languages</h4><p class="small">English plus all 22 scheduled languages, including right-to-left Urdu, Kashmiri and Sindhi, and Santali in Ol Chiki. Order messages follow the customer's language.</p></div>
+    <div class="card"><h4>📶 Works on weak networks</h4><p class="small">Installable PWA. The catalog is cached on the phone for 30 minutes, so customers can keep ordering offline and orders sync when the network returns.</p></div>
+    <div class="card"><h4>📍 Hyperlocal by design</h4><p class="small">Shoppers see only businesses within 5 km, sorted by distance. Merchants pin their exact location with Google Maps or GPS.</p></div>
+    <div class="card"><h4>💸 Zero commission</h4><p class="small">Customers pay the shop directly by UPI or cash. We never touch the money or take a cut.</p></div>
+    <div class="card"><h4>🔐 Trust &amp; safety</h4><p class="small">Mobile OTP login, mandatory store approval, verified WhatsApp numbers, and abuse limits on bookings and OTPs.</p></div>
+    <div class="card"><h4>🔎 Found on Google</h4><p class="small">Every store page is search-optimised, with structured data such as LocalBusiness, Product and Service, and WhatsApp-friendly link previews.</p></div>
+  </div>
+</section>
+
+<!-- ============================== SCREENSHOTS ============================== -->
+<section class="page">
+  <div class="kicker">03 · Product</div>
+  <h2><span class="num">03</span>The product today: live at sonsari.in</h2>
+  <p class="muted small">Real screenshots of the production build, taken on a phone-sized screen.</p>
+  <div class="phones">
+    <div><div class="phone"><img src="img/pitch-landing.png" /></div><div class="cap">Landing page for merchants</div></div>
+    <div><div class="phone"><img src="img/a1-directory-near.png" /></div><div class="cap">Shoppers see businesses within 5 km</div></div>
+    <div><div class="phone"><img src="img/pitch-store.png" /></div><div class="cap">A shop's storefront</div></div>
+    <div><div class="phone"><img src="img/pitch-store-veg.png" /></div><div class="cap">Bag → "Place order via WhatsApp"</div></div>
+    <div><div class="phone"><img src="img/b2-times.png" /></div><div class="cap">Booking: live free time slots</div></div>
+    <div><div class="phone"><img src="img/d2-confirmed.png" /></div><div class="cap">Business dashboard: confirm bookings</div></div>
+    <div><div class="phone"><img src="img/i18n-clinic-hi.png" /></div><div class="cap">Clinic page in Hindi</div></div>
+    <div><div class="phone"><img src="img/pitch-clinic-ta.png" /></div><div class="cap">Same clinic in Tamil</div></div>
+  </div>
+  <div class="grid2" style="margin-top:10pt">
+    <div>
+      <h3 style="margin-top:0">What the business receives on WhatsApp</h3>
+      <div class="wa">📅 *APPOINTMENT REQUEST: #APT-MGQ3WE*
+🏪 *Store:* Glow Hair &amp; Beauty Studio
+--------------------------------
+✨ *Service:* Hair Spa (60 min) — ₹900
+👤 *Specialist:* Imran Khan
+🗓️ *Date:* Sat, 17 Oct
+⏰ *Time:* 10:00 am – 11:00 am
+--------------------------------
+🙋 *Name:* Meera
+📞 *Phone:* +91 98765 12345
+
+Please confirm my appointment. 🙏</div>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Merchant tools already built</h3>
+      <ul class="small">
+        <li>Order and booking dashboards with status tracking</li>
+        <li>Excel/CSV import with row-level error reports</li>
+        <li><b>Paste a WhatsApp price list → catalog</b>: each item is validated on its own</li>
+        <li>Photo upload with automatic compression</li>
+        <li>Store approval workflow and admin console</li>
+        <li>Order language setting; customer accounts with order history</li>
+        <li>7 demo businesses so visitors can try every flow</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== INNOVATION ============================== -->
+<section class="page">
+  <div class="kicker">04 · Innovation &amp; technology</div>
+  <h2><span class="num">04</span>What's new here (for DPIIT recognition)</h2>
+  <p>Vocal For Local is a new product and process for local commerce. It combines a messaging-native checkout, vernacular-first design and conflict-free scheduling in a way that works for micro-businesses with no technical skills and low-cost phones.</p>
+  <table>
+    <tr><th style="width:26%">Innovation</th><th>What it does</th><th style="width:28%">Why it matters</th></tr>
+    <tr><td><b>WhatsApp-native checkout</b></td><td>The cart compiles into a structured, translated order message (items, quantities, savings, delivery fee, address) sent directly to the shop's WhatsApp; the order is recorded at the same time.</td><td>No new app for the shopkeeper or the customer; uses a channel 535M+ Indians already use.</td></tr>
+    <tr><td><b>Catalog from a chat message</b></td><td>The owner pastes a price list in two formats (lines or "name, MRP, price | …"). Each item is parsed independently, WhatsApp clutter is tolerated, and errors are shown per item.</td><td>Removes the biggest onboarding barrier: data entry.</td></tr>
+    <tr><td><b>Conflict-proof appointments</b></td><td>Slots are computed from each specialist's weekly hours, the store's grid, minimum notice and closed days. A database-level exclusion constraint makes overlapping bookings impossible, even when two customers tap at once.</td><td>Removes the double booking that small salons and clinics fear.</td></tr>
+    <tr><td><b>Vernacular-first, 23 languages</b></td><td>Full UI, SEO pages and WhatsApp messages in all scheduled languages, including right-to-left scripts and Ol Chiki.</td><td>Reaches owners and customers who don't use English apps.</td></tr>
+    <tr><td><b>Offline-tolerant PWA</b></td><td>The catalog is cached on the phone with a 30-minute validity; orders are queued offline and synced idempotently.</td><td>Works in tier-2/3 towns with patchy data.</td></tr>
+    <tr><td><b>Hyperlocal discovery</b></td><td>Distance-ranked search within a 5 km radius using merchant map pins and the shopper's GPS or area search.</td><td>Makes the directory relevant and drives footfall to nearby shops.</td></tr>
+    <tr><td><b>Ultra-low-cost infrastructure</b></td><td>Runs on a single small cloud server with native Postgres and Nginx; current platform cost is about ₹310/month.</td><td>A sustainable free tier and high gross margins.</td></tr>
+  </table>
+  <h3>Technology stack</h3>
+  <p class="small">React 19 progressive web app with an offline cache · Node.js/Express API · PostgreSQL 16 (exclusion constraints, geo queries) · Google Maps Places &amp; Geocoding · WhatsApp deep links · OTP authentication with pluggable SMS/e-mail providers · server-rendered SEO with hreflang and JSON-LD · automated test suites for API, browser flows and translations.</p>
+</section>
+
+<!-- ============================== MARKET ============================== -->
+<section class="page">
+  <div class="kicker">05 · Market</div>
+  <h2><span class="num">05</span>Market size</h2>
+  <div class="grid2" style="align-items:center">
+    <div>
+      <svg viewBox="0 0 320 300" width="100%">
+        <circle cx="160" cy="150" r="140" fill="#dcfce7" stroke="#86efac"/>
+        <circle cx="160" cy="185" r="95" fill="#bbf7d0" stroke="#4ade80"/>
+        <circle cx="160" cy="225" r="52" fill="#15803d"/>
+        <text x="160" y="40" text-anchor="middle" font-size="12" font-weight="800" fill="#14532d">TAM ≈ ₹10,800 Cr / yr</text>
+        <text x="160" y="56" text-anchor="middle" font-size="9" fill="#14532d">~3 Cr local consumer-facing businesses</text>
+        <text x="160" y="122" text-anchor="middle" font-size="12" font-weight="800" fill="#14532d">SAM ≈ ₹1,800 Cr / yr</text>
+        <text x="160" y="138" text-anchor="middle" font-size="9" fill="#14532d">~50 lakh smartphone-ready, top-200 cities</text>
+        <text x="160" y="222" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">SOM (yr 5)</text>
+        <text x="160" y="237" text-anchor="middle" font-size="9.5" fill="#fff">₹36–48 Cr ARR</text>
+      </svg>
+    </div>
+    <div>
+      <table>
+        <tr><th>Layer</th><th>Assumption</th><th class="r">Value</th></tr>
+        <tr><td><b>TAM</b></td><td>~3 crore neighbourhood consumer-facing businesses (kirana 1.2 Cr+, other retail, food, salons, clinics, services), a subset of 7.2 Cr Udyam MSMEs × ₹3,600/yr software spend</td><td class="r">₹10,800 Cr<br /><span class="tiny">≈ US$1.3 B</span></td></tr>
+        <tr><td><b>SAM</b></td><td>~50 lakh businesses in the top 200 cities with a smartphone-using owner and customers who order or book on WhatsApp × ₹3,600/yr</td><td class="r">₹1,800 Cr</td></tr>
+        <tr><td><b>SOM</b></td><td>1.0–1.3 lakh paying businesses by year 5 (2–2.5% of SAM) at ₹300–₹400/month</td><td class="r">₹36–48 Cr ARR</td></tr>
+      </table>
+      <p class="tiny">TAM/SAM are top-down estimates by the founding team from the public figures below. The ₹3,600/yr spend matches entry-level Indian store-builder pricing (e.g. Dukaan ₹375/month; Shopify Starter ₹399/month).</p>
+    </div>
+  </div>
+  <h3>Tailwinds</h3>
+  <div class="grid3">
+    <div class="card"><h4>WhatsApp everywhere</h4><p class="small">India is WhatsApp's largest market (535M+ users), and press reports put WhatsApp's India business-messaging revenue above US$1B a year. Customers already talk to shops on WhatsApp.</p></div>
+    <div class="card"><h4>UPI made payment trivial</h4><p class="small">UPI processed a record 24.51 billion transactions worth ₹29.8 lakh crore in August 2026, so we don't need to be a payment company to enable digital payment.</p></div>
+    <div class="card"><h4>MSME formalisation</h4><p class="small">Udyam registrations grew from 5.89 Cr (Jan 2025) to 7.22 Cr (Nov 2025), so more businesses now have the identity and intent to go digital.</p></div>
+    <div class="card"><h4>Retail scale</h4><p class="small">Indian retail is estimated at US$1.1–1.3 trillion, with unorganised retail still holding roughly 80% or more.</p></div>
+    <div class="card"><h4>Beauty &amp; wellness growth</h4><p class="small">The beauty-salon market is estimated at US$8–12.5B (2025), growing about 8% a year, and is highly fragmented.</p></div>
+    <div class="card"><h4>Policy support</h4><p class="small">The DPIIT startup framework revised in Feb 2026 (G.S.R. 108(E)) raises the turnover ceiling to ₹200 Cr; Digital India and ONDC push MSME digitisation.</p></div>
+  </div>
+</section>
+
+<!-- ============================== BUSINESS MODEL ============================== -->
+<section class="page">
+  <div class="kicker">06 · Business model</div>
+  <h2><span class="num">06</span>Freemium SaaS. Zero commission.</h2>
+  <p>Merchants never pay a share of their sales. We earn from subscriptions once a business grows, and from optional add-ons. <span class="ph">Prices below are proposed and should be validated in the pilot.</span></p>
+  <table>
+    <tr><th>Plan</th><th>For</th><th>Includes</th><th class="r">Price</th></tr>
+    <tr><td><b>Free</b></td><td>Every new business</td><td>Online store or booking page, WhatsApp orders and bookings, up to 50 products, 23 languages, near-me listing, QR code and link</td><td class="r">₹0</td></tr>
+    <tr><td><b>Store Growth</b></td><td>Growing shops</td><td>Up to 500 products, order analytics, customer list, bulk tools, priority support</td><td class="r">₹299/mo<br /><span class="tiny">₹2,999/yr</span></td></tr>
+    <tr><td><b>Store Pro</b></td><td>Busy stores, small chains</td><td>Unlimited products, own domain, multiple staff logins, automated WhatsApp order notifications</td><td class="r">₹799/mo</td></tr>
+    <tr><td><b>Appointments Pro</b></td><td>Salons, spas, clinics</td><td>Unlimited specialists, automated WhatsApp reminders (fewer no-shows), deposits via UPI link, calendar export</td><td class="r">₹499/mo</td></tr>
+  </table>
+  <div class="grid2">
+    <div>
+      <h3>Add-on revenue</h3>
+      <ul class="small">
+        <li><b>Local promotion:</b> "Featured near you" placement in the 5 km directory (₹99–₹499/month per neighbourhood).</li>
+        <li><b>Messaging credits:</b> automated WhatsApp/SMS notifications and reminders, at a margin over gateway cost.</li>
+        <li><b>Brand &amp; distributor programmes:</b> FMCG distributors pay to onboard and support their retailer network (B2B2C).</li>
+        <li><b>Later:</b> delivery-partner integrations (referral fees) and, via partners, working-capital credit for merchants based on their order history (referral fees; we don't lend).</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Unit economics (targets)</h3>
+      <table>
+        <tr><td>Blended ARPU (paying merchant)</td><td class="r">₹350 / month</td></tr>
+        <tr><td>Gross margin (hosting, maps, messaging)</td><td class="r">~85%</td></tr>
+        <tr><td>CAC per <i>paying</i> merchant (field + referral)</td><td class="r">₹1,200</td></tr>
+        <tr><td>Payback period</td><td class="r">~4 months</td></tr>
+        <tr><td>Monthly churn (paying)</td><td class="r">≤ 4%</td></tr>
+        <tr><td>Lifetime value (~25 months)</td><td class="r">~₹7,400</td></tr>
+        <tr class="total"><td>LTV : CAC</td><td class="r">≈ 6×</td></tr>
+      </table>
+      <p class="tiny">These are targets to validate in the pilot. Platform hosting is currently about ₹310/month on a single cloud VM, so free merchants cost almost nothing to serve.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== GTM ============================== -->
+<section class="page">
+  <div class="kicker">07 · Go-to-market</div>
+  <h2><span class="num">07</span>Win one neighbourhood at a time</h2>
+  <p>Because shoppers only see businesses within 5 km, we don't need to be everywhere: we need to be dense. Each cluster is a 5 km circle with 150–300 onboarded businesses, enough for shoppers to make it their first stop.</p>
+  <div class="grid2">
+    <div>
+      <h3>Acquisition channels</h3>
+      <ol class="steps small">
+        <li><b>Field champions:</b> local youth (commission-based) onboard shops in person in 10 minutes. They paste the WhatsApp price list, take photos and share the link with the owner's customers.</li>
+        <li><b>Built-in virality:</b> every order and booking message carries the store link and "Powered by Vocal For Local". Customers become merchants' word of mouth.</li>
+        <li><b>Distributor &amp; FMCG partners:</b> distributors already visit thousands of kiranas weekly. Partner to onboard their retailer network (B2B2C).</li>
+        <li><b>Associations &amp; government programmes:</b> traders' associations, salon guilds, Udyam/MSME facilitation centres, ONDC seller enablement.</li>
+        <li><b>Search &amp; content:</b> vernacular SEO ("free online store for kirana", "book salon near me") and WhatsApp status creatives.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Rollout plan</h3>
+      <table>
+        <tr><th>Phase</th><th>Where</th><th>Goal</th></tr>
+        <tr><td><b>Pilot</b><br /><span class="tiny">0–6 months</span></td><td><span class="ph">[Pilot city]</span>: 3 clusters</td><td>500 businesses, product–market fit, pricing validation, first paid plans</td></tr>
+        <tr><td><b>City</b><br /><span class="tiny">6–12 months</span></td><td>Full pilot city + 2 cities</td><td>5,000 live businesses, playbook for field champions</td></tr>
+        <tr><td><b>Region</b><br /><span class="tiny">12–24 months</span></td><td>10 cities, 2 states (vernacular)</td><td>40,000 live businesses, distributor partnerships</td></tr>
+        <tr><td><b>Bharat</b><br /><span class="tiny">24–36 months</span></td><td>50+ cities, tier-2/3</td><td>2,00,000 live businesses</td></tr>
+      </table>
+      <div class="card soft">
+        <h4>Shopper-side growth</h4>
+        <p class="small" style="margin:0">Repeat shoppers save the store links. The 5 km directory, the "Book appointments" filter and Google-indexed store pages turn each new cluster into a local destination, at zero marketing cost per order.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PROJECTIONS ============================== -->
+<section class="page">
+  <div class="kicker">08 · Growth &amp; financial projections</div>
+  <h2><span class="num">08</span>Three-year plan</h2>
+  <div class="grid2" style="align-items:start">
+    <div>
+      <table>
+        <tr><th>Metric</th><th class="r">Year 1</th><th class="r">Year 2</th><th class="r">Year 3</th></tr>
+        <tr><td>Live businesses (end of year)</td><td class="r">5,000</td><td class="r">40,000</td><td class="r">2,00,000</td></tr>
+        <tr><td>Paid conversion</td><td class="r">6%</td><td class="r">9%</td><td class="r">12%</td></tr>
+        <tr><td>Paying businesses</td><td class="r">300</td><td class="r">3,600</td><td class="r">24,000</td></tr>
+        <tr><td>Blended ARPU / month</td><td class="r">₹300</td><td class="r">₹350</td><td class="r">₹400</td></tr>
+        <tr><td>Exit MRR</td><td class="r">₹0.9 L</td><td class="r">₹12.6 L</td><td class="r">₹96 L</td></tr>
+        <tr><td>Subscription revenue (year)</td><td class="r">₹6 L</td><td class="r">₹78 L</td><td class="r">₹6.5 Cr</td></tr>
+        <tr><td>Add-ons &amp; partnerships</td><td class="r">₹1 L</td><td class="r">₹22 L</td><td class="r">₹1.5 Cr</td></tr>
+        <tr class="total"><td>Total revenue</td><td class="r">₹7 L</td><td class="r">₹1.0 Cr</td><td class="r">₹8.0 Cr</td></tr>
+        <tr><td>Operating costs</td><td class="r">₹85 L</td><td class="r">₹3.2 Cr</td><td class="r">₹7.5 Cr</td></tr>
+        <tr class="total"><td>EBITDA</td><td class="r">–₹78 L</td><td class="r">–₹2.2 Cr</td><td class="r">+₹0.5 Cr</td></tr>
+      </table>
+      <p class="tiny">Management estimates. Revenue for each year is the average monthly recurring revenue over the year × 12, plus add-ons. Costs cover the team, field onboarding commissions, marketing, messaging and gateways, cloud and maps, and compliance. Year 3 exit run-rate ≈ ₹11.5 Cr ARR.</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 330 262" width="100%">
+        <text x="0" y="14" font-size="11" font-weight="800" fill="#14532d">Annual revenue</text>
+        <line x1="40" y1="212" x2="320" y2="212" stroke="#a8a29e"/>
+        <rect x="70" y="210" width="44" height="2" fill="#15803d"/>
+        <rect x="160" y="191" width="44" height="21" fill="#15803d"/>
+        <rect x="250" y="42" width="44" height="170" fill="#15803d"/>
+        <text x="92" y="203" text-anchor="middle" font-size="9.5" font-weight="700">₹7 L</text>
+        <text x="182" y="184" text-anchor="middle" font-size="9.5" font-weight="700">₹1.0 Cr</text>
+        <text x="272" y="35" text-anchor="middle" font-size="9.5" font-weight="700">₹8.0 Cr</text>
+        <text x="92" y="228" text-anchor="middle" font-size="9.5" font-weight="700">Year 1</text>
+        <text x="182" y="228" text-anchor="middle" font-size="9.5" font-weight="700">Year 2</text>
+        <text x="272" y="228" text-anchor="middle" font-size="9.5" font-weight="700">Year 3</text>
+        <text x="92" y="242" text-anchor="middle" font-size="8.5" fill="#6d28d9">5,000 businesses</text>
+        <text x="182" y="242" text-anchor="middle" font-size="8.5" fill="#6d28d9">40,000 businesses</text>
+        <text x="272" y="242" text-anchor="middle" font-size="8.5" fill="#6d28d9">2 lakh businesses</text>
+        <text x="92" y="255" text-anchor="middle" font-size="8" fill="#57534e">300 paying</text>
+        <text x="182" y="255" text-anchor="middle" font-size="8" fill="#57534e">3,600 paying</text>
+        <text x="272" y="255" text-anchor="middle" font-size="8" fill="#57534e">24,000 paying</text>
+      </svg>
+      <h3>Key milestones</h3>
+      <ul class="small">
+        <li><b>M3:</b> SMS gateway live; 500 pilot businesses; first paid plans.</li>
+        <li><b>M6:</b> UPI payment links and deposits; WhatsApp reminders for appointments.</li>
+        <li><b>M12:</b> 5,000 businesses in 3 cities; ₹1 L MRR; seed round.</li>
+        <li><b>M24:</b> 40,000 businesses; ₹12 L+ MRR; distributor partnerships in 2 states.</li>
+        <li><b>M36:</b> 2 lakh businesses; EBITDA positive.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== COMPETITION ============================== -->
+<section class="page">
+  <div class="kicker">09 · Competition</div>
+  <h2><span class="num">09</span>Competitive landscape</h2>
+  <table>
+    <tr><th style="width:17%">Alternative</th><th>What it is</th><th style="width:24%">Pricing model</th><th style="width:27%">Where we win</th></tr>
+    <tr><td><b>WhatsApp Business app</b></td><td>Free chat app with a basic catalog</td><td>Free (API messaging is paid)</td><td>We add the cart, totals, order dashboard, appointment slots, store website, SEO and 5 km discovery, on top of WhatsApp.</td></tr>
+    <tr><td><b>Dukaan</b></td><td>Online store builder for Indian sellers</td><td>₹375–₹2,500/month <i>plus</i> 1.99–4.99% per order</td><td>Zero commission, a free tier, WhatsApp checkout, vernacular UI, appointments, local discovery.</td></tr>
+    <tr><td><b>Shopify</b></td><td>Global e-commerce platform for brands</td><td>₹399–₹22,680/month (+18% GST)</td><td>Built for a kirana, not a D2C brand: no setup, no payment gateway, works in 23 languages.</td></tr>
+    <tr><td><b>Quick commerce</b> (Blinkit, Zepto, Instamart)</td><td>Dark-store delivery apps</td><td>Compete directly with kiranas</td><td>We strengthen the local shop instead of replacing it; the customer relationship stays with the shop.</td></tr>
+    <tr><td><b>Marketplaces / ONDC apps</b></td><td>Aggregators listing many sellers</td><td>Commissions / network fees</td><td>Our merchants own their link and customers. ONDC integration is on our roadmap as an additional channel.</td></tr>
+    <tr><td><b>Salon &amp; clinic software</b> (e.g. Fresha, Zenoti, Practo)</td><td>Booking, POS and practice tools; doctor discovery</td><td>Subscriptions or marketplace fees; often English-first, aimed at chains</td><td>A free, WhatsApp-native booking page for the single-chair salon or one-dentist clinic, in the customer's language.</td></tr>
+  </table>
+  <h3>Positioning</h3>
+  <div class="grid2">
+    <svg viewBox="0 0 300 220" width="100%">
+      <line x1="150" y1="10" x2="150" y2="210" stroke="#d6d3d1"/><line x1="10" y1="110" x2="290" y2="110" stroke="#d6d3d1"/>
+      <text x="150" y="8" text-anchor="middle" font-size="8.5" fill="#57534e">Built for micro-businesses (Bharat)</text>
+      <text x="150" y="219" text-anchor="middle" font-size="8.5" fill="#57534e">Built for brands / chains</text>
+      <text x="12" y="104" font-size="8.5" fill="#57534e">Commission / per-order</text>
+      <text x="288" y="104" text-anchor="end" font-size="8.5" fill="#57534e">Zero commission</text>
+      <circle cx="245" cy="40" r="10" fill="#15803d"/><text x="245" y="62" text-anchor="middle" font-size="9" font-weight="800" fill="#14532d">Vocal For Local</text>
+      <circle cx="205" cy="80" r="6" fill="#a8a29e"/><text x="205" y="96" text-anchor="middle" font-size="8">WhatsApp Business</text>
+      <circle cx="95" cy="80" r="6" fill="#a8a29e"/><text x="95" y="96" text-anchor="middle" font-size="8">Dukaan</text>
+      <circle cx="70" cy="45" r="6" fill="#a8a29e"/><text x="70" y="61" text-anchor="middle" font-size="8">Marketplaces</text>
+      <circle cx="205" cy="170" r="6" fill="#a8a29e"/><text x="205" y="186" text-anchor="middle" font-size="8">Shopify</text>
+      <circle cx="80" cy="165" r="6" fill="#a8a29e"/><text x="80" y="181" text-anchor="middle" font-size="8">Salon/clinic suites</text>
+    </svg>
+    <div>
+      <h4 style="margin-top:6pt">Our defensibility grows with density</h4>
+      <ul class="small">
+        <li><b>Local network effects:</b> more nearby businesses → more shoppers using the directory → more businesses joining.</li>
+        <li><b>Trust &amp; language:</b> vernacular onboarding and zero commission win shopkeepers that global tools never reach.</li>
+        <li><b>Distribution partnerships:</b> distributor relationships are hard to replicate.</li>
+        <li><b>Data:</b> anonymised order and booking patterns, used for better merchant tools and partner credit underwriting, with consent.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TRACTION + ROADMAP ============================== -->
+<section class="page">
+  <div class="kicker">10 · Traction &amp; roadmap</div>
+  <h2><span class="num">10</span>Where we are and what's next</h2>
+  <div class="grid2">
+    <div>
+      <h3 style="margin-top:0">Built and live (October 2026)</h3>
+      <ul class="small">
+        <li>Production platform at <b>sonsari.in</b>, deployed on Google Cloud.</li>
+        <li>Store mode: catalog, Excel/CSV and WhatsApp-message import, cart, WhatsApp orders, order dashboard, offline mode.</li>
+        <li>Appointment mode: services, specialists, live slots, conflict-proof booking, confirmations.</li>
+        <li>5 km hyperlocal discovery with Google Maps and GPS location.</li>
+        <li>23 languages (UI, SEO pages, WhatsApp messages), plus RTL scripts and Ol Chiki.</li>
+        <li>Mobile OTP login, store approval workflow, admin console, SEO, automated test suites.</li>
+        <li>7 demo businesses (grocery, vegetables, flowers, electricals, bakery, salon, clinic).</li>
+      </ul>
+      <h3>Pilot traction <span class="pill a">to fill in</span></h3>
+      <table>
+        <tr><td>Businesses onboarded</td><td class="r"><span class="ph">[ __ ]</span></td></tr>
+        <tr><td>Orders / bookings placed</td><td class="r"><span class="ph">[ __ ]</span></td></tr>
+        <tr><td>Weekly active merchants</td><td class="r"><span class="ph">[ __ ]</span></td></tr>
+        <tr><td>Merchant testimonials / LOIs</td><td class="r"><span class="ph">[ __ ]</span></td></tr>
+      </table>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Product roadmap</h3>
+      <table>
+        <tr><th>When</th><th>What</th></tr>
+        <tr><td><b>Q4 2026</b></td><td>SMS gateway for OTP; Google Maps key; pilot in <span class="ph">[city]</span>; paid plans live</td></tr>
+        <tr><td><b>Q1 2027</b></td><td>UPI payment links and booking deposits; automated WhatsApp order and booking notifications (WhatsApp Business API); appointment reminders</td></tr>
+        <tr><td><b>Q2 2027</b></td><td>AI catalog builder from a photo of a shelf or a voice note; merchant analytics; staff logins</td></tr>
+        <tr><td><b>Q3 2027</b></td><td>Delivery-partner integration; distributor portal (bulk-onboard retailers); "Featured near you" promotions</td></tr>
+        <tr><td><b>2028</b></td><td>ONDC seller integration; partner-led working-capital credit; native Android wrapper</td></tr>
+      </table>
+      <div class="card violet">
+        <h4>Impact we will measure</h4>
+        <p class="small" style="margin:0">Businesses digitised (with % women-led and % tier-2/3); orders and bookings routed to local shops; commission saved for merchants vs marketplaces; languages used.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TEAM + ASK ============================== -->
+<section class="page">
+  <div class="kicker">11 · Team &amp; funding</div>
+  <h2><span class="num">11</span>Team and the ask</h2>
+  <div class="grid2">
+    <div>
+      <h3 style="margin-top:0">Founding team</h3>
+      <div class="card"><h4><span class="ph">[Founder name]</span>: Founder &amp; CEO</h4><p class="small" style="margin:0"><span class="ph">[Background: years of experience, domain, previous companies, why this problem]</span></p></div>
+      <div class="card" style="margin-top:6pt"><h4><span class="ph">[Co-founder / CTO]</span></h4><p class="small" style="margin:0"><span class="ph">[Background]</span></p></div>
+      <div class="card" style="margin-top:6pt"><h4>Advisors</h4><p class="small" style="margin:0"><span class="ph">[Retail / FMCG distribution advisor, salon-industry advisor, fintech advisor]</span></p></div>
+      <h3>Hiring plan (with this round)</h3>
+      <ul class="small">
+        <li>2 full-stack engineers (payments, messaging, AI catalog)</li>
+        <li>1 growth &amp; partnerships lead (distributors, associations)</li>
+        <li>2 city leads managing a commission-based field-champion network</li>
+        <li>Part-time vernacular content and support</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Raising: <span class="ph">₹1.5 Cr pre-seed (suggested)</span></h3>
+      <p class="small">18 months of runway to reach 40,000 live businesses and a ₹1 Cr+ revenue run-rate, setting up a seed round.</p>
+      <svg viewBox="0 0 300 170" width="100%">
+        <!-- donut: 45 / 30 / 15 / 10 -->
+        <g transform="translate(80,85)">
+          <circle r="60" fill="none" stroke="#15803d" stroke-width="28" stroke-dasharray="169.6 377" transform="rotate(-90)"/>
+          <circle r="60" fill="none" stroke="#7c3aed" stroke-width="28" stroke-dasharray="113.1 377" stroke-dashoffset="-169.6" transform="rotate(-90)"/>
+          <circle r="60" fill="none" stroke="#f59e0b" stroke-width="28" stroke-dasharray="56.5 377" stroke-dashoffset="-282.7" transform="rotate(-90)"/>
+          <circle r="60" fill="none" stroke="#0891b2" stroke-width="28" stroke-dasharray="37.7 377" stroke-dashoffset="-339.2" transform="rotate(-90)"/>
+          <text y="4" text-anchor="middle" font-size="12" font-weight="800">₹1.5 Cr</text>
+        </g>
+        <rect x="165" y="30" width="10" height="10" fill="#15803d"/><text x="180" y="39" font-size="9">Team: 45% (₹67.5 L)</text>
+        <rect x="165" y="55" width="10" height="10" fill="#7c3aed"/><text x="180" y="64" font-size="9">Onboarding &amp; marketing: 30%</text>
+        <rect x="165" y="80" width="10" height="10" fill="#f59e0b"/><text x="180" y="89" font-size="9">Product, messaging &amp; payments: 15%</text>
+        <rect x="165" y="105" width="10" height="10" fill="#0891b2"/><text x="180" y="114" font-size="9">Infra, legal &amp; compliance: 10%</text>
+      </svg>
+      <h3>What the money achieves</h3>
+      <table>
+        <tr><td>Live businesses</td><td class="r">40,000</td></tr>
+        <tr><td>Paying businesses</td><td class="r">3,600</td></tr>
+        <tr><td>Cities</td><td class="r">10</td></tr>
+        <tr><td>Exit MRR</td><td class="r">₹12.6 L</td></tr>
+        <tr><td>Languages in active use</td><td class="r">10+</td></tr>
+      </table>
+      <p class="tiny">Instrument, valuation and terms to be discussed. Also suited to the Startup India Seed Fund Scheme (via incubators) and government-backed funds (Fund of Funds for Startups).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== RISKS ============================== -->
+<section class="page">
+  <div class="kicker">12 · Risks</div>
+  <h2><span class="num">12</span>Key risks and how we manage them</h2>
+  <table>
+    <tr><th style="width:24%">Risk</th><th>Mitigation</th></tr>
+    <tr><td><b>Low willingness to pay</b> among micro-merchants</td><td>Generous free tier; paid features tied to clear money outcomes (more products, fewer no-shows, promotion to nearby shoppers); annual plans; distributor- or brand-sponsored subscriptions.</td></tr>
+    <tr><td><b>Dependence on WhatsApp</b> (policy or pricing changes)</td><td>We use standard public deep links, not scraping. Orders are also recorded on our platform; the official WhatsApp Business API, SMS and in-app notifications are alternatives.</td></tr>
+    <tr><td><b>Quick commerce keeps expanding</b></td><td>That's our "why now": we help kiranas compete on trust, credit, custom requests and proximity. The appointment vertical is not exposed to quick commerce.</td></tr>
+    <tr><td><b>Copycats / big-tech entry</b></td><td>Speed and density in clusters, vernacular trust, distributor partnerships, and a near-zero cost base that lets us stay free longer than well-funded rivals can justify.</td></tr>
+    <tr><td><b>Merchant churn</b></td><td>Onboarding with real customers on day one (field champions share the link), weekly WhatsApp nudges, and a dashboard that shows orders and bookings won.</td></tr>
+    <tr><td><b>Fake or low-quality listings</b></td><td>Mandatory platform approval, OTP-verified WhatsApp numbers, map pins, and suspension tools in the admin console.</td></tr>
+    <tr><td><b>Data protection</b> (DPDP Act 2023)</td><td>Minimal personal data (name, mobile, address only when ordering). Location stays on the shopper's device. Consent-based use; deletion on request; India-hosted infrastructure.</td></tr>
+    <tr><td><b>Brand / trademark</b></td><td>"Vocal for Local" is also a widely used public slogan, so trademark registration may be difficult. We plan to secure a registrable brand (e.g. built around the <b>sonsari.in</b> domain) before scaling marketing.</td></tr>
+  </table>
+</section>
+
+<!-- ============================== STARTUP INDIA ============================== -->
+<section class="page">
+  <div class="kicker">13 · Startup India</div>
+  <h2><span class="num">13</span>DPIIT recognition readiness</h2>
+  <p>Under the revised framework (DPIIT notification G.S.R. 108(E), 4 Feb 2026), an entity can be recognised as a startup if it is a company, LLP, registered partnership or cooperative society, under 10 years from incorporation, with annual turnover not above ₹200 crore, and working on innovation or a scalable business model with high potential for employment generation or wealth creation.</p>
+  <table>
+    <tr><th>Requirement</th><th>Status</th></tr>
+    <tr><td>Incorporated as Pvt Ltd / LLP / partnership</td><td><span class="ph">[Incorporate or provide CIN/LLPIN and date]</span></td></tr>
+    <tr><td>Age under 10 years</td><td>✔ New entity (product launched 2026)</td></tr>
+    <tr><td>Turnover ≤ ₹200 Cr</td><td>✔ Pre-revenue / early revenue</td></tr>
+    <tr><td>Not formed by splitting or reconstructing an existing business</td><td><span class="ph">[Confirm]</span></td></tr>
+    <tr><td>Innovation / scalability</td><td>✔ WhatsApp-native checkout, catalog-from-chat parsing, conflict-proof scheduling, 23-language vernacular platform, offline PWA, hyperlocal discovery (see section 04)</td></tr>
+    <tr><td>Employment / wealth creation</td><td>✔ Digitises micro-businesses; field-champion network creates local jobs; zero commission keeps margins with merchants</td></tr>
+    <tr><td>Supporting documents</td><td>Website (sonsari.in) · this brief · pitch deck · product demo video <span class="ph">[record]</span> · founder KYC · incorporation certificate</td></tr>
+  </table>
+  <h3>Application summary (for the "brief description" fields)</h3>
+  <div class="card soft">
+    <p class="small"><b>Problem:</b> India's 12M+ kirana stores and lakhs of salons and small clinics cannot take orders or bookings online without paying commissions to platforms that compete with them, and existing tools are English-first and built for brands.</p>
+    <p class="small"><b>Solution:</b> A zero-commission, WhatsApp-first platform in 23 Indian languages. Any local business gets a free online store or appointment page in minutes; customers order or book a conflict-free time slot and confirm on WhatsApp; shoppers discover businesses within 5 km.</p>
+    <p class="small"><b>Innovation:</b> WhatsApp-native structured checkout, catalog creation by pasting a chat message, database-guaranteed conflict-free appointment scheduling, offline-tolerant PWA and full vernacular coverage, including RTL scripts and Ol Chiki.</p>
+    <p class="small" style="margin:0"><b>Business model:</b> Freemium SaaS (free up to 50 products; ₹299–₹799/month paid plans), plus local promotion and messaging add-ons. No commission on orders.</p>
+  </div>
+  <h3>Benefits we will use after recognition</h3>
+  <ul class="small">
+    <li>Self-certification under labour and environmental laws; easier public-procurement norms.</li>
+    <li>Income-tax holiday for 3 of 10 years (Section 80-IAC, subject to an Inter-Ministerial Board certificate); angel-tax exemption (as applicable).</li>
+    <li>Fast-tracked and rebated patent/trademark filings (useful for securing the brand).</li>
+    <li>Access to the Startup India Seed Fund Scheme via incubators, and the Fund of Funds for Startups.</li>
+  </ul>
+  <p class="tiny">Check current scheme terms on startupindia.gov.in before filing; benefits and amounts change from time to time.</p>
+</section>
+
+<!-- ============================== SOURCES ============================== -->
+<section class="page">
+  <div class="kicker">Sources</div>
+  <h2>Sources and notes</h2>
+  <ol class="small">
+    <li>Kirana stores 12M+ (estimates 12–20M) and Redseer 2025 share ~91%: <i>CNA via Flourish Ventures</i>, flourishventures.com/news/cna-mom-and-pop-shops-in-india-struggle-amid-competition-from-online-platforms-retail-chains/ ; CB Insights, cbinsights.com/research/kirana-store-india-retail/</li>
+    <li>Udyam registrations 7.22 crore (30 Nov 2025); 6.13 Cr (Mar 2025); 5.89 Cr (Jan 2025): Lok Sabha answers, eparlib.sansad.in (AU664, AU3379, AU1883); MSME Year-End Review 2025.</li>
+    <li>WhatsApp ~535.8M users in India; business messaging &gt; US$1B a year: go4whatsup.com/guides/whatsapp-marketing-statistics/ ; tele.net.in (Meta growth strategy); statista.com/study/140644/meta-in-india</li>
+    <li>UPI 24.51B transactions worth ₹29.82 lakh crore (Aug 2026); 24.07B (Sep 2026); FY26 volumes: NPCI data via freepressjournal.in, startuptalky.com, angelone.in</li>
+    <li>Indian retail ~US$1.1–1.3T; unorganised ~79–87%: statista.com/statistics/935872/india-retail-market-size ; morungexpress.com; sentinelassam.com</li>
+    <li>Beauty salon market US$12.6B (2025, 7.85% CAGR to 2031): kenresearch.com/industry-reports/india-beauty-salon-market ; salon services US$7.83B (2025): deepmarketinsights.com ; chain outlet counts: Ken Research</li>
+    <li>Quick-commerce impact: ~2 lakh kirana closures; 25–30% of sales; 45% of closures in metros (AICPDF): outlookbusiness.com ; storyboard18.com ; deccanherald.com</li>
+    <li>MSME digital engagement: ~70% conventional, 13% social/digital marketing (SIDBI, May 2025); 36% of retailers without online presence (FIRST, 2023): india.entrepreneur.com/news-and-trends/why-are-msmes-still-unable-to-access-newer-markets/491615</li>
+    <li>Competitor pricing: Dukaan ₹375/₹750/₹2,500 per month + 4.99/3.99/1.99% fees; Shopify India ₹399–₹22,680/month + GST: ecommerce-platforms.com/articles/shopify-pricing-in-india ; shopaccino.com blog; fitgap.com</li>
+    <li>DPIIT revised startup framework, G.S.R. 108(E), 4 Feb 2026 (turnover ≤ ₹200 Cr; deep tech up to 20 years / ₹300 Cr): treelife.in/startups/indias-revised-startup-recognition-framework-2026/ ; ksandk.com ; ssrana.in</li>
+  </ol>
+  <h3>Notes on estimates</h3>
+  <ul class="small">
+    <li>Market-size figures vary by methodology; ranges are shown where sources differ. TAM/SAM/SOM, pricing, unit economics and the 3-year projections are the founding team's estimates and targets, to be validated in the pilot.</li>
+    <li>Platform hosting cost (~₹310/month) reflects the current single-VM Google Cloud deployment and will rise with scale (messaging, maps and support are the main variable costs, included in the projections).</li>
+    <li>No reliable national count of dental and physiotherapy clinics was found in public sources, so the clinic segment is not sized separately.</li>
+  </ul>
+  <div class="card soft" style="margin-top:14pt">
+    <h4>Contact</h4>
+    <p class="small" style="margin:0"><span class="ph">[Founder name]</span> · <span class="ph">[email]</span> · WhatsApp +91 93530 95481 · https://sonsari.in</p>
+  </div>
+</section>
+
+</body>
+</html>

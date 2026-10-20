@@ -8,6 +8,7 @@ import { config } from '../config.js';
 import { query } from '../db.js';
 import { badRequest, conflict, parse } from '../errors.js';
 import { issueOtp } from '../otp/otp.js';
+import { startWhatsAppRequest, usesWhatsAppReply } from '../otp/whatsappReply.js';
 import { getProvider } from '../otp/providers.js';
 import { DEMO_WHATSAPP_LOCKED } from './merchant.js';
 import * as S from '../schemas.js';
@@ -26,10 +27,18 @@ const otpLimiter = rateLimit({
 const exists = async (sql, params) => (await query(sql, params)).rowCount > 0;
 
 otpRouter.post('/request', otpLimiter, async (req, res, next) => {
-  const { phone, purpose, name } = parse(S.otpRequest, req.body);
+  const { phone, purpose, name, language = 'en' } = parse(S.otpRequest, req.body);
   const meta = { name, ip: req.ip };
 
   if (purpose === 'whatsapp_change') return next(); // handled below (needs an owner session)
+
+  // Free WhatsApp mode: the user messages us first. Logins get a request even for unknown numbers, so the
+  // response never reveals who is registered; the webhook tells the number's owner if there's no account.
+  if (usesWhatsAppReply()) {
+    if (purpose === 'owner_register' && (await exists('SELECT 1 FROM users WHERE phone = $1', [phone]))) throw conflict('This mobile number is already registered. Please log in.');
+    if (purpose === 'customer_register' && (await exists('SELECT 1 FROM customers WHERE phone = $1', [phone]))) throw conflict('An account with this number exists. Please log in.');
+    return res.json({ ok: true, ...(await startWhatsAppRequest({ phone, purpose, meta, language })) });
+  }
 
   const generic = { ok: true, delivery: getProvider().delivery, message: 'If the number can receive codes, one has been sent.' };
   switch (purpose) {
@@ -52,9 +61,13 @@ otpRouter.post('/request', otpLimiter, async (req, res, next) => {
 
 // WhatsApp number change: the code goes to the NEW number to prove the owner controls it.
 otpRouter.post('/request', requireOwner, async (req, res) => {
-  const { phone } = parse(S.otpRequest, req.body);
+  const { phone, language = 'en' } = parse(S.otpRequest, req.body);
   const { rows } = await query('SELECT name, whatsapp_number, is_demo FROM stores WHERE id = $1', [req.user.store_id]);
   if (rows[0]?.is_demo) throw badRequest(DEMO_WHATSAPP_LOCKED);
   if (rows[0]?.whatsapp_number === phone) throw badRequest('This is already your WhatsApp number for orders');
+  if (usesWhatsAppReply()) {
+    const context = { store_id: req.user.store_id };
+    return res.json({ ok: true, ...(await startWhatsAppRequest({ phone, purpose: 'whatsapp_change', context, meta: { name: rows[0]?.name, ip: req.ip }, language })) });
+  }
   res.json({ ok: true, ...(await issueOtp({ phone, purpose: 'whatsapp_change', context: { store_id: req.user.store_id }, meta: { name: rows[0]?.name, ip: req.ip } })) });
 });

@@ -2,6 +2,8 @@
 //   delivery: 'sms'     → code reaches the user's phone directly (real gateway)
 //             'manual'  → code goes to the platform team, who relay it on WhatsApp (temporary setup)
 //             'dev'     → local development only (fixed code / console log)
+//             'whatsapp'       → code pushed to the user's WhatsApp (Meta authentication template, paid)
+//             'whatsapp_reply' → user messages our WhatsApp first; the code comes back as a reply (free)
 //   code():   optional, returns the code to use (default: random 6 digits)
 //   send(phone, code, purpose, meta)
 //
@@ -9,6 +11,8 @@
 // (MSG91, Twilio, Gupshup, …) and set OTP_PROVIDER=sms. Nothing else in the app changes.
 import nodemailer from 'nodemailer';
 import { config } from '../config.js';
+import { makeServerT } from '../i18n.js';
+import { sendOtpTemplate, sendText } from '../whatsapp/cloud.js';
 
 export const PURPOSE_LABELS = {
   owner_login: 'Store owner login',
@@ -85,6 +89,30 @@ export const providers = {
 <p style="margin:16px 0"><a href="${esc(waLink)}" style="background:#25d366;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600">Send OTP to ${esc(pretty(phone))} on WhatsApp</a></p>
 <p style="color:#666;font-size:13px">Only send this code to the WhatsApp number shown above.</p></div>`,
       });
+    },
+  },
+
+  /**
+   * WhatsApp, business-initiated: an approved AUTHENTICATION template via Meta's Cloud API. Instant, like SMS,
+   * but charged per delivered message (≈ ₹0.115 + GST in India, 2026).
+   */
+  whatsapp: {
+    delivery: 'whatsapp',
+    async send(phone, code) {
+      await sendOtpTemplate(phone, code);
+    },
+  },
+
+  /**
+   * WhatsApp, user-initiated (free): the user taps "Get code on WhatsApp", sends us a pre-filled message with a
+   * request token, and our webhook (routes/whatsapp.js) replies with the code. Replies inside the 24-hour
+   * customer service window are free on Meta's Cloud API. The message also proves they control that number.
+   */
+  whatsapp_reply: {
+    delivery: 'whatsapp_reply',
+    async send(phone, code, purpose, meta = {}) {
+      const t = makeServerT(meta.language || 'en');
+      await sendText(phone, t('otp.waCode', { code, brand: config.platformName }));
     },
   },
 

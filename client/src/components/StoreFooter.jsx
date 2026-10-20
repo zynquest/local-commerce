@@ -54,6 +54,9 @@ export default function StoreFooter() {
             {rich(t('store.poweredBy', { brand: PLATFORM.name }), { b: (x) => <b>{x}</b> })}
           </Link>
         )}
+        {!whitelabel && (
+          <a href="/privacy" className="text-[11px] text-stone-400 underline hover:text-brand">{t('common.privacy')}</a>
+        )}
       </div>
     </footer>
   );

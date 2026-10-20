@@ -24,7 +24,8 @@
     "menu": "Menu",
     "seeAll": "See all",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "privacy": "Privacy policy"
   },
   "product": {
     "add": "ADD",
@@ -284,7 +285,18 @@
     "manualTitle": "Get your code on WhatsApp",
     "manualBody": "Free tier: we don't send SMS yet. WhatsApp <b>{number}</b> from <b>{phone}</b> and our team will reply with your 6-digit code.",
     "manualButton": "WhatsApp {number} for your code",
-    "manualMsg": "Hi, please share my login OTP for mobile {phone}."
+    "manualMsg": "Hi, please share my login OTP for mobile {phone}.",
+    "waRequestText": "Hi {brand}, please send my verification code. Request {token}",
+    "waCode": "{code} is your {brand} verification code. It expires in 10 minutes. Never share it with anyone.",
+    "waExpired": "This code request has expired or was already used. Go back to the app and tap \"Get code on WhatsApp\" again.",
+    "waWrongNumber": "For your security, please send this message from the WhatsApp number you entered in the app ({phone}).",
+    "waNoAccount": "There's no {brand} account for this number yet. Go back to the app and register first.",
+    "waAlreadyRegistered": "This number is already registered on {brand}. Go back to the app and log in instead.",
+    "waTooMany": "Too many codes were requested for this number. Please try again in 15 minutes.",
+    "waReplyTitle": "Get your code on WhatsApp",
+    "waReplyBody": "Tap the button, then press <b>send</b> in WhatsApp. We'll reply right away with your 6-digit code. Send it from <b>{phone}</b>, the number you entered.",
+    "waReplyButton": "Open WhatsApp & send",
+    "waSent": "We've sent the code to your WhatsApp <b>{phone}</b>."
   },
   "landing": {
     "tagline": "Your shop. Your customers. Your WhatsApp.",
@@ -541,7 +553,8 @@
     "newHere": "New here? <link>Register your store free</link>",
     "shopInstead": "Looking to shop instead? <link>Browse local stores</link>",
     "phoneHintOtp": "We send a one-time code to verify it. This number also receives your WhatsApp orders (you can change it later).",
-    "loginHint": "Use the mobile number you registered your store with."
+    "loginHint": "Use the mobile number you registered your store with.",
+    "consent": "By continuing you agree to our <link>Privacy policy</link>."
   },
   "merchant": {
     "seoTitle": "Store dashboard",

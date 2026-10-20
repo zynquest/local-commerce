@@ -38,7 +38,9 @@ export async function issueOtp({ phone, purpose, context = {}, meta = {} }) {
     console.error(`[otp] delivery failed (${config.otpProvider}):`, err.message);
     throw new HttpError(502, 'Could not send the code right now. Please try again in a minute.');
   }
-  return { expiresIn: TTL_MINUTES * 60, delivery: provider.delivery, ...(config.exposeDevOtp ? { devCode: code } : {}) };
+  // Show the code in the UI only for local dev providers (decided per request, so switching providers is safe).
+  const exposeDevOtp = !config.isProd && ['fixed', 'console'].includes(config.otpProvider);
+  return { expiresIn: TTL_MINUTES * 60, delivery: provider.delivery, ...(exposeDevOtp ? { devCode: code } : {}) };
 }
 
 /** Verifies and consumes a code. Returns the stored context. Throws 400/429 on failure. */

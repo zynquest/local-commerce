@@ -51,7 +51,8 @@ export function SessionProvider({ children }) {
     () => ({
       appConfig,
       /** Sends an OTP. Returns { delivery, devCode? } — devCode only in local development. */
-      requestOtp: (phone, purpose, name) => post('/otp/request', { phone, purpose, ...(name ? { name } : {}) }),
+      requestOtp: (phone, purpose, name, language) =>
+        post('/otp/request', { phone, purpose, ...(name ? { name } : {}), ...(language ? { language } : {}) }),
 
       owner,
       loadOwner,

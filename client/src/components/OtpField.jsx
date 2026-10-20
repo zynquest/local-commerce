@@ -3,7 +3,7 @@ import { KeyRound, Loader2, Send } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon.jsx';
 import { isMobile10 } from './MobileInput.jsx';
 import { useSession } from '../context/SessionContext.jsx';
-import { rich, useT } from '../i18n/index.jsx';
+import { rich, useI18n } from '../i18n/index.jsx';
 import { whatsappLink } from '../services/whatsappService.js';
 
 const pretty = (n) => `+${n.slice(0, n.length - 10)} ${n.slice(-10, -5)} ${n.slice(-5)}`;
@@ -14,15 +14,18 @@ const pretty = (n) => `+${n.slice(0, n.length - 10)} ${n.slice(-10, -5)} ${n.sli
  *  - manual: no SMS yet — the user WhatsApps the support number and the team replies with the code
  *  - dev:    local testing — the code (898989) is shown as a hint
  *  - sms:    the code arrives by SMS
+ *  - whatsapp:       the code arrives on WhatsApp (Meta authentication template)
+ *  - whatsapp_reply: the user sends us a pre-filled WhatsApp message and gets the code as a reply (free)
  */
 export default function OtpField({ phone, purpose, code, onCode, disabled, name }) {
-  const t = useT();
+  const { t, lang } = useI18n();
   const { requestOtp, appConfig } = useSession();
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [delivery, setDelivery] = useState(appConfig.otpDelivery);
   const [cooldown, setCooldown] = useState(0);
   const [devCode, setDevCode] = useState('');
+  const [wa, setWa] = useState(null); // whatsapp_reply: { number, text } to send from the user's WhatsApp
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -35,10 +38,11 @@ export default function OtpField({ phone, purpose, code, onCode, disabled, name 
     setError('');
     setSending(true);
     try {
-      const r = await requestOtp(phone, purpose, name);
+      const r = await requestOtp(phone, purpose, name, lang);
       setSent(true);
       setCooldown(30);
       setDevCode(r.devCode || '');
+      setWa(r.waNumber && r.waText ? { number: r.waNumber, text: r.waText } : null);
       if (r.delivery) setDelivery(r.delivery);
     } catch (err) {
       setError(err.fields?.phone || err.message);
@@ -66,6 +70,21 @@ export default function OtpField({ phone, purpose, code, onCode, disabled, name 
             <WhatsAppIcon size={16} /> {t('otp.manualButton', { number: `\u2066${pretty(help)}\u2069` /* LTR isolate: keeps +91 … intact in RTL scripts */ })}
           </a>
         </div>
+      )}
+
+      {sent && delivery === 'whatsapp_reply' && wa && (
+        <div className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900" role="status">
+          <p className="font-semibold">{t('otp.waReplyTitle')}</p>
+          <p className="text-xs">{rich(t('otp.waReplyBody', { phone: pretty(`91${phone}`) }), { b: (x) => <b dir="ltr">{x}</b> })}</p>
+          <a href={whatsappLink(wa.number, wa.text)} target="_blank" rel="noopener noreferrer" className="btn-whatsapp w-full py-2 text-sm" data-testid="wa-otp-link">
+            <WhatsAppIcon size={16} /> {t('otp.waReplyButton')}
+          </a>
+        </div>
+      )}
+      {sent && delivery === 'whatsapp' && (
+        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-900" role="status">
+          {rich(t('otp.waSent', { phone: pretty(`91${phone}`) }), { b: (x) => <b dir="ltr">{x}</b> })}
+        </p>
       )}
 
       {sent && (

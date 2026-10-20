@@ -451,6 +451,7 @@ export async function sitemap(req, res) {
     ...localized('/', null, '1.0'),
     ...localized('/stores', stores.reduce((m, s) => (!m || s.updated_at > m ? s.updated_at : m), null), '0.9'),
     ...localized('/register', null, '0.8'),
+    url(`${base}/privacy`, null, '0.3'),
     ...stores.map((s) => url(`${base}/s/${s.slug}`, s.updated_at, '0.8')),
     ...products.map((p) => url(`${base}/s/${p.slug}/p/${encodeURIComponent(p.sku_id)}`, p.updated_at, '0.6')),
     '</urlset>',

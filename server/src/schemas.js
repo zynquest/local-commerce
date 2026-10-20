@@ -48,6 +48,7 @@ export const otpRequest = z.object({
   phone: mobile10,
   name: optText(80).optional(), // store / customer name, shown to the team relaying codes
   purpose: z.enum(['owner_login', 'owner_register', 'customer_login', 'customer_register', 'whatsapp_change']),
+  language: z.enum(LANGUAGE_CODES).optional(), // language for WhatsApp OTP messages
 });
 export const whatsappVerify = z.object({ phone: mobile10, code: otpCode });
 export const registerCustomer = z.object({

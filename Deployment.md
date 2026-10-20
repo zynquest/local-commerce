@@ -778,3 +778,84 @@ Check: `curl -s https://sonsari.in/api/config` should show `"mapsKey":"AIza…"`
 - A store's own link (`/s/<store>`) always works, whatever the distance.
 - Every business needs a map location before it can be submitted for approval (the checklist shows "Location on the map").
 
+---
+
+## B20. WhatsApp OTP with Meta's Cloud API (optional)
+
+By default login codes are emailed to you and relayed by hand (`OTP_PROVIDER=email`, see B14). Two WhatsApp modes automate this. Switching is just an environment variable, and you can go back to `email` at any time.
+
+| `OTP_PROVIDER` | How it works | Cost (India, 2026) |
+|---|---|---|
+| `whatsapp_reply` **(recommended, free)** | The user taps **"Open WhatsApp & send"**. WhatsApp opens with a pre-filled message such as *"Hi Vocal For Local, please send my verification code. Request #K7Q2XZ"* to your business number. Our webhook replies immediately with the 6-digit code. | **₹0**: replies inside the 24-hour customer-service window are free. The message also proves the user owns that number. |
+| `whatsapp` | The server pushes the code automatically using an approved **Authentication** template (like an SMS). | ≈ ₹0.115 + 18% GST per code (Meta's rate; volume discounts apply). |
+
+The rest is unchanged: 6-digit codes, a 10-minute expiry, 5 attempts, and limits per number. Register and login screens for owners and customers, and the WhatsApp-number change, all use it.
+
+### 1. Set up the WhatsApp Business Platform (one time)
+1. **Meta Business portfolio:** create or use one at https://business.facebook.com. **Business verification** (Settings → Security centre) is recommended: it raises messaging limits and lets your display name show.
+2. **Create an app** (the 2026 flow uses "use cases", not app types):
+   - **Use a personal Facebook login.** The developer dashboard needs a personal Facebook profile that's an admin of your business portfolio (Business Suite → Settings → Users → People → add it with *Full control*). If you sign in with a business-only Meta account, developers.facebook.com redirects to business.facebook.com.
+   - Open **https://developers.facebook.com/apps** and register as a developer if asked.
+   - **Create app** → enter a name and email → use case **"Connect with customers through WhatsApp"** → pick your business portfolio → **Create app**.
+   - On *Customize use case → Connect on WhatsApp → Quickstart*, click **Start using the API**.
+   - Alternative start: Business Suite → **Settings → Accounts → Apps → + Add → Create a new app ID**.
+3. **Add your number** (*API Setup* → connect or create your WhatsApp Business account → *Add phone number*). You have two options:
+   - **Keep using it on your phone (coexistence):** connect your existing **WhatsApp Business app** number (e.g. 93530 95481) through the embedded sign-up. The app and the API then work on the same number, and code-request chats also appear in your app. Coexistence is reported to be available in India since mid-2026; if it isn't offered for your number, use option b.
+   - **API only:** register a number that is *not* on any WhatsApp app (or delete it from the app first).
+   - Either way, set a display name (e.g. *Sonsari*). Meta reviews it.
+4. **Permanent access token:** in Business settings → **Users → System users**, add a system user (Admin). Under *Assign assets*, give it the app and the WhatsApp account. Then *Generate token* with the permissions `whatsapp_business_messaging` and `whatsapp_business_management`, set to **never expire**.
+5. **Copy these IDs:**
+   - WhatsApp → API Setup → **Phone number ID** (a long number, *not* the phone number)
+   - App settings → Basic → **App secret**
+6. **Privacy policy:** in App settings → Basic, set:
+   - **Privacy Policy URL:** `https://sonsari.in/privacy`
+   - **User data deletion URL:** `https://sonsari.in/privacy#data-deletion`
+
+   Then switch **App mode → Live**. The page ships with the app as plain HTML, so Meta's checker can read it.
+
+### 2. Configure the server
+```bash
+sudo nano /etc/vfl/env
+# OTP_PROVIDER=whatsapp_reply            # or: whatsapp (paid template mode)
+# WHATSAPP_PHONE_NUMBER_ID=123456789012345
+# WHATSAPP_ACCESS_TOKEN=EAAG…            # system-user token from step 4
+# WHATSAPP_APP_SECRET=…                  # from step 5
+# WHATSAPP_VERIFY_TOKEN=<any long random string, e.g. from: openssl rand -hex 16>
+# WHATSAPP_BUSINESS_NUMBER=919353095481  # the number users message (reply mode)
+# WHATSAPP_OTP_TEMPLATE=login_code       # template mode only (step 4 below)
+# WHATSAPP_OTP_TEMPLATE_LANG=en          # template mode only
+sudo systemctl restart vfl-api
+sudo journalctl -u vfl-api -n 5 --no-pager    # "[otp] provider: whatsapp_reply"
+```
+The API refuses to start if a required WhatsApp setting is missing, and names the missing one.
+
+### 3. Connect the webhook (reply mode)
+You can connect the webhook **before** switching `OTP_PROVIDER`. With only `WHATSAPP_VERIFY_TOKEN` and `WHATSAPP_APP_SECRET` set in `/etc/vfl/env` (and `OTP_PROVIDER=email` unchanged), the endpoint answers Meta's verification and ignores messages until you switch to `whatsapp_reply`.
+
+In the app go to **WhatsApp → Configuration → Webhook → Edit**:
+- **Callback URL:** `https://sonsari.in/api/whatsapp/webhook`
+- **Verify token:** the same `WHATSAPP_VERIFY_TOKEN`
+
+Click **Verify and save**. The server must already be running with the new settings. Then, under **Webhook fields**, subscribe to **messages**.
+
+Webhook calls are checked against the app secret (`X-Hub-Signature-256`); forged calls get 401. Ordinary customer chats on the number are ignored by the server and stay for you to answer.
+
+### 4. Template mode only: create the OTP template
+WhatsApp Manager → **Message templates → Create**:
+- Category **Authentication**
+- Code delivery: **Copy code** button
+- Name `login_code`, language English
+
+Optionally add more languages with the same name. Approval is usually quick. Put the name and language in `WHATSAPP_OTP_TEMPLATE` / `WHATSAPP_OTP_TEMPLATE_LANG`.
+
+### 5. Test it
+1. Open https://sonsari.in/register.
+2. Enter a mobile that has WhatsApp and tap **Send verification code**, then **Open WhatsApp & send**.
+3. Send the pre-filled message. The code should come back within seconds.
+4. If it doesn't, check `sudo journalctl -u vfl-api --since "5 min ago" | grep -i whatsapp`:
+   - a `401` means `WHATSAPP_APP_SECRET` is wrong;
+   - `WhatsApp API 401/403` means the token or phone number ID is wrong;
+   - no log line at all means the webhook isn't subscribed to **messages**.
+
+**Rollback:** set `OTP_PROVIDER=email` and restart.
+

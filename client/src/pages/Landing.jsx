@@ -451,7 +451,8 @@ export default function Landing() {
       </section>
 
       <footer className="border-t border-stone-100 py-8 text-center text-xs text-stone-500">
-        © {new Date().getFullYear()} {PLATFORM.name} · {t('landing.tagline')}
+        © {new Date().getFullYear()} {PLATFORM.name} · {t('landing.tagline')} ·{' '}
+        <a href="/privacy" className="underline hover:text-brand">{t('common.privacy')}</a>
       </footer>
     </div>
   );

@@ -54,6 +54,7 @@ npm run admin:reset-password
     - `fixed`: local default; every code is **898989**.
     - `email`: production default until an SMS gateway exists. Codes are emailed via Gmail SMTP to `OTP_EMAIL_TO` (creativebunnyofficial@gmail.com). The app tells users to WhatsApp **+91 93530 95481** (`OTP_HELP_WHATSAPP`) for their code, and you reply with it.
     - `sms`: plug in a gateway later. No client change is needed.
+    - `whatsapp_reply` (free) / `whatsapp` (paid template): WhatsApp OTPs through Meta's Cloud API, webhook at `/api/whatsapp/webhook` (Deployment.md §B20).
   - Owners created before OTP login need a mobile attached: `npm run owner:set-phone -- <username|store-link> <10-digit mobile>`.
   - OTPs are 6 digits, expire in 10 minutes, allow 5 attempts, and at most 3 can be sent per number per 15 minutes.
   - Login codes are sent only to registered numbers, but the response is identical either way, so the endpoint doesn't reveal who is registered.

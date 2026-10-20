@@ -54,6 +54,9 @@ export default function CustomerAuthModal({ onClose, initialMode = 'login' }) {
           name={mode === 'register' ? form.name : undefined}
         />
         {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+        <p className="text-center text-[11px] text-stone-400">
+          {rich(t('owner.consent'), { link: (x) => <a href="/privacy" target="_blank" rel="noopener" className="underline">{x}</a> })}
+        </p>
         <button disabled={busy || form.code.length !== 6 || (mode === 'register' && !form.name.trim())} className="btn-brand w-full">
           {busy && <Loader2 size={16} className="animate-spin" />}
           {mode === 'login' ? t('auth.login') : t('auth.signUp')}

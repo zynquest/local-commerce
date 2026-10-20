@@ -140,6 +140,9 @@ export default function OwnerAuth({ mode }) {
         <p className="text-center text-xs text-stone-400">
           {rich(t('owner.shopInstead'), { link: (x) => <Link to="/stores" className="underline">{x}</Link> })}
         </p>
+        <p className="text-center text-[11px] text-stone-400">
+          {rich(t('owner.consent'), { link: (x) => <a href="/privacy" target="_blank" rel="noopener" className="underline">{x}</a> })}
+        </p>
       </form>
     </div>
   );

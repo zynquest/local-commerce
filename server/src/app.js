@@ -4,11 +4,13 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { fileURLToPath } from 'node:url';
 import { clientKey } from './clientIp.js';
 import { config } from './config.js';
 import { query } from './db.js';
 import { errorHandler, forbidden, notFound } from './errors.js';
 import { merchantRouter } from './routes/merchant.js';
+import { whatsappRouter } from './routes/whatsapp.js';
 import { merchantAppointmentsRouter, publicAppointmentsRouter } from './routes/appointments.js';
 import { otpRouter } from './routes/otp.js';
 import { platformRouter } from './routes/platform.js';
@@ -54,6 +56,8 @@ export function createApp() {
       crossOriginResourcePolicy: { policy: 'same-site' },
     }),
   );
+  // Meta's webhook needs the raw body for its signature check, so it's mounted before the JSON parser.
+  app.use('/api/whatsapp', whatsappRouter);
   app.use(express.json({ limit: '2mb' }));
   app.use(cookieParser());
 
@@ -81,6 +85,9 @@ export function createApp() {
 
   app.use('/uploads', express.static(config.uploadDir, { maxAge: '365d', immutable: true, fallthrough: false }));
 
+  // Static legal page (plain HTML so crawlers such as Meta's app review can read it without JavaScript).
+  const privacyFile = path.join(path.dirname(fileURLToPath(import.meta.url)), 'pages', 'privacy.html');
+  app.get(['/privacy', '/privacy-policy'], (_req, res) => res.set('Cache-Control', 'public, max-age=3600').sendFile(privacyFile));
   app.get('/robots.txt', robots);
   app.get('/sitemap.xml', sitemap);
 

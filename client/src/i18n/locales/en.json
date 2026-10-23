@@ -281,7 +281,9 @@
     "newHere": "New here? <b>Create an account</b>",
     "haveAccount": "Already have an account? <b>Log in</b>",
     "mobile10": "10-digit mobile number",
-    "email": "Email address"
+    "email": "Email address",
+    "continue": "Continue",
+    "newAccountName": "You're new here. Tell us your name to create your account."
   },
   "otp": {
     "send": "Send verification code",

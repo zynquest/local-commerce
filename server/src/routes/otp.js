@@ -33,17 +33,13 @@ otpRouter.post('/request', otpLimiter, async (req, res, next) => {
 
   if (purpose === 'whatsapp_change') return next(); // handled below (needs an owner session)
 
-  // Shoppers: email + OTP (CUSTOMER_LOGIN=email, emailed directly, never the WhatsApp relay) or mobile + OTP
-  // (CUSTOMER_LOGIN=mobile, delivered like owners' codes). Same response whether or not the identity is
-  // registered, so the endpoint can't be used to discover accounts.
+  // Shoppers: one flow for sign-in and sign-up, so the code is always sent — by email (CUSTOMER_LOGIN=email,
+  // never the WhatsApp relay) or to the mobile number like owners' codes (CUSTOMER_LOGIN=mobile). Whether an
+  // account exists is decided by /api/customer/auth once the code has been verified.
   if (isCustomerPurpose(purpose)) {
     const id = customerIdentity({ email, phone });
-    const registered = await exists(`SELECT 1 FROM customers WHERE ${id.column} = $1`, [id.value]);
-    if (purpose === 'customer_register' && registered) throw conflict(id.column === 'email' ? 'An account with this email already exists. Please log in.' : 'An account with this number exists. Please log in.');
-    if (id.column === 'phone' && usesWhatsAppReply()) return res.json({ ok: true, ...(await startWhatsAppRequest({ phone, purpose, meta, language })) });
-    const generic = { ok: true, delivery: providerFor(purpose).delivery, message: id.column === 'email' ? 'If the address is registered, a code has been sent.' : 'If the number can receive codes, one has been sent.' };
-    if (purpose === 'customer_login' && !registered) return res.json(generic);
-    return res.json({ ...generic, ...(await issueOtp({ phone: id.value, purpose, meta })) });
+    if (id.column === 'phone' && usesWhatsAppReply()) return res.json({ ok: true, ...(await startWhatsAppRequest({ phone, purpose: 'customer_login', meta, language })) });
+    return res.json({ ok: true, delivery: providerFor(purpose).delivery, ...(await issueOtp({ phone: id.value, purpose: 'customer_login', meta })) });
   }
 
   // Free WhatsApp mode: the user messages us first. Logins get a request even for unknown numbers, so the

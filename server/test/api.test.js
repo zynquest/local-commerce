@@ -371,14 +371,17 @@ describe('storefront + orders', () => {
     assert.equal((await other('GET', '/api/merchant/orders')).body.orders.length, 0);
   });
 
-  test('customer account: register with email + OTP, order is linked, history visible', async () => {
-    const bad = await shopper('POST', '/api/otp/request', { phone: phoneShopper, purpose: 'customer_register' });
+  test('customer account: email + OTP in one flow (new shopper is asked for a name), order is linked, history visible', async () => {
+    const bad = await shopper('POST', '/api/otp/request', { phone: phoneShopper, purpose: 'customer_login' });
     assert.equal(bad.status, 400, 'customers identify by email, not mobile');
-    const code = await otpFor(shopper, emailShopper.toUpperCase(), 'customer_register', { name: `Tester ${run}` });
-    const reg = await shopper('POST', '/api/customer/register', { name: `Tester ${run}`, email: emailShopper, code });
+    const code = await otpFor(shopper, emailShopper.toUpperCase(), 'customer_login'); // unknown address still gets a code
+    const first = await shopper('POST', '/api/customer/auth', { email: emailShopper, code });
+    assert.equal(first.status, 200, JSON.stringify(first.body));
+    assert.equal(first.body.needsName, true, 'no account yet → ask for a name, code stays valid');
+    const reg = await shopper('POST', '/api/customer/auth', { email: emailShopper, code, name: `Tester ${run}` });
     assert.equal(reg.status, 201, JSON.stringify(reg.body));
     assert.equal(reg.body.customer.email, emailShopper, 'stored lowercased');
-    assert.equal((await shopper('POST', '/api/otp/request', { email: emailShopper, purpose: 'customer_register' })).status, 409);
+    assert.equal((await shopper('POST', '/api/customer/auth', { email: emailShopper, code })).status, 400, 'code consumed');
     const list = await shopper('GET', `/api/stores/${slug}`);
     const item = list.body.products.find((p) => p.name === 'Oil');
     const o = await shopper('POST', `/api/stores/${slug}/orders`, {
@@ -399,32 +402,32 @@ describe('storefront + orders', () => {
     assert.equal((await shopper('GET', `/api/stores/${slug}`)).status, 200);
   });
 
-  test('CUSTOMER_LOGIN=mobile: shoppers register and log in with a 10-digit mobile instead', async () => {
+  test('CUSTOMER_LOGIN=mobile: the same flow with a 10-digit mobile instead', async () => {
     const { config } = await import('../src/config.js');
     const saved = config.customerLogin;
     config.customerLogin = 'mobile';
     try {
       const c = client();
-      assert.equal((await c('POST', '/api/otp/request', { email: emailShopper, purpose: 'customer_register' })).status, 400, 'email refused in mobile mode');
-      const code = await otpFor(c, phoneShopper, 'customer_register', { name: `Tester ${run}` });
-      const reg = await c('POST', '/api/customer/register', { name: `Tester ${run}`, phone: phoneShopper, code });
+      assert.equal((await c('POST', '/api/otp/request', { email: emailShopper, purpose: 'customer_login' })).status, 400, 'email refused in mobile mode');
+      const code = await otpFor(c, phoneShopper, 'customer_login');
+      assert.equal((await c('POST', '/api/customer/auth', { phone: phoneShopper, code })).body.needsName, true);
+      const reg = await c('POST', '/api/customer/auth', { phone: phoneShopper, code, name: `Tester ${run}` });
       assert.equal(reg.status, 201, JSON.stringify(reg.body));
       assert.equal(reg.body.customer.phone, phoneShopper);
-      const login = await c('POST', '/api/customer/login', { phone: phoneShopper, code: await otpFor(client(), phoneShopper, 'customer_login') });
+      const login = await client()('POST', '/api/customer/auth', { phone: phoneShopper, code: await otpFor(client(), phoneShopper, 'customer_login') });
       assert.equal(login.status, 200, JSON.stringify(login.body));
+      assert.equal(login.body.customer.phone, phoneShopper, 'existing account → signed in, no name needed');
     } finally {
       config.customerLogin = saved;
     }
   });
 
-  test('shopper can log back in with email + OTP; unknown emails get the same reply', async () => {
+  test('shopper signs back in with email + OTP; a name sent for an existing account is ignored', async () => {
     const again = client();
-    const unknown = await again('POST', '/api/otp/request', { email: `nobody${digits}@example.com`, purpose: 'customer_login' });
-    assert.equal(unknown.status, 200);
-    assert.equal(unknown.body.devCode, undefined, 'no code for an unregistered email');
     const code = await otpFor(again, emailShopper, 'customer_login');
-    const r = await again('POST', '/api/customer/login', { email: emailShopper, code });
+    const r = await again('POST', '/api/customer/auth', { email: emailShopper, code, name: 'Someone Else' });
     assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.customer.name, `Tester ${run}`);
     assert.equal((await again('GET', '/api/customer/orders')).body.orders.length, 1);
   });
 

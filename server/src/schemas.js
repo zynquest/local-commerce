@@ -60,14 +60,14 @@ export const otpRequest = z
     if (!v.phone && !v.email) ctx.addIssue({ code: 'custom', path: ['email'], message: 'Enter a valid email address' });
   });
 export const whatsappVerify = z.object({ phone: mobile10, code: otpCode });
-// Shoppers: email (CUSTOMER_LOGIN=email) or 10-digit mobile (CUSTOMER_LOGIN=mobile); the route checks the right one.
-export const registerCustomer = z.object({
-  name: z.preprocess(cleanText, z.string().min(1, 'Enter your name').max(80)),
+// Shoppers, one flow for sign-in and sign-up: email (CUSTOMER_LOGIN=email) or 10-digit mobile (CUSTOMER_LOGIN=mobile)
+// + code; `name` only when creating the account. The route checks the configured identity.
+export const customerAuth = z.object({
   email: email.optional(),
   phone: mobile10.optional(),
   code: otpCode,
+  name: z.preprocess((v) => (v == null || v === '' ? undefined : cleanText(v)), z.string().min(1, 'Enter your name').max(80).optional()),
 });
-export const customerLogin = z.object({ email: email.optional(), phone: mobile10.optional(), code: otpCode });
 export const submitForReview = z.object({ note: optText(500).optional() });
 export const reviewDecision = z.object({ remarks: optText(1000).optional() });
 export const reviewRemarksRequired = z.object({

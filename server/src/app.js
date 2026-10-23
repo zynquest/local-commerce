@@ -63,7 +63,8 @@ export function createApp() {
   app.use(express.json({ limit: '2mb' }));
   app.use(cookieParser());
 
-  const authLimiter = rateLimit({ windowMs: 15 * 60_000, limit: 20, standardHeaders: 'draft-8', legacyHeaders: false,
+  // Relaxed outside production so the test suite's many sign-ins don't trip it (the OTP limiter does the same).
+  const authLimiter = rateLimit({ windowMs: 15 * 60_000, limit: config.isProd ? 20 : 500, standardHeaders: 'draft-8', legacyHeaders: false,
     keyGenerator: clientKey, message: { error: 'Too many attempts. Try again in a few minutes.' } });
 
   app.get('/api/health', async (_req, res) => {
@@ -72,7 +73,7 @@ export function createApp() {
   });
   app.use('/api', originGuard);
   app.use(
-    ['/api/auth/login', '/api/auth/register', '/api/customer/login', '/api/customer/register'],
+    ['/api/auth/login', '/api/auth/register', '/api/customer/auth'],
     authLimiter,
   );
   app.use('/api/auth', authRouter);

@@ -43,8 +43,11 @@ export async function issueOtp({ phone, purpose, context = {}, meta = {} }) {
   return { expiresIn: TTL_MINUTES * 60, delivery: provider.delivery, ...(exposeDevOtp ? { devCode: code } : {}) };
 }
 
-/** Verifies and consumes a code. Returns the stored context. Throws 400/429 on failure. */
-export async function verifyOtp({ phone, purpose, code }) {
+/**
+ * Verifies and (by default) consumes a code. Returns the stored context. Throws 400/429 on failure.
+ * consume: false checks the code but leaves it valid, for a flow that needs one more input before finishing.
+ */
+export async function verifyOtp({ phone, purpose, code, consume = true }) {
   const { rows } = await query(
     `SELECT id, code_hash, attempts, context FROM otp_codes
       WHERE phone = $1 AND purpose = $2 AND consumed_at IS NULL AND expires_at > now()
@@ -61,6 +64,6 @@ export async function verifyOtp({ phone, purpose, code }) {
     await query('UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1', [otp.id]);
     throw badRequest('Incorrect code', { code: 'Incorrect code' });
   }
-  await query('UPDATE otp_codes SET consumed_at = now() WHERE id = $1', [otp.id]);
+  if (consume) await query('UPDATE otp_codes SET consumed_at = now() WHERE id = $1', [otp.id]);
   return otp.context;
 }

@@ -559,7 +559,7 @@ Run it every 5 minutes and log failures:
 
 ## B14. Login OTPs (email relay, WhatsApp, or SMS via Fast2SMS)
 
-Store owners log in **only** with a 10-digit mobile number and a 6-digit OTP; the same flow covers WhatsApp-number changes. Shoppers (optional accounts, for order history) log in with their **email address** by default (`CUSTOMER_LOGIN=email`): the 6-digit code is emailed to them directly through the Gmail SMTP settings below, whatever `OTP_PROVIDER` is set to. Set `CUSTOMER_LOGIN=mobile` to have shoppers use a 10-digit mobile number instead, with codes delivered by `OTP_PROVIDER` exactly like owners' codes (do this once SMS is live). There are no passwords; only the platform admin has one.
+Store owners log in **only** with a 10-digit mobile number and a 6-digit OTP; the same flow covers WhatsApp-number changes. Shoppers (optional accounts, for order history) use one flow for sign-in and sign-up: they enter their **email address** (`CUSTOMER_LOGIN=email`, the default) and always receive a 6-digit code, emailed directly through the Gmail SMTP settings below whatever `OTP_PROVIDER` is set to; once the code is verified an existing account is signed in, otherwise they're asked for a name and the account is created. Set `CUSTOMER_LOGIN=mobile` to have shoppers use a 10-digit mobile number instead, with codes delivered by `OTP_PROVIDER` exactly like owners' codes (do this once SMS is live). There are no passwords; only the platform admin has one.
 
 If shopper emails don't arrive, send a test message from the VM with the same settings and read the SMTP reply:
 

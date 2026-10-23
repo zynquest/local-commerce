@@ -67,8 +67,12 @@ export function SessionProvider({ children }) {
       },
 
       customer,
-      registerCustomer: async (body) => setCustomer((await post('/customer/register', body)).customer),
-      loginCustomer: async (body) => setCustomer((await post('/customer/login', body)).customer),
+      /** One call for sign-in and sign-up: { email|phone, code, name? } → { customer } or { needsName: true }. */
+      authCustomer: async (body) => {
+        const r = await post('/customer/auth', body);
+        if (r.customer) setCustomer(r.customer);
+        return r;
+      },
       updateCustomer: async (body) => setCustomer((await put('/customer/me', body)).customer),
       logoutCustomer: async () => {
         await post('/customer/logout').catch(() => {});

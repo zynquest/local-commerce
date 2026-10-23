@@ -55,17 +55,19 @@ export const otpRequest = z
     language: z.enum(LANGUAGE_CODES).optional(), // language of the code message (WhatsApp / email)
   })
   .superRefine((v, ctx) => {
-    const customer = v.purpose.startsWith('customer_');
-    if (customer && !v.email) ctx.addIssue({ code: 'custom', path: ['email'], message: 'Enter a valid email address' });
-    if (!customer && !v.phone) ctx.addIssue({ code: 'custom', path: ['phone'], message: 'Enter a valid 10-digit mobile number' });
+    // Customers may send either (the route enforces the configured one); everyone else needs a mobile number.
+    if (!v.purpose.startsWith('customer_') && !v.phone) ctx.addIssue({ code: 'custom', path: ['phone'], message: 'Enter a valid 10-digit mobile number' });
+    if (!v.phone && !v.email) ctx.addIssue({ code: 'custom', path: ['email'], message: 'Enter a valid email address' });
   });
 export const whatsappVerify = z.object({ phone: mobile10, code: otpCode });
+// Shoppers: email (CUSTOMER_LOGIN=email) or 10-digit mobile (CUSTOMER_LOGIN=mobile); the route checks the right one.
 export const registerCustomer = z.object({
   name: z.preprocess(cleanText, z.string().min(1, 'Enter your name').max(80)),
-  email,
+  email: email.optional(),
+  phone: mobile10.optional(),
   code: otpCode,
 });
-export const emailLogin = z.object({ email, code: otpCode });
+export const customerLogin = z.object({ email: email.optional(), phone: mobile10.optional(), code: otpCode });
 export const submitForReview = z.object({ note: optText(500).optional() });
 export const reviewDecision = z.object({ remarks: optText(1000).optional() });
 export const reviewRemarksRequired = z.object({

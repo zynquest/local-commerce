@@ -35,7 +35,7 @@ export async function issueOtp({ phone, purpose, context = {}, meta = {} }) {
   try {
     await provider.send(phone, code, purpose, meta);
   } catch (err) {
-    console.error(`[otp] delivery failed (${config.otpProvider}):`, err.message);
+    console.error(`[otp] delivery failed (${provider.delivery}, ${purpose}):`, err.message, err.code ? `[${err.code}]` : '');
     throw new HttpError(502, 'Could not send the code right now. Please try again in a minute.');
   }
   // Show the code in the UI only for local dev providers (decided per request, so switching providers is safe).

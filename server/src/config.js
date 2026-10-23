@@ -42,6 +42,9 @@ export const config = {
   // messages us first, we reply with the code) · sms (Fast2SMS OTP route, paid per SMS, no DLT) · console (dev log).
   otpProvider: process.env.OTP_PROVIDER || (process.env.NODE_ENV === 'production' ? 'email' : 'fixed'),
   otpFixedCode: process.env.OTP_FIXED_CODE || '898989',
+  // How shoppers identify themselves: 'email' (code emailed directly, needs SMTP) or 'mobile' (10-digit number,
+  // code delivered by OTP_PROVIDER like owners' codes). Owners always use mobile.
+  customerLogin: process.env.CUSTOMER_LOGIN || 'email',
   otpEmailTo: process.env.OTP_EMAIL_TO || 'creativebunnyofficial@gmail.com',
   // WhatsApp number users message to receive their OTP while codes are relayed manually.
   otpHelpWhatsApp: (process.env.OTP_HELP_WHATSAPP || '919353095481').replace(/\D/g, ''),
@@ -77,6 +80,7 @@ export const config = {
 export function assertOtpConfig() {
   const p = config.otpProvider;
   if (!['fixed', 'console', 'email', 'sms', 'whatsapp', 'whatsapp_reply'].includes(p)) throw new Error(`Unknown OTP_PROVIDER "${p}"`);
+  if (!['email', 'mobile'].includes(config.customerLogin)) throw new Error(`CUSTOMER_LOGIN must be "email" or "mobile", not "${config.customerLogin}"`);
   const wa = config.whatsapp;
   if (p === 'whatsapp' || p === 'whatsapp_reply') {
     const missing = [
@@ -93,7 +97,7 @@ export function assertOtpConfig() {
   if (p === 'sms' && !config.fast2sms.apiKey) {
     throw new Error('OTP_PROVIDER=sms needs FAST2SMS_API_KEY (fast2sms.com → Dev API; Deployment.md §B14).');
   }
-  if ((p === 'email' || config.isProd) && (!config.smtp.user || !config.smtp.pass)) {
-    throw new Error('SMTP_USER and SMTP_PASS (Gmail address + App Password) are required: customer login codes are emailed.');
+  if ((p === 'email' || (config.isProd && config.customerLogin === 'email')) && (!config.smtp.user || !config.smtp.pass)) {
+    throw new Error('SMTP_USER and SMTP_PASS (Gmail address + App Password) are required for OTP_PROVIDER=email and CUSTOMER_LOGIN=email.');
   }
 }

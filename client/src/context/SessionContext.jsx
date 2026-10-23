@@ -13,6 +13,7 @@ const defaultConfig = {
   platformName: PLATFORM.name,
   otpDelivery: 'manual',
   otpHelpWhatsApp: PLATFORM.whatsappNumber,
+  customerLogin: 'email', // 'email' | 'mobile' (server CUSTOMER_LOGIN)
 };
 
 export function SessionProvider({ children }) {

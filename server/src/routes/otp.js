@@ -9,7 +9,8 @@ import { query } from '../db.js';
 import { badRequest, conflict, parse } from '../errors.js';
 import { issueOtp } from '../otp/otp.js';
 import { startWhatsAppRequest, usesWhatsAppReply } from '../otp/whatsappReply.js';
-import { getProvider, providerFor } from '../otp/providers.js';
+import { getProvider, isCustomerPurpose, providerFor } from '../otp/providers.js';
+import { customerIdentity } from './customer.js';
 import { DEMO_WHATSAPP_LOCKED } from './merchant.js';
 import * as S from '../schemas.js';
 
@@ -32,14 +33,17 @@ otpRouter.post('/request', otpLimiter, async (req, res, next) => {
 
   if (purpose === 'whatsapp_change') return next(); // handled below (needs an owner session)
 
-  // Shoppers: email + OTP, emailed directly (never the WhatsApp relay). Same response whether or not the
-  // address is registered, so the endpoint can't be used to discover accounts.
-  if (purpose === 'customer_register' || purpose === 'customer_login') {
-    const registered = await exists('SELECT 1 FROM customers WHERE email = $1', [email]);
-    if (purpose === 'customer_register' && registered) throw conflict('An account with this email already exists. Please log in.');
-    const generic = { ok: true, delivery: providerFor(purpose).delivery, message: 'If the address is registered, a code has been sent.' };
+  // Shoppers: email + OTP (CUSTOMER_LOGIN=email, emailed directly, never the WhatsApp relay) or mobile + OTP
+  // (CUSTOMER_LOGIN=mobile, delivered like owners' codes). Same response whether or not the identity is
+  // registered, so the endpoint can't be used to discover accounts.
+  if (isCustomerPurpose(purpose)) {
+    const id = customerIdentity({ email, phone });
+    const registered = await exists(`SELECT 1 FROM customers WHERE ${id.column} = $1`, [id.value]);
+    if (purpose === 'customer_register' && registered) throw conflict(id.column === 'email' ? 'An account with this email already exists. Please log in.' : 'An account with this number exists. Please log in.');
+    if (id.column === 'phone' && usesWhatsAppReply()) return res.json({ ok: true, ...(await startWhatsAppRequest({ phone, purpose, meta, language })) });
+    const generic = { ok: true, delivery: providerFor(purpose).delivery, message: id.column === 'email' ? 'If the address is registered, a code has been sent.' : 'If the number can receive codes, one has been sent.' };
     if (purpose === 'customer_login' && !registered) return res.json(generic);
-    return res.json({ ...generic, ...(await issueOtp({ phone: email, purpose, meta })) });
+    return res.json({ ...generic, ...(await issueOtp({ phone: id.value, purpose, meta })) });
   }
 
   // Free WhatsApp mode: the user messages us first. Logins get a request even for unknown numbers, so the

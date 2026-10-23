@@ -3,33 +3,49 @@ import { Router } from 'express';
 import { createSession, destroySession, requireCustomer } from '../auth.js';
 import { verifyOtp } from '../otp/otp.js';
 import { query } from '../db.js';
-import { conflict, parse, unauthorized } from '../errors.js';
+import { badRequest, conflict, parse, unauthorized } from '../errors.js';
+import { customersUseEmail } from '../otp/providers.js';
 import * as S from '../schemas.js';
 
 export const customerRouter = Router();
 
+/**
+ * The shopper's identity for this deployment: { column: 'email' | 'phone', value }. CUSTOMER_LOGIN picks which;
+ * the other field is ignored. The OTP for customer purposes is keyed by the same value (otp_codes.phone).
+ */
+export function customerIdentity({ email, phone }) {
+  if (customersUseEmail()) {
+    if (!email) throw badRequest('Enter a valid email address', { email: 'Enter a valid email address' });
+    return { column: 'email', value: email };
+  }
+  if (!phone) throw badRequest('Enter a valid 10-digit mobile number', { phone: 'Enter a valid 10-digit mobile number' });
+  return { column: 'phone', value: phone };
+}
+
 const profile = async (id) =>
   (await query('SELECT id, name, email, phone, default_address FROM customers WHERE id = $1', [id])).rows[0] || null;
 
-// Optional shopper accounts: name + email verified by OTP; login with email + OTP. (otp_codes.phone holds the email.)
+// Optional shopper accounts: name + email (or mobile) verified by OTP; login the same way.
 customerRouter.post('/register', async (req, res) => {
-  const { name, email, code } = parse(S.registerCustomer, req.body);
-  await verifyOtp({ phone: email, purpose: 'customer_register', code });
+  const { name, code, ...ids } = parse(S.registerCustomer, req.body);
+  const id = customerIdentity(ids);
+  await verifyOtp({ phone: id.value, purpose: 'customer_register', code });
   const { rows } = await query(
-    `INSERT INTO customers (name, email, last_login_at) VALUES ($1, $2, now())
-     ON CONFLICT (email) DO NOTHING RETURNING id`,
-    [name, email],
+    `INSERT INTO customers (name, ${id.column}, last_login_at) VALUES ($1, $2, now())
+     ON CONFLICT DO NOTHING RETURNING id`,
+    [name, id.value],
   );
-  if (!rows[0]) throw conflict('An account with this email already exists. Please log in.');
+  if (!rows[0]) throw conflict(id.column === 'email' ? 'An account with this email already exists. Please log in.' : 'An account with this phone number already exists. Please log in.');
   await createSession(res, 'customer', rows[0].id);
   res.status(201).json({ customer: await profile(rows[0].id) });
 });
 
 customerRouter.post('/login', async (req, res) => {
-  const { email, code } = parse(S.emailLogin, req.body);
-  await verifyOtp({ phone: email, purpose: 'customer_login', code });
-  const { rows } = await query('SELECT id FROM customers WHERE email = $1', [email]);
-  if (!rows[0]) throw unauthorized('No account found for this email');
+  const { code, ...ids } = parse(S.customerLogin, req.body);
+  const id = customerIdentity(ids);
+  await verifyOtp({ phone: id.value, purpose: 'customer_login', code });
+  const { rows } = await query(`SELECT id FROM customers WHERE ${id.column} = $1`, [id.value]);
+  if (!rows[0]) throw unauthorized(id.column === 'email' ? 'No account found for this email' : 'No account found for this number');
   await query('UPDATE customers SET last_login_at = now() WHERE id = $1', [rows[0].id]);
   await createSession(res, 'customer', rows[0].id);
   res.json({ customer: await profile(rows[0].id) });

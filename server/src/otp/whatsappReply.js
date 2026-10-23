@@ -59,8 +59,12 @@ async function purposeProblem(purpose, phone) {
   switch (purpose) {
     case 'owner_register':
       return (await exists('SELECT 1 FROM users WHERE phone = $1', [phone])) ? 'otp.waAlreadyRegistered' : null;
+    case 'customer_register': // CUSTOMER_LOGIN=mobile only
+      return (await exists('SELECT 1 FROM customers WHERE phone = $1', [phone])) ? 'otp.waAlreadyRegistered' : null;
     case 'owner_login':
       return (await exists(`SELECT 1 FROM users WHERE phone = $1 AND role = 'owner'`, [phone])) ? null : 'otp.waNoAccount';
+    case 'customer_login':
+      return (await exists('SELECT 1 FROM customers WHERE phone = $1', [phone])) ? null : 'otp.waNoAccount';
     default:
       return null;
   }

@@ -11,6 +11,7 @@
     "seed": "node --env-file-if-exists=../.env src/seed.js",
     "test": "node --env-file-if-exists=../.env --test --test-concurrency=1 test/",
     "admin:create": "node --env-file-if-exists=../.env src/cli/admin.js create",
+    "mail:test": "node --env-file-if-exists=../.env src/cli/mail.js",
     "admin:reset-password": "node --env-file-if-exists=../.env src/cli/admin.js reset-password",
     "owner:set-phone": "node --env-file-if-exists=../.env src/cli/owner.js set-phone",
     "images:share-jpegs": "node --env-file-if-exists=../.env src/cli/share-images.js",

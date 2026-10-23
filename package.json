@@ -17,6 +17,7 @@
     "start": "npm run start -w server",
     "test": "npm test -w server",
     "admin:create": "npm run admin:create -w server",
+    "mail:test": "npm run mail:test -w server --",
     "admin:reset-password": "npm run admin:reset-password -w server",
     "owner:set-phone": "npm run owner:set-phone -w server --",
     "images:share-jpegs": "npm run images:share-jpegs -w server",

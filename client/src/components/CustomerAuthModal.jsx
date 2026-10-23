@@ -1,29 +1,32 @@
 import { useState } from 'react';
 import { Loader2, Mail, UserRound, X } from 'lucide-react';
+import MobileInput, { isMobile10 } from './MobileInput.jsx';
 import OtpField from './OtpField.jsx';
 import { useSession } from '../context/SessionContext.jsx';
 import { rich, useT } from '../i18n/index.jsx';
 
 const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v || '').trim());
 
-/** Optional shopper login / sign-up with email + OTP. Guests can always skip it. */
+/** Optional shopper login / sign-up with email + OTP (or mobile + OTP when the server says so). Guests can always skip it. */
 export default function CustomerAuthModal({ onClose, initialMode = 'login' }) {
   const t = useT();
-  const { loginCustomer, registerCustomer } = useSession();
+  const { loginCustomer, registerCustomer, appConfig } = useSession();
+  const byEmail = appConfig.customerLogin !== 'mobile';
   const [mode, setMode] = useState(initialMode);
-  const [form, setForm] = useState({ name: '', email: '', code: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', code: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!isEmail(form.email)) return setError(t('errors.validEmail'));
-    const email = form.email.trim().toLowerCase();
+    if (byEmail && !isEmail(form.email)) return setError(t('errors.validEmail'));
+    if (!byEmail && !isMobile10(form.phone)) return setError(t('errors.validMobile10'));
+    const identity = byEmail ? { email: form.email.trim().toLowerCase() } : { phone: form.phone };
     setBusy(true);
     try {
-      if (mode === 'login') await loginCustomer({ email, code: form.code });
-      else await registerCustomer({ name: form.name, email, code: form.code });
+      if (mode === 'login') await loginCustomer({ ...identity, code: form.code });
+      else await registerCustomer({ name: form.name, ...identity, code: form.code });
       onClose();
     } catch (err) {
       setError(err.message);
@@ -47,7 +50,8 @@ export default function CustomerAuthModal({ onClose, initialMode = 'login' }) {
         {mode === 'register' && (
           <input className="input" placeholder={t('cart.yourName')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" required />
         )}
-        <div>
+        {!byEmail && <MobileInput id="customer-phone" value={form.phone} onChange={(phone) => setForm({ ...form, phone })} label={t('auth.mobile10')} />}
+        {byEmail && <div>
           <label className="label" htmlFor="customer-email">{t('auth.email')}</label>
           <div className="relative" dir="ltr">
             <Mail size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
@@ -63,9 +67,9 @@ export default function CustomerAuthModal({ onClose, initialMode = 'login' }) {
               required
             />
           </div>
-        </div>
+        </div>}
         <OtpField
-          email={form.email}
+          {...(byEmail ? { email: form.email } : { phone: form.phone })}
           purpose={mode === 'login' ? 'customer_login' : 'customer_register'}
           code={form.code}
           onCode={(code) => setForm((f) => ({ ...f, code }))}

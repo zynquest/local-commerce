@@ -22,6 +22,8 @@ publicRouter.get('/config', (_req, res) => {
     // How OTPs reach users: 'manual' = WhatsApp otpHelpWhatsApp to receive the code (until an SMS gateway exists).
     otpDelivery: getProvider().delivery,
     otpHelpWhatsApp: config.otpHelpWhatsApp,
+    // Shoppers sign in with 'email' (code emailed) or 'mobile' (code via otpDelivery). Owners always use mobile.
+    customerLogin: config.customerLogin,
     mapsKey: config.googleMapsKey,
     mapId: config.googleMapId,
     nearbyKm: config.nearbyRadiusKm,

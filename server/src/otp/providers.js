@@ -74,8 +74,8 @@ export const providers = {
 <table cellpadding="6" style="border-collapse:collapse">${rows
           .map(([k, v]) => `<tr><td style="color:#666">${esc(k)}</td><td><b style="${k === 'OTP' ? 'font-size:22px;letter-spacing:4px' : ''}">${esc(v)}</b></td></tr>`)
           .join('')}</table>
-<p style="margin:16px 0"><a href="${esc(waLink)}" style="background:#25d366;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600">Send OTP to ${esc(pretty(phone))} on WhatsApp</a></p>
-<p style="color:#666;font-size:13px">Only send this code to the WhatsApp number shown above.</p></div>`,
+<p style="margin:16px 0"><a href="${esc(waLink)}" style="display:inline-block;background:#25d366;color:#fff;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:600;line-height:1.3;text-align:center">Send OTP on WhatsApp</a></p>
+<p style="color:#666;font-size:13px;margin:0">Opens WhatsApp to <b style="white-space:nowrap">${esc(pretty(phone))}</b> with the code pre-filled. Only send it to that number.</p></div>`,
       });
     },
   },
@@ -146,8 +146,14 @@ export const customerEmail = {
 
 export const isCustomerPurpose = (purpose) => purpose === 'customer_login' || purpose === 'customer_register';
 
-/** Provider for a purpose: customers always get email (except in local dev modes); everything else follows OTP_PROVIDER. */
+/** Whether shoppers identify by email (CUSTOMER_LOGIN=email, the default) rather than a mobile number. */
+export const customersUseEmail = () => config.customerLogin === 'email';
+
+/**
+ * Provider for a purpose: with CUSTOMER_LOGIN=email, shoppers' codes are emailed directly (except in the local dev
+ * modes, which still show the fixed code); everything else, including CUSTOMER_LOGIN=mobile, follows OTP_PROVIDER.
+ */
 export function providerFor(purpose) {
   const configured = getProvider();
-  return isCustomerPurpose(purpose) && configured.delivery !== 'dev' ? customerEmail : configured;
+  return isCustomerPurpose(purpose) && customersUseEmail() && configured.delivery !== 'dev' ? customerEmail : configured;
 }

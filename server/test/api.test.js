@@ -399,6 +399,24 @@ describe('storefront + orders', () => {
     assert.equal((await shopper('GET', `/api/stores/${slug}`)).status, 200);
   });
 
+  test('CUSTOMER_LOGIN=mobile: shoppers register and log in with a 10-digit mobile instead', async () => {
+    const { config } = await import('../src/config.js');
+    const saved = config.customerLogin;
+    config.customerLogin = 'mobile';
+    try {
+      const c = client();
+      assert.equal((await c('POST', '/api/otp/request', { email: emailShopper, purpose: 'customer_register' })).status, 400, 'email refused in mobile mode');
+      const code = await otpFor(c, phoneShopper, 'customer_register', { name: `Tester ${run}` });
+      const reg = await c('POST', '/api/customer/register', { name: `Tester ${run}`, phone: phoneShopper, code });
+      assert.equal(reg.status, 201, JSON.stringify(reg.body));
+      assert.equal(reg.body.customer.phone, phoneShopper);
+      const login = await c('POST', '/api/customer/login', { phone: phoneShopper, code: await otpFor(client(), phoneShopper, 'customer_login') });
+      assert.equal(login.status, 200, JSON.stringify(login.body));
+    } finally {
+      config.customerLogin = saved;
+    }
+  });
+
   test('shopper can log back in with email + OTP; unknown emails get the same reply', async () => {
     const again = client();
     const unknown = await again('POST', '/api/otp/request', { email: `nobody${digits}@example.com`, purpose: 'customer_login' });

@@ -8,16 +8,19 @@ import { whatsappLink } from '../services/whatsappService.js';
 
 const pretty = (n) => `+${n.slice(0, n.length - 10)} ${n.slice(-10, -5)} ${n.slice(-5)}`;
 
+const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v || '').trim());
+
 /**
- * "Send code" + 6-digit code input. The parent owns `code`; `phone` (10 digits) must be valid before sending.
- * Delivery depends on the server's OTP provider:
+ * "Send code" + 6-digit code input. The parent owns `code`; `phone` (10 digits, owners) or `email` (customers)
+ * must be valid before sending. Delivery depends on the server's OTP provider:
+ *  - email:  the code was emailed to the customer
  *  - manual: no SMS yet — the user WhatsApps the support number and the team replies with the code
  *  - dev:    local testing — the code (898989) is shown as a hint
  *  - sms:    the code arrives by SMS
  *  - whatsapp:       the code arrives on WhatsApp (Meta authentication template)
  *  - whatsapp_reply: the user sends us a pre-filled WhatsApp message and gets the code as a reply (free)
  */
-export default function OtpField({ phone, purpose, code, onCode, disabled, name }) {
+export default function OtpField({ phone, email, purpose, code, onCode, disabled, name }) {
   const { t, lang } = useI18n();
   const { requestOtp, appConfig } = useSession();
   const [sending, setSending] = useState(false);
@@ -38,14 +41,14 @@ export default function OtpField({ phone, purpose, code, onCode, disabled, name 
     setError('');
     setSending(true);
     try {
-      const r = await requestOtp(phone, purpose, name, lang);
+      const r = await requestOtp(email !== undefined ? { email: email.trim().toLowerCase() } : { phone }, purpose, name, lang);
       setSent(true);
       setCooldown(30);
       setDevCode(r.devCode || '');
       setWa(r.waNumber && r.waText ? { number: r.waNumber, text: r.waText } : null);
       if (r.delivery) setDelivery(r.delivery);
     } catch (err) {
-      setError(err.fields?.phone || err.message);
+      setError(err.fields?.email || err.fields?.phone || err.message);
     } finally {
       setSending(false);
     }
@@ -56,7 +59,7 @@ export default function OtpField({ phone, purpose, code, onCode, disabled, name 
 
   return (
     <div className="space-y-2">
-      <button type="button" onClick={send} disabled={disabled || sending || cooldown > 0 || !isMobile10(phone)} className="btn-ghost w-full">
+      <button type="button" onClick={send} disabled={disabled || sending || cooldown > 0 || !(email !== undefined ? isEmail(email) : isMobile10(phone))} className="btn-ghost w-full">
         {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
         {cooldown > 0 ? t('otp.resendIn', { s: cooldown }) : sent ? t('otp.resend') : t('otp.send')}
       </button>
@@ -84,6 +87,11 @@ export default function OtpField({ phone, purpose, code, onCode, disabled, name 
       {sent && delivery === 'whatsapp' && (
         <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-900" role="status">
           {rich(t('otp.waSent', { phone: pretty(`91${phone}`) }), { b: (x) => <b dir="ltr">{x}</b> })}
+        </p>
+      )}
+      {sent && delivery === 'email' && (
+        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-900" role="status">
+          {rich(t('otp.emailSent', { email: email.trim().toLowerCase() }), { b: (x) => <b dir="ltr">{x}</b> })}
         </p>
       )}
       {sent && delivery === 'sms' && (

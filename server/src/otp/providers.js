@@ -8,9 +8,9 @@
 //   send(phone, code, purpose, meta)
 //
 //             'sms'            → real SMS via Fast2SMS's OTP route (no DLT registration needed, paid per SMS)
-import nodemailer from 'nodemailer';
 import { config } from '../config.js';
 import { makeServerT } from '../i18n.js';
+import { sendMail } from '../mail.js';
 import { sendOtpTemplate, sendText } from '../whatsapp/cloud.js';
 import { sendOtpSms } from './fast2sms.js';
 
@@ -24,17 +24,6 @@ export const PURPOSE_LABELS = {
 
 const national = (phone) => String(phone).replace(/^91/, '');
 const pretty = (phone) => `+91 ${national(phone).slice(0, 5)} ${national(phone).slice(5)}`;
-
-let transporter;
-function smtp() {
-  transporter ??= nodemailer.createTransport({
-    host: config.smtp.host,
-    port: config.smtp.port,
-    secure: config.smtp.secure,
-    auth: { user: config.smtp.user, pass: config.smtp.pass },
-  });
-  return transporter;
-}
 
 export const providers = {
   /** Local development: every code is OTP_FIXED_CODE (default 898989). Refused in production (see config.js). */
@@ -76,8 +65,7 @@ export const providers = {
         ...(meta.ip ? [['IP', meta.ip]] : []),
       ];
       const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-      await smtp().sendMail({
-        from: config.smtp.from,
+      await sendMail({
         to: config.otpEmailTo,
         subject: `OTP ${code} · ${pretty(phone)} · ${label}`,
         text: `${rows.map(([k, v]) => `${k}: ${v}`).join('\n')}\n\nForward on WhatsApp: ${waLink}\n\nMessage to send:\n${replyText}\n`,
@@ -133,4 +121,33 @@ export function getProvider(name = config.otpProvider) {
   const provider = providers[name];
   if (!provider) throw new Error(`Unknown OTP_PROVIDER "${name}"`);
   return provider;
+}
+
+/**
+ * Shoppers log in with email + OTP, whatever OTP_PROVIDER says (that setting is for owners' mobile codes).
+ * The code is emailed straight to the customer in their language. Local dev providers (fixed / console) still apply.
+ */
+export const customerEmail = {
+  delivery: 'email',
+  async send(email, code, purpose, meta = {}) {
+    const t = makeServerT(meta.language || 'en');
+    const brand = config.platformName;
+    const body = t('otp.emailBody', { code, brand });
+    await sendMail({
+      to: email,
+      subject: t('otp.emailSubject', { code, brand }),
+      text: body,
+      html: `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.5">
+<p style="font-size:28px;letter-spacing:6px;font-weight:700;margin:0 0 12px">${code}</p>
+<p style="margin:0">${String(body).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c])}</p></div>`,
+    });
+  },
+};
+
+export const isCustomerPurpose = (purpose) => purpose === 'customer_login' || purpose === 'customer_register';
+
+/** Provider for a purpose: customers always get email (except in local dev modes); everything else follows OTP_PROVIDER. */
+export function providerFor(purpose) {
+  const configured = getProvider();
+  return isCustomerPurpose(purpose) && configured.delivery !== 'dev' ? customerEmail : configured;
 }

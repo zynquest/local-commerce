@@ -50,14 +50,14 @@ export function SessionProvider({ children }) {
   const value = useMemo(
     () => ({
       appConfig,
-      /** Sends an OTP. Returns { delivery, devCode? } — devCode only in local development. */
-      requestOtp: (phone, purpose, name, language) =>
-        post('/otp/request', { phone, purpose, ...(name ? { name } : {}), ...(language ? { language } : {}) }),
+      /** Sends an OTP to { phone } (owners) or { email } (customers). Returns { delivery, devCode? } — devCode only in local dev. */
+      requestOtp: (to, purpose, name, language) =>
+        post('/otp/request', { ...to, purpose, ...(name ? { name } : {}), ...(language ? { language } : {}) }),
 
       owner,
       loadOwner,
       setOwner,
-      // Mobile + OTP only: register { storeName, phone, code }, login { phone, code }.
+      // Owners: mobile + OTP — register { storeName, phone, code }, login { phone, code }. Customers: email + OTP.
       registerOwner: async (body) => setOwner((await post('/auth/register', body)).user),
       loginOwner: async (body) => setOwner((await post('/auth/login', body)).user),
       logoutOwner: async () => {

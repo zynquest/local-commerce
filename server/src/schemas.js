@@ -38,24 +38,34 @@ export const phone = z.preprocess(normalizePhone, z.string().regex(/^[1-9]\d{9,1
 /** Login identity: a 10-digit Indian mobile number (6–9 start), stored as 91XXXXXXXXXX. */
 export const mobile10 = z.preprocess(normalizePhone, z.string().regex(/^91[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number'));
 
+export const email = z.string().trim().toLowerCase().max(120).regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/, 'Enter a valid email address');
 const storeName = z.preprocess(cleanText, z.string().min(2, 'Store name is too short').max(60, 'Max 60 characters'));
 const otpCode = z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit code');
 
 export const BUSINESS_TYPES = ['shop', 'appointments'];
 export const registerOwner = z.object({ storeName, phone: mobile10, code: otpCode, businessType: z.enum(BUSINESS_TYPES).default('shop') });
 export const phoneLogin = z.object({ phone: mobile10, code: otpCode });
-export const otpRequest = z.object({
-  phone: mobile10,
-  name: optText(80).optional(), // store / customer name, shown to the team relaying codes
-  purpose: z.enum(['owner_login', 'owner_register', 'customer_login', 'customer_register', 'whatsapp_change']),
-  language: z.enum(LANGUAGE_CODES).optional(), // language for WhatsApp OTP messages
-});
+// Owners (and WhatsApp changes) send a mobile number; customers send an email address.
+export const otpRequest = z
+  .object({
+    phone: mobile10.optional(),
+    email: email.optional(),
+    name: optText(80).optional(), // store / customer name, shown to the team relaying codes
+    purpose: z.enum(['owner_login', 'owner_register', 'customer_login', 'customer_register', 'whatsapp_change']),
+    language: z.enum(LANGUAGE_CODES).optional(), // language of the code message (WhatsApp / email)
+  })
+  .superRefine((v, ctx) => {
+    const customer = v.purpose.startsWith('customer_');
+    if (customer && !v.email) ctx.addIssue({ code: 'custom', path: ['email'], message: 'Enter a valid email address' });
+    if (!customer && !v.phone) ctx.addIssue({ code: 'custom', path: ['phone'], message: 'Enter a valid 10-digit mobile number' });
+  });
 export const whatsappVerify = z.object({ phone: mobile10, code: otpCode });
 export const registerCustomer = z.object({
   name: z.preprocess(cleanText, z.string().min(1, 'Enter your name').max(80)),
-  phone: mobile10,
+  email,
   code: otpCode,
 });
+export const emailLogin = z.object({ email, code: otpCode });
 export const submitForReview = z.object({ note: optText(500).optional() });
 export const reviewDecision = z.object({ remarks: optText(1000).optional() });
 export const reviewRemarksRequired = z.object({

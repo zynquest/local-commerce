@@ -9,7 +9,7 @@ import { query } from '../db.js';
 import { badRequest, conflict, parse } from '../errors.js';
 import { issueOtp } from '../otp/otp.js';
 import { startWhatsAppRequest, usesWhatsAppReply } from '../otp/whatsappReply.js';
-import { getProvider } from '../otp/providers.js';
+import { getProvider, providerFor } from '../otp/providers.js';
 import { DEMO_WHATSAPP_LOCKED } from './merchant.js';
 import * as S from '../schemas.js';
 
@@ -27,16 +27,25 @@ const otpLimiter = rateLimit({
 const exists = async (sql, params) => (await query(sql, params)).rowCount > 0;
 
 otpRouter.post('/request', otpLimiter, async (req, res, next) => {
-  const { phone, purpose, name, language = 'en' } = parse(S.otpRequest, req.body);
-  const meta = { name, ip: req.ip };
+  const { phone, email, purpose, name, language = 'en' } = parse(S.otpRequest, req.body);
+  const meta = { name, ip: req.ip, language };
 
   if (purpose === 'whatsapp_change') return next(); // handled below (needs an owner session)
+
+  // Shoppers: email + OTP, emailed directly (never the WhatsApp relay). Same response whether or not the
+  // address is registered, so the endpoint can't be used to discover accounts.
+  if (purpose === 'customer_register' || purpose === 'customer_login') {
+    const registered = await exists('SELECT 1 FROM customers WHERE email = $1', [email]);
+    if (purpose === 'customer_register' && registered) throw conflict('An account with this email already exists. Please log in.');
+    const generic = { ok: true, delivery: providerFor(purpose).delivery, message: 'If the address is registered, a code has been sent.' };
+    if (purpose === 'customer_login' && !registered) return res.json(generic);
+    return res.json({ ...generic, ...(await issueOtp({ phone: email, purpose, meta })) });
+  }
 
   // Free WhatsApp mode: the user messages us first. Logins get a request even for unknown numbers, so the
   // response never reveals who is registered; the webhook tells the number's owner if there's no account.
   if (usesWhatsAppReply()) {
     if (purpose === 'owner_register' && (await exists('SELECT 1 FROM users WHERE phone = $1', [phone]))) throw conflict('This mobile number is already registered. Please log in.');
-    if (purpose === 'customer_register' && (await exists('SELECT 1 FROM customers WHERE phone = $1', [phone]))) throw conflict('An account with this number exists. Please log in.');
     return res.json({ ok: true, ...(await startWhatsAppRequest({ phone, purpose, meta, language })) });
   }
 
@@ -45,14 +54,8 @@ otpRouter.post('/request', otpLimiter, async (req, res, next) => {
     case 'owner_register':
       if (await exists('SELECT 1 FROM users WHERE phone = $1', [phone])) throw conflict('This mobile number is already registered. Please log in.');
       return res.json({ ok: true, ...(await issueOtp({ phone, purpose, meta })) });
-    case 'customer_register':
-      if (await exists('SELECT 1 FROM customers WHERE phone = $1', [phone])) throw conflict('An account with this number exists. Please log in.');
-      return res.json({ ok: true, ...(await issueOtp({ phone, purpose, meta })) });
     case 'owner_login':
       if (!(await exists(`SELECT 1 FROM users WHERE phone = $1 AND role = 'owner'`, [phone]))) return res.json(generic);
-      return res.json({ ...generic, ...(await issueOtp({ phone, purpose, meta })) });
-    case 'customer_login':
-      if (!(await exists('SELECT 1 FROM customers WHERE phone = $1', [phone]))) return res.json(generic);
       return res.json({ ...generic, ...(await issueOtp({ phone, purpose, meta })) });
     default:
       throw badRequest('Unknown purpose');

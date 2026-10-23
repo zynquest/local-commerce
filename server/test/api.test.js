@@ -12,6 +12,7 @@ const digits = String(Date.now()).slice(-8);
 const phoneA = `91${'7'}${digits}0`.slice(0, 12); // 12 digits: 91 + 10-digit mobile
 const phoneB = `91${'8'}${digits}1`.slice(0, 12);
 const phoneShopper = `91${'6'}${digits}2`.slice(0, 12);
+const emailShopper = `tester${digits}@example.com`;
 const phoneC = `91${'9'}${digits}3`.slice(0, 12); // appointment business owner
 let server;
 let base;
@@ -73,15 +74,15 @@ before(async () => {
 after(async () => {
   await query(`DELETE FROM users WHERE phone = ANY($1) AND role = 'owner'`, [[phoneA, phoneB, phoneC]]);
   await query(`DELETE FROM customers WHERE name = $1`, [`Tester ${run}`]);
-  await query(`DELETE FROM otp_codes WHERE phone = ANY($1)`, [[phoneA, phoneB, phoneC, phoneShopper, '919000011111']]);
+  await query(`DELETE FROM otp_codes WHERE phone = ANY($1)`, [[phoneA, phoneB, phoneC, phoneShopper, emailShopper, '919000011111']]);
   if (createdAdminId) await query('DELETE FROM users WHERE id = $1', [createdAdminId]);
   server.close();
   await pool.end();
 });
 
 /** Requests an OTP for `phone` and returns the code (local dev exposes it; the fixed provider uses 898989). */
-async function otpFor(call, phone, purpose, extra = {}) {
-  const r = await call('POST', '/api/otp/request', { phone, purpose, ...extra });
+async function otpFor(call, to, purpose, extra = {}) {
+  const r = await call('POST', '/api/otp/request', { ...(to.includes('@') ? { email: to } : { phone: to }), purpose, ...extra });
   assert.equal(r.status, 200, JSON.stringify(r.body));
   assert.match(r.body.devCode, /^\d{6}$/, 'dev code exposed in development');
   return r.body.devCode;
@@ -370,10 +371,14 @@ describe('storefront + orders', () => {
     assert.equal((await other('GET', '/api/merchant/orders')).body.orders.length, 0);
   });
 
-  test('customer account: register, order is linked, history visible', async () => {
-    const code = await otpFor(shopper, phoneShopper, 'customer_register', { name: `Tester ${run}` });
-    const reg = await shopper('POST', '/api/customer/register', { name: `Tester ${run}`, phone: phoneShopper, code });
+  test('customer account: register with email + OTP, order is linked, history visible', async () => {
+    const bad = await shopper('POST', '/api/otp/request', { phone: phoneShopper, purpose: 'customer_register' });
+    assert.equal(bad.status, 400, 'customers identify by email, not mobile');
+    const code = await otpFor(shopper, emailShopper.toUpperCase(), 'customer_register', { name: `Tester ${run}` });
+    const reg = await shopper('POST', '/api/customer/register', { name: `Tester ${run}`, email: emailShopper, code });
     assert.equal(reg.status, 201, JSON.stringify(reg.body));
+    assert.equal(reg.body.customer.email, emailShopper, 'stored lowercased');
+    assert.equal((await shopper('POST', '/api/otp/request', { email: emailShopper, purpose: 'customer_register' })).status, 409);
     const list = await shopper('GET', `/api/stores/${slug}`);
     const item = list.body.products.find((p) => p.name === 'Oil');
     const o = await shopper('POST', `/api/stores/${slug}/orders`, {
@@ -394,10 +399,13 @@ describe('storefront + orders', () => {
     assert.equal((await shopper('GET', `/api/stores/${slug}`)).status, 200);
   });
 
-  test('shopper can log back in with mobile + OTP', async () => {
+  test('shopper can log back in with email + OTP; unknown emails get the same reply', async () => {
     const again = client();
-    const code = await otpFor(again, phoneShopper, 'customer_login');
-    const r = await again('POST', '/api/customer/login', { phone: phoneShopper, code });
+    const unknown = await again('POST', '/api/otp/request', { email: `nobody${digits}@example.com`, purpose: 'customer_login' });
+    assert.equal(unknown.status, 200);
+    assert.equal(unknown.body.devCode, undefined, 'no code for an unregistered email');
+    const code = await otpFor(again, emailShopper, 'customer_login');
+    const r = await again('POST', '/api/customer/login', { email: emailShopper, code });
     assert.equal(r.status, 200, JSON.stringify(r.body));
     assert.equal((await again('GET', '/api/customer/orders')).body.orders.length, 1);
   });

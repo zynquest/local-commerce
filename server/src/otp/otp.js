@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import { config } from '../config.js';
 import { query } from '../db.js';
 import { HttpError, badRequest } from '../errors.js';
-import { getProvider } from './providers.js';
+import { providerFor } from './providers.js';
 
 const TTL_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
@@ -22,7 +22,7 @@ export async function issueOtp({ phone, purpose, context = {}, meta = {} }) {
     throw new HttpError(429, 'Too many codes requested for this number. Try again in 15 minutes.');
   }
 
-  const provider = getProvider();
+  const provider = providerFor(purpose);
   const code = provider.code ? provider.code() : crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
   const id = crypto.randomUUID();
   // Only the latest code for a phone + purpose is valid.

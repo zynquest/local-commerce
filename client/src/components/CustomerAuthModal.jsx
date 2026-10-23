@@ -1,27 +1,29 @@
 import { useState } from 'react';
-import { Loader2, UserRound, X } from 'lucide-react';
-import MobileInput, { isMobile10 } from './MobileInput.jsx';
+import { Loader2, Mail, UserRound, X } from 'lucide-react';
 import OtpField from './OtpField.jsx';
 import { useSession } from '../context/SessionContext.jsx';
 import { rich, useT } from '../i18n/index.jsx';
 
-/** Optional shopper login / sign-up with a 10-digit mobile + OTP. Guests can always skip it. */
+const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v || '').trim());
+
+/** Optional shopper login / sign-up with email + OTP. Guests can always skip it. */
 export default function CustomerAuthModal({ onClose, initialMode = 'login' }) {
   const t = useT();
   const { loginCustomer, registerCustomer } = useSession();
   const [mode, setMode] = useState(initialMode);
-  const [form, setForm] = useState({ name: '', phone: '', code: '' });
+  const [form, setForm] = useState({ name: '', email: '', code: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!isMobile10(form.phone)) return setError(t('errors.validMobile10'));
+    if (!isEmail(form.email)) return setError(t('errors.validEmail'));
+    const email = form.email.trim().toLowerCase();
     setBusy(true);
     try {
-      if (mode === 'login') await loginCustomer({ phone: form.phone, code: form.code });
-      else await registerCustomer({ name: form.name, phone: form.phone, code: form.code });
+      if (mode === 'login') await loginCustomer({ email, code: form.code });
+      else await registerCustomer({ name: form.name, email, code: form.code });
       onClose();
     } catch (err) {
       setError(err.message);
@@ -45,9 +47,25 @@ export default function CustomerAuthModal({ onClose, initialMode = 'login' }) {
         {mode === 'register' && (
           <input className="input" placeholder={t('cart.yourName')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" required />
         )}
-        <MobileInput id="customer-phone" value={form.phone} onChange={(phone) => setForm({ ...form, phone })} label={t('auth.mobile10')} />
+        <div>
+          <label className="label" htmlFor="customer-email">{t('auth.email')}</label>
+          <div className="relative" dir="ltr">
+            <Mail size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
+            <input
+              id="customer-email"
+              className="input ps-9"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="name@example.com"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+          </div>
+        </div>
         <OtpField
-          phone={form.phone}
+          email={form.email}
           purpose={mode === 'login' ? 'customer_login' : 'customer_register'}
           code={form.code}
           onCode={(code) => setForm((f) => ({ ...f, code }))}

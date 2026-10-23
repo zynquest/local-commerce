@@ -249,7 +249,8 @@
     "name": "Name",
     "defaultAddress": "Default delivery address",
     "saveDetails": "Save details",
-    "noOrders": "No orders yet."
+    "noOrders": "No orders yet.",
+    "email": "Email: {email}"
   },
   "orders": {
     "status": {
@@ -279,7 +280,8 @@
     "passwordNew": "Password (min 8 characters)",
     "newHere": "New here? <b>Create an account</b>",
     "haveAccount": "Already have an account? <b>Log in</b>",
-    "mobile10": "10-digit mobile number"
+    "mobile10": "10-digit mobile number",
+    "email": "Email address"
   },
   "otp": {
     "send": "Send verification code",
@@ -302,7 +304,10 @@
     "waReplyBody": "Tap the button, then press <b>send</b> in WhatsApp. We'll reply right away with your 6-digit code. Send it from <b>{phone}</b>, the number you entered.",
     "waReplyButton": "Open WhatsApp & send",
     "waSent": "We've sent the code to your WhatsApp <b>{phone}</b>.",
-    "smsSent": "We've sent the code by SMS to <b>{phone}</b>."
+    "smsSent": "We've sent the code by SMS to <b>{phone}</b>.",
+    "emailSent": "We've sent the code to <b>{email}</b>. Check your spam folder too.",
+    "emailSubject": "{code} is your {brand} verification code",
+    "emailBody": "{code} is your {brand} verification code. Enter it in the app to continue. It expires in 10 minutes. If you didn't request it, you can ignore this email."
   },
   "landing": {
     "tagline": "Your shop. Your customers. Your WhatsApp.",
@@ -574,7 +579,8 @@
     "slotGone": "That time is no longer available. Please pick another slot.",
     "tooManyPending": "You already have 3 pending requests here. Please wait for the business to confirm them.",
     "bookingLimit": "Too many booking requests. Please try again later or message the business on WhatsApp.",
-    "notTakingBookings": "This business is not taking bookings yet"
+    "notTakingBookings": "This business is not taking bookings yet",
+    "validEmail": "Enter a valid email address"
   },
   "owner": {
     "seoRegister": "Register your store free — {brand}",

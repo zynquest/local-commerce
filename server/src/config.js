@@ -93,7 +93,7 @@ export function assertOtpConfig() {
   if (p === 'sms' && !config.fast2sms.apiKey) {
     throw new Error('OTP_PROVIDER=sms needs FAST2SMS_API_KEY (fast2sms.com → Dev API; Deployment.md §B14).');
   }
-  if (p === 'email' && (!config.smtp.user || !config.smtp.pass)) {
-    throw new Error('OTP_PROVIDER=email needs SMTP_USER and SMTP_PASS (Gmail address + App Password).');
+  if ((p === 'email' || config.isProd) && (!config.smtp.user || !config.smtp.pass)) {
+    throw new Error('SMTP_USER and SMTP_PASS (Gmail address + App Password) are required: customer login codes are emailed.');
   }
 }

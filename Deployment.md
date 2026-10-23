@@ -559,7 +559,7 @@ Run it every 5 minutes and log failures:
 
 ## B14. Login OTPs (email relay, WhatsApp, or SMS via Fast2SMS)
 
-Store owners and shoppers log in **only** with a 10-digit mobile number and a 6-digit OTP. There are no passwords; only the platform admin has one. The same OTP flow covers WhatsApp-number changes.
+Store owners log in **only** with a 10-digit mobile number and a 6-digit OTP; the same flow covers WhatsApp-number changes. Shoppers (optional accounts, for order history) log in with their **email address** and a 6-digit OTP that is emailed to them directly through the same Gmail SMTP settings, whatever `OTP_PROVIDER` is set to, so `SMTP_USER`/`SMTP_PASS` are always required in production. There are no passwords; only the platform admin has one.
 
 **Temporary setup (free tier, no SMS gateway yet), `OTP_PROVIDER=email`:**
 1. A merchant enters their mobile and taps **Send verification code**.

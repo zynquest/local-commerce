@@ -1,4 +1,4 @@
-// Five demo stores for `npm run demo:create` (src/cli/demo-stores.js). Orders go to the platform's WhatsApp.
+// Demo stores for `npm run demo:create` (src/cli/demo-stores.js). Orders go to the platform's WhatsApp.
 // Product art is generated SVG: [emoji, alternate emoji, palette]. Grocery reuses the original demo catalog.
 import { config } from './config.js';
 import { demoProducts, demoStore } from './seed-data.js';
@@ -167,6 +167,50 @@ export const DEMO_STORES = [
       ['Dilpasand', 'Snacks', 40, 35, ['🥧', '🥥'], 'Sweet coconut-tutti frutti stuffed pastry.', { Quantity: '1 pc' }],
       ['Butter Biscuits 250g', 'Cookies', 90, 80, ['🍪', '🧈'], 'Melt-in-the-mouth butter biscuits.', { Weight: '250 g' }, '', 4.6, 150],
       ['Coconut Cookies 250g', 'Cookies', 85, 75, ['🍪', '🥥'], 'Crunchy coconut cookies.', { Weight: '250 g' }],
+    ]),
+  },
+  {
+    username: 'demo-restaurant',
+    emoji: '🍛',
+    store: {
+      slug: 'demo-restaurant',
+      lat: 13.0035,
+      lng: 77.57,
+      name: 'Annapoorna Family Restaurant',
+      category: 'Restaurant & Food Delivery',
+      city: 'Bengaluru',
+      address_text: '8th Cross, Sampige Road, Malleshwaram, Bengaluru 560003',
+      description: 'South and North Indian favourites, veg and non-veg, cooked fresh for every order. Breakfast from 7 am, meals and biryanis till 10:30 pm, delivered hot within 3 km.',
+      opening_hours: '07:00-22:30',
+      minimum_order: 149,
+      delivery_fee: 30,
+      theme_color: '#dc2626',
+    },
+    products: rows('FOOD', { Breakfast: yellow, Meals: orange, 'Rice & Biryani': amber, Breads: brown, Starters: red, Desserts: pink, Beverages: brown }, [
+      ['Idli (2 pcs) with Sambar & Chutney', 'Breakfast', 60, 50, ['🍚', '🥣'], 'Soft steamed idlis with hot sambar and coconut chutney.', { Quantity: '2 pcs', Type: 'Veg' }, 'Veg,Bestseller', 4.6, 540],
+      ['Masala Dosa', 'Breakfast', 90, 80, ['🫓', '🥔'], 'Crisp dosa with potato masala, sambar and two chutneys.', { Quantity: '1 pc', Type: 'Veg' }, 'Veg,Bestseller', 4.7, 820],
+      ['Medu Vada (2 pcs)', 'Breakfast', 60, 50, ['🍩', '🥣'], 'Crunchy urad dal vadas with sambar and chutney.', { Quantity: '2 pcs', Type: 'Veg' }, 'Veg'],
+      ['Ven Pongal', 'Breakfast', 80, 70, ['🍲', '🧈'], 'Ghee pongal with pepper and cashew, served with sambar.', { Quantity: '1 plate', Type: 'Veg' }, 'Veg'],
+      ['South Indian Meals (Unlimited)', 'Meals', 150, 130, ['🍛', '🍃'], 'Rice, sambar, rasam, two poriyals, kootu, curd, papad and payasam.', { Serves: '1', Type: 'Veg' }, 'Veg,Bestseller', 4.8, 1100],
+      ['North Indian Thali', 'Meals', 180, 160, ['🍽️', '🫓'], 'Dal, paneer sabzi, seasonal sabzi, 3 rotis, jeera rice, salad and gulab jamun.', { Serves: '1', Type: 'Veg' }, 'Veg', 4.5, 310],
+      ['Paneer Butter Masala', 'Meals', 220, 199, ['🧀', '🍅'], 'Paneer in a rich tomato-butter gravy. Serves 2 with rotis.', { Serves: '2', Type: 'Veg' }, 'Veg', 4.6, 420],
+      ['Dal Tadka', 'Meals', 150, 130, ['🥣', '🧄'], 'Yellow dal tempered with garlic, cumin and ghee.', { Serves: '2', Type: 'Veg' }, 'Veg'],
+      ['Chicken Chettinad', 'Meals', 260, 240, ['🍗', '🌶️'], 'Spicy Chettinad-style chicken curry with roasted spices.', { Serves: '2', Type: 'Non-veg' }, 'Non-veg', 4.7, 260],
+      ['Egg Curry (2 eggs)', 'Meals', 140, 120, ['🥚', '🍛'], 'Boiled eggs in onion-tomato gravy.', { Serves: '1', Type: 'Non-veg' }, 'Non-veg'],
+      ['Veg Biryani', 'Rice & Biryani', 180, 160, ['🍚', '🥕'], 'Basmati dum biryani with vegetables, raita and salan.', { Serves: '1', Type: 'Veg' }, 'Veg', 4.4, 290],
+      ['Chicken Biryani', 'Rice & Biryani', 240, 220, ['🍗', '🍚'], 'Hyderabadi-style dum chicken biryani with raita.', { Serves: '1', Type: 'Non-veg' }, 'Non-veg,Bestseller', 4.7, 960],
+      ['Mutton Biryani', 'Rice & Biryani', 320, 299, ['🍖', '🍚'], 'Slow-cooked mutton dum biryani, Friday and Sunday special.', { Serves: '1', Type: 'Non-veg' }, 'Non-veg', 4.6, 180],
+      ['Curd Rice', 'Rice & Biryani', 90, 80, ['🍚', '🥛'], 'Creamy curd rice with pomegranate and tempering.', { Serves: '1', Type: 'Veg' }, 'Veg'],
+      ['Butter Naan', 'Breads', 45, 40, ['🫓', '🧈'], 'Tandoor naan brushed with butter.', { Quantity: '1 pc', Type: 'Veg' }, 'Veg'],
+      ['Tandoori Roti', 'Breads', 25, 20, ['🫓', '🌾'], 'Whole wheat roti from the tandoor.', { Quantity: '1 pc', Type: 'Veg' }, 'Veg'],
+      ['Kerala Parotta (2 pcs)', 'Breads', 60, 50, ['🫓', '🌀'], 'Flaky layered parottas, great with Chettinad gravies.', { Quantity: '2 pcs', Type: 'Veg' }, 'Veg', 4.5, 200],
+      ['Gobi Manchurian', 'Starters', 160, 140, ['🥦', '🔥'], 'Crispy cauliflower tossed in Indo-Chinese sauce.', { Serves: '1', Type: 'Veg' }, 'Veg,Bestseller', 4.5, 480],
+      ['Paneer Tikka (8 pcs)', 'Starters', 220, 199, ['🧀', '🔥'], 'Tandoor-grilled paneer with peppers and mint chutney.', { Quantity: '8 pcs', Type: 'Veg' }, 'Veg'],
+      ['Chilli Chicken', 'Starters', 230, 210, ['🍗', '🌶️'], 'Boneless chicken tossed with onions, capsicum and chilli.', { Serves: '1', Type: 'Non-veg' }, 'Non-veg', 4.6, 350],
+      ['Gulab Jamun (2 pcs)', 'Desserts', 60, 50, ['🍡', '🍯'], 'Soft khoya jamuns in warm sugar syrup.', { Quantity: '2 pcs', Type: 'Veg' }, 'Veg'],
+      ['Filter Coffee', 'Beverages', 30, 25, ['☕', '🫘'], 'Strong Kumbakonam-style filter coffee.', { Quantity: '150 ml', Type: 'Veg' }, 'Veg,Bestseller', 4.8, 700],
+      ['Masala Chai', 'Beverages', 25, 20, ['🍵', '🫚'], 'Ginger-cardamom tea.', { Quantity: '150 ml', Type: 'Veg' }, 'Veg'],
+      ['Badam Milk', 'Beverages', 60, 50, ['🥛', '🌰'], 'Chilled almond milk with saffron.', { Quantity: '200 ml', Type: 'Veg' }, 'Veg'],
     ]),
   },
   {

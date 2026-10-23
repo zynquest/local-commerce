@@ -39,7 +39,7 @@ export const config = {
   // Login is mobile number + OTP for store owners and customers (the platform admin uses the CLI-created password).
   // OTP_PROVIDER: fixed (local, code 898989) · email (temporary prod: codes emailed to the team, relayed on
   // WhatsApp) · whatsapp (Meta Cloud API authentication template, paid per OTP) · whatsapp_reply (free: the user
-  // messages us first, we reply with the code) · sms (real gateway, see src/otp/providers.js) · console (dev log).
+  // messages us first, we reply with the code) · sms (Fast2SMS OTP route, paid per SMS, no DLT) · console (dev log).
   otpProvider: process.env.OTP_PROVIDER || (process.env.NODE_ENV === 'production' ? 'email' : 'fixed'),
   otpFixedCode: process.env.OTP_FIXED_CODE || '898989',
   otpEmailTo: process.env.OTP_EMAIL_TO || 'creativebunnyofficial@gmail.com',
@@ -57,6 +57,10 @@ export const config = {
     // Template mode: an approved AUTHENTICATION template with a copy-code button.
     otpTemplate: process.env.WHATSAPP_OTP_TEMPLATE || '',
     otpTemplateLang: process.env.WHATSAPP_OTP_TEMPLATE_LANG || 'en',
+  },
+  // SMS OTPs through Fast2SMS's OTP route (OTP_PROVIDER=sms). API key from fast2sms.com → Dev API. See Deployment.md §B14.
+  fast2sms: {
+    apiKey: process.env.FAST2SMS_API_KEY || '',
   },
   smtp: {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -85,6 +89,9 @@ export function assertOtpConfig() {
   }
   if (config.isProd && (p === 'fixed' || p === 'console')) {
     throw new Error(`OTP_PROVIDER=${p} is for local development only. Use "email" (or "sms") in production.`);
+  }
+  if (p === 'sms' && !config.fast2sms.apiKey) {
+    throw new Error('OTP_PROVIDER=sms needs FAST2SMS_API_KEY (fast2sms.com → Dev API; Deployment.md §B14).');
   }
   if (p === 'email' && (!config.smtp.user || !config.smtp.pass)) {
     throw new Error('OTP_PROVIDER=email needs SMTP_USER and SMTP_PASS (Gmail address + App Password).');

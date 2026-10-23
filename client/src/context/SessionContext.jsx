@@ -7,7 +7,7 @@ import { get, post, put } from '../lib/api.js';
 const SessionContext = createContext(null);
 
 const CONFIG_KEY = 'app-config';
-// otpDelivery: 'sms' | 'manual' (WhatsApp otpHelpWhatsApp to receive the code) | 'dev' (local testing)
+// otpDelivery: 'sms' (Fast2SMS) | 'whatsapp' | 'whatsapp_reply' | 'manual' (WhatsApp otpHelpWhatsApp to receive the code) | 'dev' (local testing)
 const defaultConfig = {
   freeSkuLimit: PLATFORM.freeSkuLimit,
   platformName: PLATFORM.name,

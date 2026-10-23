@@ -264,7 +264,7 @@ sudo cat /etc/vfl/env
 
 Save the database password from `DATABASE_URL` in your password manager.
 
-**Before the first deploy, fill in `SMTP_USER` and `SMTP_PASS`** (see [B14](#b14-login-otps-email-relay-now-sms-later)). The API refuses to start in production without them:
+**Before the first deploy, fill in `SMTP_USER` and `SMTP_PASS`** (see [B14](#b14-login-otps-email-relay-whatsapp-or-sms-via-fast2sms)). The API refuses to start in production without them:
 
 ```bash
 sudo nano /etc/vfl/env
@@ -406,7 +406,7 @@ To rotate the admin password (this signs the admin out everywhere), run the same
 
 ### Demo stores (optional)
 
-Seven ready-made demo businesses (all in Bengaluru) show visitors how the platform works:
+Eight ready-made demo businesses (all in Bengaluru) show visitors how the platform works. The home page's "Built for every local business" cards link to them:
 
 | Business | Link | Catalog |
 |---|---|---|
@@ -415,6 +415,7 @@ Seven ready-made demo businesses (all in Bengaluru) show visitors how the platfo
 | Malligai Flower Stall | `/s/demo-flowers` | 12 |
 | Sri Ganesh Electricals | `/s/demo-electricals` | 12 |
 | Iyengar Fresh Bakery | `/s/demo-bakery` | 12 |
+| Annapoorna Family Restaurant (food delivery, veg + non-veg menu) | `/s/demo-restaurant` | 24 |
 | Glow Hair & Beauty Studio (appointments) | `/s/demo-salon` | 8 services, 3 specialists |
 | SmileCare Dental & Physio Clinic (appointments) | `/s/demo-clinic` | 6 services, 2 specialists |
 
@@ -556,7 +557,7 @@ Run it every 5 minutes and log failures:
 
 ---
 
-## B14. Login OTPs (email relay now, SMS later)
+## B14. Login OTPs (email relay, WhatsApp, or SMS via Fast2SMS)
 
 Store owners and shoppers log in **only** with a 10-digit mobile number and a 6-digit OTP. There are no passwords; only the platform admin has one. The same OTP flow covers WhatsApp-number changes.
 
@@ -580,11 +581,25 @@ Store owners and shoppers log in **only** with a 10-digit mobile number and a 6-
 
 GCP blocks outbound port 25 only, so SMTP on 465 (or 587 with `SMTP_PORT=587 SMTP_SECURE=false`) works from the VM.
 
-**Switching to a real SMS gateway later:**
-1. Implement the `sms` provider in `server/src/otp/providers.js`. It needs `send(phone, code, purpose)` and `delivery: 'sms'`. Commit and deploy.
-2. In `/etc/vfl/env`, set `OTP_PROVIDER=sms` (plus the gateway's keys), then run `sudo systemctl restart vfl-api`.
+**Real SMS with Fast2SMS, `OTP_PROVIDER=sms`:**
 
-The app stops showing the "WhatsApp us for your code" box automatically (`/api/config` reports `otpDelivery: "sms"`).
+Fast2SMS's *OTP route* sends `Your OTP: 123456` from Fast2SMS's own DLT-registered template and sender ID, so you do **not** need your own TRAI DLT registration (entity, header and template approval). It is prepaid and charged per SMS: Fast2SMS advertised about ₹0.11 per OTP with a ₹100 minimum top-up in 2026, so ₹100 covers several hundred logins. Check the current price on <https://www.fast2sms.com/otp-sms/> before topping up. There is no free tier; the free alternative is `whatsapp_reply` ([B20](#b20-whatsapp-otp-with-metas-cloud-api-optional)).
+
+1. Sign up at <https://www.fast2sms.com> with your mobile number, complete their KYC if asked, and add balance from the **Wallet**.
+2. Open **Dev API** in the left menu and copy the **API Authorization Key**. Test it once from your laptop (the OTP route sends to any Indian mobile; the API accepts a 10-digit number):
+   ```bash
+   curl -s -H "authorization: <API KEY>" -H "Content-Type: application/json" -d '{"route":"otp","variables_values":"123456","numbers":"98xxxxxxxx"}' https://www.fast2sms.com/dev/bulkV2
+   ```
+   A working key answers `{"return":true,...}`; `{"return":false,"status_code":412,...}` means a wrong key and other 4xx codes usually mean no balance.
+3. Edit `/etc/vfl/env` with `sudo nano /etc/vfl/env`:
+   ```bash
+   OTP_PROVIDER=sms
+   FAST2SMS_API_KEY=<API KEY>
+   ```
+4. Run `sudo systemctl restart vfl-api`, then check `sudo journalctl -u vfl-api -n 20 --no-pager` for `[otp] provider: sms`. The API refuses to start with `OTP_PROVIDER=sms` and no key.
+5. Log in once with your own mobile. The app stops showing the "WhatsApp us for your code" box automatically (`/api/config` reports `otpDelivery: "sms"`) and tells the user the code was sent by SMS.
+
+Delivery failures (no balance, Fast2SMS outage) are logged as `[otp] delivery failed (sms): Fast2SMS <code>: <message>` and the user sees "Could not send the code right now". Switching back to `email` or `whatsapp_reply` is the same env change plus a restart. The code lives in `server/src/otp/fast2sms.js`; to use another gateway (MSG91, Twilio, …) replace that file's `sendOtpSms` and nothing else changes.
 
 **Existing owners without a mobile** (for example, accounts created before OTP login) can't log in until you attach one:
 
@@ -734,6 +749,7 @@ sudo chmod -R o+rX /opt/vfl/app/client/dist
 - [ ] Backup bucket (if any) is in the same US region and under 5 GB.
 - [ ] Budget alert is configured; expected spend is about ₹310/month for the IPv4 address.
 - [ ] Google Maps (if enabled, [B19](#b19-google-maps-address-search-and-near-me)): key restricted to your domain and the 3 APIs, daily quota caps set.
+- [ ] SMS OTPs (if `OTP_PROVIDER=sms`, [B14](#b14-login-otps-email-relay-whatsapp-or-sms-via-fast2sms)): Fast2SMS wallet is prepaid, so the only exposure is the balance you top up. Keep a low-balance alert on in the Fast2SMS panel.
 
 Pricing references:
 - https://cloud.google.com/free/docs/free-cloud-features#compute
@@ -782,12 +798,13 @@ Check: `curl -s https://sonsari.in/api/config` should show `"mapsKey":"AIza…"`
 
 ## B20. WhatsApp OTP with Meta's Cloud API (optional)
 
-By default login codes are emailed to you and relayed by hand (`OTP_PROVIDER=email`, see B14). Two WhatsApp modes automate this. Switching is just an environment variable, and you can go back to `email` at any time.
+By default login codes are emailed to you and relayed by hand (`OTP_PROVIDER=email`, see B14). Two WhatsApp modes automate this; plain SMS through Fast2SMS is the third option (`OTP_PROVIDER=sms`, [B14](#b14-login-otps-email-relay-whatsapp-or-sms-via-fast2sms)). Switching is just an environment variable, and you can go back to `email` at any time.
 
 | `OTP_PROVIDER` | How it works | Cost (India, 2026) |
 |---|---|---|
 | `whatsapp_reply` **(recommended, free)** | The user taps **"Open WhatsApp & send"**. WhatsApp opens with a pre-filled message such as *"Hi Vocal For Local, please send my verification code. Request #K7Q2XZ"* to your business number. Our webhook replies immediately with the 6-digit code. | **₹0**: replies inside the 24-hour customer-service window are free. The message also proves the user owns that number. |
 | `whatsapp` | The server pushes the code automatically using an approved **Authentication** template (like an SMS). | ≈ ₹0.115 + 18% GST per code (Meta's rate; volume discounts apply). |
+| `sms` ([B14](#b14-login-otps-email-relay-whatsapp-or-sms-via-fast2sms)) | Plain SMS *"Your OTP: 123456"* through Fast2SMS's OTP route. No Meta setup, no DLT registration, works on phones without WhatsApp. | ≈ ₹0.11 per SMS, prepaid (₹100 minimum top-up). |
 
 The rest is unchanged: 6-digit codes, a 10-minute expiry, 5 attempts, and limits per number. Register and login screens for owners and customers, and the WhatsApp-number change, all use it.
 

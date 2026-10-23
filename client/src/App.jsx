@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, useLocation, useNavigationType } from 're
 import StoreHome from './pages/StoreHome.jsx';
 import ProductDetail from './pages/ProductDetail.jsx';
 import { DomainStoreLayout, PathStoreLayout } from './pages/StoreLayout.jsx';
+import InstallBanner from './components/InstallBanner.jsx';
 import { LoadingScreen, MessageScreen } from './components/StatusScreens.jsx';
 import { PLATFORM } from './config.js';
 import { get } from './lib/api.js';
@@ -73,6 +74,8 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      {/* "Install the app" bar on phones. Not on merchants' custom domains: the manifest is the platform's. */}
+      <InstallBanner enabled={platform} />
       <Suspense fallback={<LoadingScreen label="Loading…" />}>
         <Routes>
           {domainSlug ? (

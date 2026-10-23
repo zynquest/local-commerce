@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
+import './lib/install.js'; // captures beforeinstallprompt before React mounts (InstallBanner)
 import App from './App.jsx';
 import { SessionProvider } from './context/SessionContext.jsx';
 import { I18nProvider } from './i18n/index.jsx';

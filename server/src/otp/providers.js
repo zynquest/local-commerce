@@ -7,12 +7,12 @@
 //   code():   optional, returns the code to use (default: random 6 digits)
 //   send(phone, code, purpose, meta)
 //
-// To switch to a real SMS gateway later: implement `sms.send` below with your provider's HTTP API
-// (MSG91, Twilio, Gupshup, …) and set OTP_PROVIDER=sms. Nothing else in the app changes.
+//             'sms'            → real SMS via Fast2SMS's OTP route (no DLT registration needed, paid per SMS)
 import nodemailer from 'nodemailer';
 import { config } from '../config.js';
 import { makeServerT } from '../i18n.js';
 import { sendOtpTemplate, sendText } from '../whatsapp/cloud.js';
+import { sendOtpSms } from './fast2sms.js';
 
 export const PURPOSE_LABELS = {
   owner_login: 'Store owner login',
@@ -116,11 +116,15 @@ export const providers = {
     },
   },
 
-  /** Real SMS gateway (future). Implement with your provider's API, then set OTP_PROVIDER=sms. */
+  /**
+   * Real SMS through Fast2SMS's OTP route (Deployment.md §B14). Fast2SMS sends "Your OTP: 123456" from its own
+   * DLT-registered template and sender ID, so the platform needs no DLT registration. Prepaid, a few paise per SMS.
+   * Needs FAST2SMS_API_KEY. To use another gateway, swap sendOtpSms for its API: nothing else in the app changes.
+   */
   sms: {
     delivery: 'sms',
-    async send() {
-      throw new Error('SMS gateway not configured yet: implement providers.sms.send in server/src/otp/providers.js');
+    async send(phone, code) {
+      await sendOtpSms(phone, code);
     },
   },
 };

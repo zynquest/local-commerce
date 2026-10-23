@@ -2,6 +2,8 @@
 
 One platform that hosts many neighbourhood stores. Each approved store gets a mobile storefront, and shoppers' orders go to that store's WhatsApp.
 
+**Origin:** built in Sonsari, a village of under 5,000 people in Janjgir-Champa district, Chhattisgarh (pincode 495553, 21.9415764 N 82.3926376 E), where no quick-commerce app delivers but mobile data reaches every corner. Free for every local business in India, in all 22 scheduled languages plus English, with zero commission. The story is told on the home page (with a map of Sonsari), in the FAQ, the footer, the meta description and the Organization JSON-LD.
+
 - **UI:** React PWA (`client/`), built with Vite, Tailwind v4, Dexie/IndexedDB and Workbox.
 - **API:** Node + Express 5 (`server/`).
 - **Database:** PostgreSQL 16 (Docker Compose locally; native on the production VM).
@@ -16,7 +18,7 @@ cp .env.example .env
 npm install
 npm run db:up            # Postgres in Docker on localhost:5433
 npm run db:seed          # optional: demo store (owner mobile 9000000001, OTP 898989)
-npm run demo:create      # optional: 7 demo businesses (5 shops + salon + clinic); demo:remove -- --yes
+npm run demo:create      # optional: 8 demo businesses (6 shops incl. a restaurant + salon + clinic); demo:remove -- --yes
 npm run admin:create     # the single platform admin (CLI only, strong password enforced)
 npm run dev              # API :4000 + UI :5173
 ```

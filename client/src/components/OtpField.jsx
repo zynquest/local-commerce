@@ -86,6 +86,11 @@ export default function OtpField({ phone, purpose, code, onCode, disabled, name 
           {rich(t('otp.waSent', { phone: pretty(`91${phone}`) }), { b: (x) => <b dir="ltr">{x}</b> })}
         </p>
       )}
+      {sent && delivery === 'sms' && (
+        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-900" role="status">
+          {rich(t('otp.smsSent', { phone: pretty(`91${phone}`) }), { b: (x) => <b dir="ltr">{x}</b> })}
+        </p>
+      )}
 
       {sent && (
         <div>

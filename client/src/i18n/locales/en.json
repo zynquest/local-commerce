@@ -167,7 +167,7 @@
     "storesTitle": "Local Stores Near You — Order Online with Home Delivery | {brand}",
     "storesDesc": "Order groceries, bakery items, medicines and daily essentials online from local shops near you. Home delivery, pay on delivery, order on WhatsApp.",
     "homeTitle": "{brand} — Free Online Store for Local Businesses | Take Orders on WhatsApp",
-    "homeDesc": "Create a free online store for your local business in minutes. Free business tools for kirana, grocery, bakery, pharmacy and local shops: online catalog, WhatsApp ordering, home delivery and zero commission."
+    "homeDesc": "Born in Sonsari, a Chhattisgarh village with no Blinkit or Zepto. A free WhatsApp-based online store for kirana, grocery, home-made pickles, papad and every local business: zero commission, all Indian languages."
   },
   "review": {
     "status": {
@@ -296,7 +296,8 @@
     "waReplyTitle": "Get your code on WhatsApp",
     "waReplyBody": "Tap the button, then press <b>send</b> in WhatsApp. We'll reply right away with your 6-digit code. Send it from <b>{phone}</b>, the number you entered.",
     "waReplyButton": "Open WhatsApp & send",
-    "waSent": "We've sent the code to your WhatsApp <b>{phone}</b>."
+    "waSent": "We've sent the code to your WhatsApp <b>{phone}</b>.",
+    "smsSent": "We've sent the code by SMS to <b>{phone}</b>."
   },
   "landing": {
     "tagline": "Your shop. Your customers. Your WhatsApp.",
@@ -305,11 +306,12 @@
       "grocery": "Grocery",
       "bakery": "Bakery",
       "pharmacy": "Pharmacy",
+      "restaurant": "Restaurant",
       "openNow": "Open now · Delivers in 30 min",
       "zero": "<b>0%</b> commission"
     },
     "hero": {
-      "badge": "Free business tools for local shops",
+      "badge": "Built in a village in Chhattisgarh, free for every local business",
       "line1": "Free online store for your local business.",
       "line2": "Orders on WhatsApp.",
       "line3": "Zero commission.",
@@ -318,6 +320,27 @@
       "p1": "₹0 commission",
       "p2": "Live in 10 min",
       "p3": "Own your customers"
+    },
+    "useCases": {
+      "title": "Built for every local business",
+      "subtitle": "Shops, restaurants, salons and clinics run on the same free tools. Open a demo to see it live.",
+      "demo": "See demo store",
+      "groceryTitle": "Kirana & grocery",
+      "groceryBody": "Daily essentials delivered from the shop next door.",
+      "restaurantTitle": "Restaurants & food delivery",
+      "restaurantBody": "Your full menu online, veg and non-veg. Orders come straight to your WhatsApp with 0% commission, unlike food apps.",
+      "bakeryTitle": "Bakery",
+      "bakeryBody": "Fresh bread, cakes and snacks, with custom cake orders.",
+      "vegetablesTitle": "Vegetables & fruits",
+      "vegetablesBody": "Same-day delivery from the mandi, weighed fairly.",
+      "flowersTitle": "Flowers",
+      "flowersBody": "Garlands and bouquets for pooja, weddings and festivals.",
+      "electricalsTitle": "Electricals & hardware",
+      "electricalsBody": "Bulbs, fans, switches and wires with home delivery.",
+      "salonTitle": "Salons & spas",
+      "salonBody": "Customers book a slot with their favourite stylist.",
+      "clinicTitle": "Clinics",
+      "clinicBody": "Appointments for doctors, dentists and physios."
     },
     "how": {
       "title": "How it works",
@@ -438,14 +461,29 @@
       "q7": "Do customers need to create an account?",
       "a7": "No. Customers can order as guests. An optional account saves their address and shows their order history.",
       "q8": "Can I use my own domain name?",
-      "a8": "Yes, on the paid plan we set up your store on your own domain with your branding. Contact us on WhatsApp."
+      "a8": "Yes, on the paid plan we set up your store on your own domain with your branding. Contact us on WhatsApp.",
+      "q9": "Who built this, and why?",
+      "a9": "A villager from Sonsari in Janjgir-Champa district, Chhattisgarh, a village of under 5,000 people. Quick-commerce apps don't deliver there, but mobile data does reach it, so the village's grocers, pickle and papad makers needed a simple way to take orders on WhatsApp. It's free for every local business in India, with zero commission."
+    },
+    "story": {
+      "eyebrow": "Our story",
+      "title": "Born in Sonsari, a village in Chhattisgarh",
+      "p1": "Sonsari is a village of under 5,000 people in Janjgir-Champa district, Chhattisgarh. Blinkit, Zepto and Instamart don't deliver here, but mobile data now reaches almost every corner.",
+      "p2": "So a villager built this: a simple WhatsApp-based quick commerce for what people already buy locally, from groceries to home-made pickles and papad.",
+      "p3": "It's free for every local business in India, in every Indian language, with zero commission. No aggregator takes a cut, and the shop keeps its own customers.",
+      "place": "Sonsari, Janjgir-Champa, Chhattisgarh 495553",
+      "mapTitle": "Map of Sonsari village",
+      "s1": "Under 5,000 people",
+      "s2": "0% commission",
+      "s3": "{n} Indian languages"
     },
     "cta": {
       "title": "Ready to go Vocal for Local?",
       "body": "Register in a minute and start taking WhatsApp orders today. Need a custom store or your own domain? Message us.",
       "register": "Register your store",
       "chat": "Chat with us"
-    }
+    },
+    "madeIn": "Made in Sonsari, Chhattisgarh, India"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -993,5 +1031,13 @@
     "team": "Our team",
     "noServices": "No services listed yet.",
     "seoDesc": "Book an appointment at {name} on WhatsApp. See services, prices and free time slots."
+  },
+  "install": {
+    "title": "Install the {brand} app",
+    "body": "Add it to your home screen: opens instantly and works offline.",
+    "button": "Install",
+    "ios": "Tap <b>Share</b>, then <b>Add to Home Screen</b>.",
+    "android": "Tap the browser menu <b>⋮</b>, then <b>Add to Home screen</b>.",
+    "dismiss": "Not now"
   }
 }

@@ -51,6 +51,8 @@ export function createApp() {
           scriptSrc: ["'self'", 'https://maps.googleapis.com', 'https://maps.gstatic.com'],
           connectSrc: ["'self'", 'https://maps.googleapis.com', 'https://places.googleapis.com', 'https://*.googleapis.com', 'https://maps.gstatic.com'],
           fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
+          // Home page embeds a Google Map of Sonsari (keyless maps.google.com/maps?output=embed iframe).
+          frameSrc: ["'self'", 'https://maps.google.com', 'https://www.google.com'],
         },
       },
       crossOriginResourcePolicy: { policy: 'same-site' },

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, BadgeIndianRupee, Check, Clock, Globe, ImageUp, LayoutDashboard, Minus, Plus, QrCode, ShieldCheck,
-  Languages, Smartphone, Store, UserRound, Users, WifiOff, X,
+  Languages, MapPin, Smartphone, Store, UserRound, Users, WifiOff, X,
 } from 'lucide-react';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import SiteHeader from '../components/SiteHeader.jsx';
@@ -12,13 +12,27 @@ import { PLATFORM } from '../config.js';
 import { formatMoney } from '../lib/format.js';
 import { buildOrderMessage, whatsappLink } from '../services/whatsappService.js';
 import { rich, useI18n, useT } from '../i18n/index.jsx';
+import { LANGUAGES } from '../i18n/languages.js';
 
 const DEMO_SLUG = 'demo';
 
 const HERO_STORES = [
   { name: 'Gupta Kirana', tag: 'grocery', color: 'from-emerald-500 to-green-700', items: ['🌾 Atta 5kg', '🥛 Milk 1L', '🧈 Butter'] },
   { name: 'Mumbai Bakers', tag: 'bakery', color: 'from-amber-500 to-orange-700', items: ['🍞 Pav (6)', '🎂 Black Forest', '🍪 Nankhatai'] },
+  { name: 'Annapoorna Mess', tag: 'restaurant', color: 'from-rose-500 to-red-700', items: ['🍛 Veg Meals', '🫓 Masala Dosa', '🍗 Chicken Biryani'] },
   { name: 'Sai Medicals', tag: 'pharmacy', color: 'from-sky-500 to-blue-700', items: ['💊 Paracetamol', '🩹 Bandage', '🧴 Sanitiser'] },
+];
+
+// Home-page use cases, each linking to its demo store (npm run demo:create). Restaurants are called out first-class.
+const USE_CASES = [
+  { key: 'grocery', emoji: '🛒', slug: 'demo' },
+  { key: 'restaurant', emoji: '🍛', slug: 'demo-restaurant', featured: true },
+  { key: 'bakery', emoji: '🎂', slug: 'demo-bakery' },
+  { key: 'vegetables', emoji: '🥬', slug: 'demo-vegetables' },
+  { key: 'flowers', emoji: '💐', slug: 'demo-flowers' },
+  { key: 'electricals', emoji: '💡', slug: 'demo-electricals' },
+  { key: 'salon', emoji: '💇', slug: 'demo-salon' },
+  { key: 'clinic', emoji: '🦷', slug: 'demo-clinic' },
 ];
 
 const demoConfig = { name: 'Shree Shivam Groceries', currency_symbol: '₹', delivery_fee: 20 };
@@ -203,7 +217,11 @@ function Sandbox() {
 }
 
 // FAQ text lives in the locale files (landing.faq.qN / aN) and is also rendered as FAQPage JSON-LD by the server.
-const FAQ_COUNT = 8;
+const FAQ_COUNT = 9;
+// Where the platform was built: Sonsari village, Janjgir-Champa district, Chhattisgarh (pincode 495553).
+export const SONSARI = { lat: 21.9415764, lng: 82.3926376 };
+const SONSARI_MAP_EMBED = `https://maps.google.com/maps?q=${SONSARI.lat},${SONSARI.lng}&z=13&output=embed`;
+const SONSARI_MAP_LINK = `https://www.google.com/maps/search/?api=1&query=${SONSARI.lat},${SONSARI.lng}`;
 const COMPARISON = ['commission', 'payouts', 'data', 'pricing', 'tools'];
 const FEATURES = [
   ['console', LayoutDashboard],
@@ -267,6 +285,30 @@ export default function Landing() {
             </div>
           </div>
           <PhoneMockup />
+        </div>
+      </section>
+
+      {/* Use cases */}
+      <section className="bg-stone-50 py-16" aria-labelledby="use-cases">
+        <div className="mx-auto max-w-6xl px-4">
+        <h2 id="use-cases" className="text-center text-3xl font-extrabold">{t('landing.useCases.title')}</h2>
+        <p className="mx-auto mt-2 max-w-2xl text-center text-stone-600">{t('landing.useCases.subtitle')}</p>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {USE_CASES.map((u) => (
+            <Link
+              key={u.key}
+              to={`/s/${u.slug}`}
+              className={`card group flex flex-col p-5 transition hover:-translate-y-0.5 hover:shadow-md ${u.featured ? 'border-brand bg-emerald-50/60 ring-1 ring-brand' : ''}`}
+            >
+              <span className="text-4xl" aria-hidden="true">{u.emoji}</span>
+              <h3 className="mt-3 font-bold">{t(`landing.useCases.${u.key}Title`)}</h3>
+              <p className="mt-1 flex-1 text-sm text-stone-600">{t(`landing.useCases.${u.key}Body`)}</p>
+              <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand">
+                {t('landing.useCases.demo')} <ArrowRight size={14} className="transition group-hover:translate-x-0.5 rtl:rotate-180" />
+              </span>
+            </Link>
+          ))}
+        </div>
         </div>
       </section>
 
@@ -431,6 +473,40 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Our story: built in Sonsari, Chhattisgarh */}
+      <section className="bg-stone-50 py-16" aria-labelledby="story">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 md:grid-cols-2">
+          <div>
+            <p className="text-sm font-bold tracking-wide text-brand uppercase">🇮🇳 {t('landing.story.eyebrow')}</p>
+            <h2 id="story" className="mt-2 text-3xl font-extrabold">{t('landing.story.title')}</h2>
+            <p className="mt-4 text-stone-600">{t('landing.story.p1')}</p>
+            <p className="mt-3 text-stone-600">{t('landing.story.p2')}</p>
+            <p className="mt-3 text-stone-600">{t('landing.story.p3')}</p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {['s1', 's2', 's3'].map((k) => (
+                <span key={k} className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-stone-700 ring-1 ring-stone-200">
+                  {t(`landing.story.${k}`, { n: LANGUAGES.length })}
+                </span>
+              ))}
+            </div>
+          </div>
+          <figure className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+            <iframe
+              title={t('landing.story.mapTitle')}
+              src={SONSARI_MAP_EMBED}
+              className="block h-72 w-full md:h-96"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+            <figcaption className="flex items-center gap-2 px-4 py-3 text-sm text-stone-600">
+              <MapPin size={16} className="flex-none text-brand" />
+              <a href={SONSARI_MAP_LINK} target="_blank" rel="noopener noreferrer" className="hover:text-brand" dir="ltr">{t('landing.story.place')}</a>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="px-4 pb-16">
         <div className="mx-auto max-w-4xl rounded-3xl bg-gradient-to-br from-emerald-700 to-emerald-950 p-8 text-center text-white md:p-12">
@@ -451,8 +527,11 @@ export default function Landing() {
       </section>
 
       <footer className="border-t border-stone-100 py-8 text-center text-xs text-stone-500">
-        © {new Date().getFullYear()} {PLATFORM.name} · {t('landing.tagline')} ·{' '}
-        <a href="/privacy" className="underline hover:text-brand">{t('common.privacy')}</a>
+        <p>🇮🇳 {t('landing.madeIn')}</p>
+        <p className="mt-1">
+          © {new Date().getFullYear()} {PLATFORM.name} · {t('landing.tagline')} ·{' '}
+          <a href="/privacy" className="underline hover:text-brand">{t('common.privacy')}</a>
+        </p>
       </footer>
     </div>
   );

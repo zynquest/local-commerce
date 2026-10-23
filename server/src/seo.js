@@ -80,6 +80,14 @@ function render({ title, description, canonical, image, noindex, jsonLd = [], bo
 // Route renderers
 // ---------------------------------------------------------------------------
 
+// Where the platform was built: Sonsari village, Janjgir-Champa district, Chhattisgarh (home-page story + Organization JSON-LD).
+const SONSARI_PLACE = {
+  '@type': 'Place',
+  name: 'Sonsari',
+  address: { '@type': 'PostalAddress', addressLocality: 'Sonsari', addressRegion: 'Chhattisgarh', postalCode: '495553', addressCountry: 'IN' },
+  geo: { '@type': 'GeoCoordinates', latitude: 21.9415764, longitude: 82.3926376 },
+};
+
 function homeLd(base, t) {
   return [
     {
@@ -88,6 +96,10 @@ function homeLd(base, t) {
       name: BRAND,
       url: base,
       logo: `${base}/icons/icon-512.png`,
+      description: t('seo.homeDesc'),
+      slogan: t('landing.story.title'),
+      foundingLocation: SONSARI_PLACE,
+      location: SONSARI_PLACE,
       areaServed: 'IN',
       contactPoint: {
         '@type': 'ContactPoint',
@@ -126,7 +138,7 @@ function homeLd(base, t) {
   ];
 }
 
-const FAQ_COUNT = 8;
+const FAQ_COUNT = 9;
 const faq = (t) => Array.from({ length: FAQ_COUNT }, (_, i) => [t(`landing.faq.q${i + 1}`), t(`landing.faq.a${i + 1}`)]);
 
 /** Internal link that keeps the current language (so crawlers discover each language version). */
@@ -139,6 +151,7 @@ function homeBody(t, lang) {
 <h2>${esc(t('landing.seo.t2'))}</h2><p>${esc(t('landing.seo.d2', { limit }))}</p>
 <h2>${esc(t('landing.seo.t1'))}</h2><p>${esc(t('landing.seo.d1'))}</p>
 <h2>${esc(t('landing.seo.t3'))}</h2><p>${esc(t('landing.seo.d3'))}</p>
+<h2>${esc(t('landing.story.title'))}</h2><p>${esc(t('landing.story.p1'))}</p><p>${esc(t('landing.story.p2'))}</p><p>${esc(t('landing.story.p3'))}</p><address>${esc(t('landing.story.place'))}</address>
 <h2>${esc(t('landing.faq.title'))}</h2>${faq(t).map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join('')}
 <p><a href="${href('/stores', lang)}">${esc(t('nav.shopStores'))}</a> · <a href="${href('/register', lang)}">${esc(t('nav.register'))}</a></p></main>`;
 }

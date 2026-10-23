@@ -8,6 +8,7 @@
 //
 // Demo owners have no mobile, so nobody can log in to them until you attach one:
 //   npm run owner:set-phone -- demo-bakery <10-digit mobile>
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { config } from '../config.js';
@@ -23,11 +24,25 @@ const art = (emoji, [from, to]) =>
 const banner = (emoji, name, color) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="#0f172a"/></linearGradient></defs><rect width="1200" height="400" fill="url(#g)"/><circle cx="1010" cy="200" r="250" fill="#ffffff" fill-opacity="0.08"/><circle cx="1010" cy="200" r="160" fill="#ffffff" fill-opacity="0.1"/><text x="1010" y="210" font-size="190" text-anchor="middle" dominant-baseline="central">${emoji}</text><text x="70" y="215" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="64" font-weight="800" fill="#ffffff">${esc(name)}</text></svg>`;
 
-async function writeFile(storeId, name, content) {
+// Image URLs carry a short hash of their content (`FOOD-009-1-a1b2c3.svg`): generated art is cached for 30 days by
+// the service worker and browsers, so a product that changes emoji, or moves to another sku_id, gets a new URL
+// instead of a stale picture. Re-runs delete the files that are no longer referenced.
+const sig = (content) => crypto.createHash('sha1').update(content).digest('hex').slice(0, 8);
+async function writeFile(storeId, stem, ext, content) {
   const dir = path.join(config.uploadDir, storeId);
   await fs.mkdir(dir, { recursive: true });
+  const name = `${stem}-${sig(content)}.${ext}`;
   await fs.writeFile(path.join(dir, name), content);
   return `/uploads/${storeId}/${name}`;
+}
+
+/** Removes generated files that this run did not write (their JPEG twins from images:share-jpegs too). */
+async function pruneFiles(storeId, keptUrls) {
+  const dir = path.join(config.uploadDir, storeId);
+  const keep = new Set(keptUrls.map((u) => path.basename(u).replace(/\.\w+$/, '')));
+  for (const f of await fs.readdir(dir)) {
+    if (!keep.has(f.replace(/\.\w+$/, ''))) await fs.unlink(path.join(dir, f));
+  }
 }
 
 /** Services + specialists (with weekly hours) for a demo appointment business. Matched by name, so re-runs update. */
@@ -109,20 +124,24 @@ async function create() {
         );
         const storeId = stores[0].id;
         const color = s.theme_color || '#15803d';
-        await client.query('UPDATE stores SET logo_url = $2, banner_url = $3 WHERE id = $1', [
-          storeId,
-          await writeFile(storeId, 'logo.svg', art(demo.emoji, ['#ffffff', color])),
-          await writeFile(storeId, 'banner.svg', banner(demo.emoji, s.name, color)),
-        ]);
+        const written = [
+          await writeFile(storeId, 'logo', 'svg', art(demo.emoji, ['#ffffff', color])),
+          await writeFile(storeId, 'banner', 'svg', banner(demo.emoji, s.name, color)),
+        ];
+        await client.query('UPDATE stores SET logo_url = $2, banner_url = $3 WHERE id = $1', [storeId, ...written]);
 
-        if (demo.services) return { slug: s.slug, products: await seedBooking(client, storeId, demo), what: 'services' };
+        if (demo.services) {
+          await pruneFiles(storeId, written);
+          return { slug: s.slug, products: await seedBooking(client, storeId, demo), what: 'services' };
+        }
         let position = 0;
         for (const p of demo.products) {
           const { emoji, alt, palette } = p.images;
           const images = [
-            await writeFile(storeId, `${p.sku_id}-1.svg`, art(emoji, [palette[0], palette[1]])),
-            await writeFile(storeId, `${p.sku_id}-2.svg`, art(alt || emoji, [palette[2], palette[0]])),
+            await writeFile(storeId, `${p.sku_id}-1`, 'svg', art(emoji, [palette[0], palette[1]])),
+            await writeFile(storeId, `${p.sku_id}-2`, 'svg', art(alt || emoji, [palette[2], palette[0]])),
           ];
+          written.push(...images);
           await client.query(
             `INSERT INTO products (store_id, sku_id, name, category, mrp, offer_price, images, description, specs, tags,
                                    rating, review_count, in_stock, position)
@@ -138,6 +157,7 @@ async function create() {
         }
         // Products added to the demo by hand later are kept only if they're in the list above.
         await client.query('DELETE FROM products WHERE store_id = $1 AND NOT (sku_id = ANY($2))', [storeId, demo.products.map((p) => p.sku_id)]);
+        await pruneFiles(storeId, written);
         return { slug: s.slug, products: demo.products.length };
       });
       console.log(`[demo] ✓ ${demo.store.name.padEnd(32)} /s/${slug}  (${products} ${demo.services ? 'services' : 'products'})`);

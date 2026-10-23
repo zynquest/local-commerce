@@ -58,7 +58,7 @@ export const DEMO_STORES = [
     },
     products: rows('VEG', { Vegetables: green, 'Leafy Greens': leafy, Fruits: red, Herbs: leafy }, [
       ['Tomato (Nati) 1kg', 'Vegetables', 40, 32, ['🍅', '🥗'], 'Juicy country tomatoes, perfect for rasam, curries and chutneys.', { Weight: '1 kg', Origin: 'Kolar' }, 'Bestseller', 4.5, 320],
-      ['Onion 1kg', 'Vegetables', 45, 38, ['🧅', '🍳'], 'Medium-sized red onions with a strong flavour.', { Weight: '1 kg', Origin: 'Nashik' }, 'Bestseller', 4.4, 410],
+      ['Onion 1kg', 'Vegetables', 45, 38, ['🧅', '🥘'], 'Medium-sized red onions with a strong flavour.', { Weight: '1 kg', Origin: 'Nashik' }, 'Bestseller', 4.4, 410],
       ['Potato 1kg', 'Vegetables', 40, 34, ['🥔', '🍟'], 'Clean, firm potatoes for sabzi, fries and parathas.', { Weight: '1 kg' }, '', 4.3, 280],
       ['Carrot (Ooty) 500g', 'Vegetables', 35, 30, ['🥕', '🥗'], 'Sweet, crunchy Ooty carrots.', { Weight: '500 g', Origin: 'Ooty' }, '', 4.6, 150],
       ['Green Capsicum 500g', 'Vegetables', 40, 35, ['🫑', '🍕'], 'Fresh shiny capsicum for stir-fries and pizzas.', { Weight: '500 g' }],
@@ -157,13 +157,12 @@ export const DEMO_STORES = [
     products: rows('BAK', { Breads: brown, Cakes: pink, Snacks: amber, Cookies: brown }, [
       ['Milk Bread 400g', 'Breads', 45, 40, ['🍞', '🥛'], 'Soft, fresh milk bread baked this morning.', { Weight: '400 g', 'Best before': '3 days' }, 'Fresh today', 4.6, 430],
       ['Brown Bread 400g', 'Breads', 55, 50, ['🍞', '🌾'], 'Whole wheat brown bread.', { Weight: '400 g' }],
-      ['Pav (pack of 6)', 'Breads', 30, 25, ['🥖', '🍔'], 'Soft ladi pav for pav bhaji and vada pav.', { Quantity: '6 pcs' }],
+      ['Pav (pack of 6)', 'Breads', 30, 25, ['🥖', '🍞'], 'Soft ladi pav for pav bhaji and vada pav.', { Quantity: '6 pcs' }],
       ['Honey Cake (per piece)', 'Cakes', 30, 25, ['🍰', '🍯'], 'Iyengar-style honey cake with jam and coconut.', { Quantity: '1 piece' }, 'Bestseller', 4.8, 610],
       ['Black Forest Cake 500g', 'Cakes', 550, 480, ['🎂', '🍒'], 'Chocolate sponge, whipped cream and cherries. Order 3 hours ahead for a name on it.', { Weight: '500 g', Eggless: 'Available on request' }, 'Bestseller', 4.7, 220],
       ['Pineapple Cake 500g', 'Cakes', 500, 430, ['🎂', '🍍'], 'Light sponge with pineapple cream.', { Weight: '500 g' }],
       ['Plum Cake 400g', 'Cakes', 320, 280, ['🍰', '🎄'], 'Rich fruit and nut plum cake.', { Weight: '400 g' }, 'Seasonal'],
       ['Veg Puff', 'Snacks', 25, 22, ['🥟', '🔥'], 'Flaky puff with spicy potato-peas filling.', { Quantity: '1 pc' }, 'Bestseller', 4.5, 380],
-      ['Egg Puff', 'Snacks', 30, 27, ['🥚', '🥟'], 'Flaky puff with masala egg.', { Quantity: '1 pc' }],
       ['Dilpasand', 'Snacks', 40, 35, ['🥧', '🥥'], 'Sweet coconut-tutti frutti stuffed pastry.', { Quantity: '1 pc' }],
       ['Butter Biscuits 250g', 'Cookies', 90, 80, ['🍪', '🧈'], 'Melt-in-the-mouth butter biscuits.', { Weight: '250 g' }, '', 4.6, 150],
       ['Coconut Cookies 250g', 'Cookies', 85, 75, ['🍪', '🥥'], 'Crunchy coconut cookies.', { Weight: '250 g' }],

@@ -42,7 +42,6 @@ const sandboxProducts = [
   ['GROC-DAL-003', '🫘', 'Tata Sampann Toor Dal 1kg', 199, 172],
   ['DAI-BUT-002', '🧈', 'Amul Salted Butter 500g', 285, 275],
   ['DAI-MLK-004', '🥛', 'Nandini Toned Milk 1L', 52, 52],
-  ['DAI-EGG-005', '🥚', 'Farm Fresh Brown Eggs (Pack of 12)', 120, 99],
 ].map(([sku_id, emoji, name, mrp, offer_price]) => ({ sku_id, emoji, name, mrp, offer_price }));
 
 function PhoneMockup() {

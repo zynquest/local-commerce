@@ -429,6 +429,11 @@ describe('storefront + orders', () => {
     assert.equal(r.status, 200, JSON.stringify(r.body));
     assert.equal(r.body.customer.name, `Tester ${run}`);
     assert.equal((await again('GET', '/api/customer/orders')).body.orders.length, 1);
+    // Older app builds still post to /login; it is the same handler.
+    const legacy = client();
+    const old = await legacy('POST', '/api/customer/login', { email: emailShopper, code: await otpFor(legacy, emailShopper, 'customer_login') });
+    assert.equal(old.status, 200, JSON.stringify(old.body));
+    assert.equal(old.body.customer.email, emailShopper);
   });
 
   test('owner logout ends only that session', async () => {

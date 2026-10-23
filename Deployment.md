@@ -459,6 +459,8 @@ sudo /opt/vfl/app/deploy/deploy.sh        # git pull → npm ci → build → re
 
 The same command covers backend changes, frontend changes, new npm packages, schema migrations and Nginx config changes. A deploy restarts the API, which takes 2–3 seconds; Nginx keeps serving static files during the restart.
 
+Phones that already have the app cached (the service worker precaches the shell) open the **previous** build once more after a deploy, then the app notices the new build and reloads itself (unless the person is typing, in which case it reloads when they leave the field or the tab). Installed apps also check for updates every hour. If someone reports "Unknown API route" right after a deploy, a reload fixes it.
+
 | What changed | What to do |
 |---|---|
 | Any code (client, server, migrations) | `git push` → `sudo /opt/vfl/app/deploy/deploy.sh` |

@@ -73,7 +73,7 @@ export function createApp() {
   });
   app.use('/api', originGuard);
   app.use(
-    ['/api/auth/login', '/api/auth/register', '/api/customer/auth'],
+    ['/api/auth/login', '/api/auth/register', '/api/customer/auth', '/api/customer/login', '/api/customer/register'],
     authLimiter,
   );
   app.use('/api/auth', authRouter);
@@ -84,7 +84,7 @@ export function createApp() {
   app.use('/api/customer', customerRouter);
   app.use('/api', publicAppointmentsRouter);
   app.use('/api', publicRouter);
-  app.use('/api', (_req, _res, next) => next(notFound('Unknown API route')));
+  app.use('/api', (_req, _res, next) => next(notFound('Unknown API route. If the app was just updated, reload the page.')));
 
   app.use('/uploads', express.static(config.uploadDir, { maxAge: '365d', immutable: true, fallthrough: false }));
 

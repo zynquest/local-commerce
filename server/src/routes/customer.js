@@ -31,7 +31,7 @@ const profile = async (id) =>
  *   - no account, no name sent → 200 { needsName: true } (the code stays valid for the next call)
  *   - no account, name sent    → create it and log in, 201 { customer }
  */
-customerRouter.post('/auth', async (req, res) => {
+async function customerAuth(req, res) {
   const { code, name, ...ids } = parse(S.customerAuth, req.body);
   const id = customerIdentity(ids);
   const existing = await query(`SELECT id FROM customers WHERE ${id.column} = $1`, [id.value]);
@@ -55,7 +55,10 @@ customerRouter.post('/auth', async (req, res) => {
   if (!customerId) throw unauthorized('Could not sign you in. Please try again.');
   await createSession(res, 'customer', customerId);
   res.status(created ? 201 : 200).json({ customer: await profile(customerId) });
-});
+}
+customerRouter.post('/auth', customerAuth);
+// Older app builds (precached by the service worker until their next load) still post here.
+customerRouter.post(['/login', '/register'], customerAuth);
 
 customerRouter.post('/logout', async (req, res) => {
   await destroySession(req, res, 'customer');

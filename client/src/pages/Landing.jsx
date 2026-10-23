@@ -19,14 +19,14 @@ const DEMO_SLUG = 'demo';
 const HERO_STORES = [
   { name: 'Gupta Kirana', tag: 'grocery', color: 'from-emerald-500 to-green-700', items: ['🌾 Atta 5kg', '🥛 Milk 1L', '🧈 Butter'] },
   { name: 'Mumbai Bakers', tag: 'bakery', color: 'from-amber-500 to-orange-700', items: ['🍞 Pav (6)', '🎂 Black Forest', '🍪 Nankhatai'] },
-  { name: 'Annapoorna Mess', tag: 'restaurant', color: 'from-rose-500 to-red-700', items: ['🍛 Veg Meals', '🫓 Masala Dosa', '🍗 Chicken Biryani'] },
+  { name: 'Annapoorna Mess', tag: 'restaurant', color: 'from-rose-500 to-red-700', items: ['🍛 Veg Meals', '🫓 Masala Dosa', '☕ Filter Coffee'] },
   { name: 'Sai Medicals', tag: 'pharmacy', color: 'from-sky-500 to-blue-700', items: ['💊 Paracetamol', '🩹 Bandage', '🧴 Sanitiser'] },
 ];
 
-// Home-page use cases, each linking to its demo store (npm run demo:create). Restaurants are called out first-class.
+// Home-page use cases, each linking to its demo store (npm run demo:create).
 const USE_CASES = [
   { key: 'grocery', emoji: '🛒', slug: 'demo' },
-  { key: 'restaurant', emoji: '🍛', slug: 'demo-restaurant', featured: true },
+  { key: 'restaurant', emoji: '🍛', slug: 'demo-restaurant' },
   { key: 'bakery', emoji: '🎂', slug: 'demo-bakery' },
   { key: 'vegetables', emoji: '🥬', slug: 'demo-vegetables' },
   { key: 'flowers', emoji: '💐', slug: 'demo-flowers' },
@@ -298,7 +298,7 @@ export default function Landing() {
             <Link
               key={u.key}
               to={`/s/${u.slug}`}
-              className={`card group flex flex-col p-5 transition hover:-translate-y-0.5 hover:shadow-md ${u.featured ? 'border-brand bg-emerald-50/60 ring-1 ring-brand' : ''}`}
+              className="card group flex flex-col p-5 transition hover:-translate-y-0.5 hover:shadow-md"
             >
               <span className="text-4xl" aria-hidden="true">{u.emoji}</span>
               <h3 className="mt-3 font-bold">{t(`landing.useCases.${u.key}Title`)}</h3>

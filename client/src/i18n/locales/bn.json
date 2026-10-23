@@ -55,7 +55,9 @@
     "deliveryFee": "ডেলিভারি চার্জ {amount}।",
     "moreIn": "{category}-এ আরও পণ্য",
     "updateBag": "ব্যাগ আপডেট করুন",
-    "addToBag": "ব্যাগে যোগ করুন"
+    "addToBag": "ব্যাগে যোগ করুন",
+    "freeDelivery": "বিনামূল্যে ডেলিভারি।",
+    "freeDeliveryAbove": "{amount}-এর বেশি অর্ডারে বিনামূল্যে ডেলিভারি।"
   },
   "store": {
     "chatGreeting": "নমস্কার {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "ন্যূনতম অর্ডার {min}। অর্ডার করতে আরও {more} যোগ করুন।",
     "notAccepting": "এই স্টোর এখনও অনলাইন অর্ডার নিচ্ছে না।",
     "placeOrder": "WhatsApp-এ অর্ডার করুন",
-    "payInfo": "ডেলিভারির সময় টাকা দিন · নগদ / UPI · কোনো প্ল্যাটফর্ম চার্জ নেই"
+    "payInfo": "ডেলিভারির সময় টাকা দিন · নগদ / UPI · কোনো প্ল্যাটফর্ম চার্জ নেই",
+    "freeDelivery": "বিনামূল্যে ডেলিভারি",
+    "freeDeliveryAbove": "বিনামূল্যে ডেলিভারির জন্য আরও {more} যোগ করুন।"
   },
   "offline": {
     "syncing_one": "{count}টি অর্ডার স্টোরে সেভ হচ্ছে…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "বিশেষজ্ঞ",
     "apptDate": "তারিখ",
     "apptTime": "সময়",
-    "apptPleaseConfirm": "দয়া করে আমার অ্যাপয়েন্টমেন্ট কনফার্ম করুন। 🙏"
+    "apptPleaseConfirm": "দয়া করে আমার অ্যাপয়েন্টমেন্ট কনফার্ম করুন। 🙏",
+    "free": "ফ্রি"
   },
   "status": {
     "storeNotFound": "স্টোর পাওয়া যায়নি",
@@ -807,18 +812,22 @@
       "minimum_order": "ন্যূনতম অর্ডার (₹)",
       "delivery_fee": "ডেলিভারি চার্জ (₹)",
       "instagram_handle": "Instagram হ্যান্ডেল",
-      "theme_color": "ব্র্যান্ডের রং"
+      "theme_color": "ব্র্যান্ডের রং",
+      "free_delivery_above": "এর বেশি অর্ডারে বিনামূল্যে ডেলিভারি (₹)"
     },
     "h": {
       "slug": "ছোট হাতের ইংরেজি অক্ষর, সংখ্যা আর হাইফেন। বদলালে পুরোনো লিংক/QR কোড আর কাজ করবে না।",
-      "opening_hours": "24-ঘণ্টার ফরম্যাট, যেমন 09:00-21:00"
+      "opening_hours": "24-ঘণ্টার ফরম্যাট, যেমন 09:00-21:00",
+      "free_delivery_above": "ঐচ্ছিক। প্রতিটি অর্ডারে চার্জ নিতে খালি রাখুন।"
     },
     "p": {
       "category": "মুদিখানা, বেকারি, ওষুধের দোকান…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "যাচাই করে আপডেট করুন",
-    "orderLanguageAuto": "ক্রেতার ভাষা (প্রস্তাবিত)"
+    "orderLanguageAuto": "ক্রেতার ভাষা (প্রস্তাবিত)",
+    "deliveryTitle": "ডেলিভারি",
+    "freeDelivery": "বিনামূল্যে ডেলিভারি (কোনো ডেলিভারি চার্জ নেই)"
   },
   "msgimp": {
     "title": "WhatsApp মেসেজ থেকে পণ্য যোগ করুন",

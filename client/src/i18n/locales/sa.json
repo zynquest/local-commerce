@@ -55,7 +55,9 @@
     "deliveryFee": "वितरणशुल्कम् {amount}।",
     "moreIn": "{category} वर्गे अधिकम्",
     "updateBag": "स्यूतं नवीकरोतु",
-    "addToBag": "स्यूते योजयतु"
+    "addToBag": "स्यूते योजयतु",
+    "freeDelivery": "निःशुल्कं वितरणम्।",
+    "freeDeliveryAbove": "{amount}-तः अधिकेषु आदेशेषु निःशुल्कं वितरणम्।"
   },
   "store": {
     "chatGreeting": "नमस्ते {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "न्यूनतमः आदेशः {min}। आदेशाय {more} अधिकं योजयतु।",
     "notAccepting": "अयम् आपणः अधुना अन्तर्जालीय-आदेशान् न स्वीकरोति।",
     "placeOrder": "WhatsApp द्वारा आदेशं ददातु",
-    "payInfo": "वितरणसमये मूल्यदानम् · नगदम् / UPI · मञ्चशुल्कं नास्ति"
+    "payInfo": "वितरणसमये मूल्यदानम् · नगदम् / UPI · मञ्चशुल्कं नास्ति",
+    "freeDelivery": "निःशुल्कं वितरणम्",
+    "freeDeliveryAbove": "निःशुल्कवितरणाय {more} अधिकं योजयतु।"
   },
   "offline": {
     "syncing_one": "{count} आदेशः आपणे रक्ष्यते…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "विशेषज्ञः",
     "apptDate": "दिनाङ्कः",
     "apptTime": "समयः",
-    "apptPleaseConfirm": "कृपया मम नियुक्तिं निश्चिनोतु। 🙏"
+    "apptPleaseConfirm": "कृपया मम नियुक्तिं निश्चिनोतु। 🙏",
+    "free": "निःशुल्कम्"
   },
   "status": {
     "storeNotFound": "आपणः न प्राप्तः",
@@ -807,18 +812,22 @@
       "minimum_order": "न्यूनतमः आदेशः (₹)",
       "delivery_fee": "वितरणशुल्कम् (₹)",
       "instagram_handle": "Instagram नाम",
-      "theme_color": "चिह्नवर्णः"
+      "theme_color": "चिह्नवर्णः",
+      "free_delivery_above": "एतस्मात् अधिकेषु आदेशेषु निःशुल्कं वितरणम् (₹)"
     },
     "h": {
       "slug": "लघु-आङ्ग्लाक्षराणि, अङ्काः, योजकचिह्नानि च। परिवर्तनेन पुरातनलिङ्काः/QR सङ्केताः न कार्यं करिष्यन्ति।",
-      "opening_hours": "24-होरा-प्रारूपम्, यथा 09:00-21:00"
+      "opening_hours": "24-होरा-प्रारूपम्, यथा 09:00-21:00",
+      "free_delivery_above": "वैकल्पिकम्। प्रत्येकस्मिन् आदेशे शुल्कग्रहणाय रिक्तं त्यजतु।"
     },
     "p": {
       "category": "किराणा, अपूपशाला, औषधालयः…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "सत्यापयतु परिवर्तयतु च",
-    "orderLanguageAuto": "ग्राहकस्य भाषा (अनुशंसिता)"
+    "orderLanguageAuto": "ग्राहकस्य भाषा (अनुशंसिता)",
+    "deliveryTitle": "वितरणम्",
+    "freeDelivery": "निःशुल्कं वितरणम् (वितरणशुल्कं नास्ति)"
   },
   "msgimp": {
     "title": "WhatsApp सन्देशात् उत्पादान् योजयतु",

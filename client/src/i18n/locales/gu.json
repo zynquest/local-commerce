@@ -55,7 +55,9 @@
     "deliveryFee": "ડિલિવરી ચાર્જ {amount}.",
     "moreIn": "{category} માં વધુ",
     "updateBag": "બેગ અપડેટ કરો",
-    "addToBag": "બેગમાં ઉમેરો"
+    "addToBag": "બેગમાં ઉમેરો",
+    "freeDelivery": "મફત ડિલિવરી.",
+    "freeDeliveryAbove": "{amount}થી વધુ ઓર્ડર પર મફત ડિલિવરી."
   },
   "store": {
     "chatGreeting": "નમસ્તે {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "ઓછામાં ઓછો ઓર્ડર {min} છે. ઓર્ડર કરવા માટે હજી {more} ની વસ્તુઓ ઉમેરો.",
     "notAccepting": "આ સ્ટોર હજી ઓનલાઇન ઓર્ડર લેતો નથી.",
     "placeOrder": "WhatsApp દ્વારા ઓર્ડર કરો",
-    "payInfo": "ડિલિવરી વખતે પેમેન્ટ · રોકડ / UPI · કોઈ પ્લેટફોર્મ ફી નહીં"
+    "payInfo": "ડિલિવરી વખતે પેમેન્ટ · રોકડ / UPI · કોઈ પ્લેટફોર્મ ફી નહીં",
+    "freeDelivery": "મફત ડિલિવરી",
+    "freeDeliveryAbove": "મફત ડિલિવરી માટે વધુ {more} ઉમેરો."
   },
   "offline": {
     "syncing_one": "{count} ઓર્ડર સ્ટોરમાં સેવ થઈ રહ્યો છે…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "સ્પેશિયાલિસ્ટ",
     "apptDate": "તારીખ",
     "apptTime": "સમય",
-    "apptPleaseConfirm": "કૃપા કરીને મારી એપોઇન્ટમેન્ટ કન્ફર્મ કરો. 🙏"
+    "apptPleaseConfirm": "કૃપા કરીને મારી એપોઇન્ટમેન્ટ કન્ફર્મ કરો. 🙏",
+    "free": "મફત"
   },
   "status": {
     "storeNotFound": "સ્ટોર મળ્યો નથી",
@@ -807,18 +812,22 @@
       "minimum_order": "ઓછામાં ઓછો ઓર્ડર (₹)",
       "delivery_fee": "ડિલિવરી ચાર્જ (₹)",
       "instagram_handle": "Instagram હેન્ડલ",
-      "theme_color": "બ્રાન્ડનો રંગ"
+      "theme_color": "બ્રાન્ડનો રંગ",
+      "free_delivery_above": "આનાથી વધુ ઓર્ડર પર મફત ડિલિવરી (₹)"
     },
     "h": {
       "slug": "નાના અંગ્રેજી અક્ષર, અંક અને હાઇફન. બદલવાથી જૂની લિંક/QR કોડ કામ નહીં કરે.",
-      "opening_hours": "24-કલાક ફોર્મેટ, દા.ત. 09:00-21:00"
+      "opening_hours": "24-કલાક ફોર્મેટ, દા.ત. 09:00-21:00",
+      "free_delivery_above": "વૈકલ્પિક. દરેક ઓર્ડર પર ફી લેવા માટે ખાલી રાખો."
     },
     "p": {
       "category": "કરિયાણું, બેકરી, મેડિકલ સ્ટોર…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "વેરિફાય કરો અને અપડેટ કરો",
-    "orderLanguageAuto": "ગ્રાહકની ભાષા (ભલામણ કરેલ)"
+    "orderLanguageAuto": "ગ્રાહકની ભાષા (ભલામણ કરેલ)",
+    "deliveryTitle": "ડિલિવરી",
+    "freeDelivery": "મફત ડિલિવરી (કોઈ ડિલિવરી ફી નહીં)"
   },
   "msgimp": {
     "title": "WhatsApp મેસેજમાંથી પ્રોડક્ટ ઉમેરો",

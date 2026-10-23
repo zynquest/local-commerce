@@ -55,7 +55,9 @@
     "deliveryFee": "डिलिव्हरी शुल्क {amount}.",
     "moreIn": "{category} हांतूत आनीक",
     "updateBag": "बॅग अपडेट करात",
-    "addToBag": "बॅगेंत घालात"
+    "addToBag": "बॅगेंत घालात",
+    "freeDelivery": "फुकट डिलिव्हरी.",
+    "freeDeliveryAbove": "{amount} परस चड ऑर्डरांक फुकट डिलिव्हरी."
   },
   "store": {
     "chatGreeting": "नमस्कार {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "उणांत उणी ऑर्डर {min} आसा. ऑर्डर करपाक आनीक {more} च्यो वस्तू जोडात.",
     "notAccepting": "हें स्टोअर अजून ऑनलाइन ऑर्डरी घेना.",
     "placeOrder": "WhatsApp वरवीं ऑर्डर करात",
-    "payInfo": "डिलिव्हरी वेळार पयशे दियात · रोख / UPI · प्लॅटफॉर्म शुल्क ना"
+    "payInfo": "डिलिव्हरी वेळार पयशे दियात · रोख / UPI · प्लॅटफॉर्म शुल्क ना",
+    "freeDelivery": "फुकट डिलिव्हरी",
+    "freeDeliveryAbove": "फुकट डिलिव्हरी खातीर आनीक {more} घालात."
   },
   "offline": {
     "syncing_one": "{count} ऑर्डर स्टोअराकडेन सेव्ह जाता…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "तज्ञ",
     "apptDate": "तारीख",
     "apptTime": "वेळ",
-    "apptPleaseConfirm": "उपकार करून म्हजी अपॉइंटमेंट निश्चीत करात. 🙏"
+    "apptPleaseConfirm": "उपकार करून म्हजी अपॉइंटमेंट निश्चीत करात. 🙏",
+    "free": "फुकट"
   },
   "status": {
     "storeNotFound": "स्टोअर मेळ्ळें ना",
@@ -807,18 +812,22 @@
       "minimum_order": "उणांत उणी ऑर्डर (₹)",
       "delivery_fee": "डिलिव्हरी शुल्क (₹)",
       "instagram_handle": "Instagram हँडल",
-      "theme_color": "ब्रँडाचो रंग"
+      "theme_color": "ब्रँडाचो रंग",
+      "free_delivery_above": "हाचे परस चड ऑर्डरांक फुकट डिलिव्हरी (₹)"
     },
     "h": {
       "slug": "ल्हान इंग्लीश अक्षरां, आंकडे आनी हायफन. बदलल्यार पोरन्यो लिंक/QR कोड चलचे नात.",
-      "opening_hours": "24 वरांचें रूप, देखीक 09:00-21:00"
+      "opening_hours": "24 वरांचें रूप, देखीक 09:00-21:00",
+      "free_delivery_above": "वैकल्पिक. दर एके ऑर्डरीचेर शुल्क घेवपाक रिकामें दवरात."
     },
     "p": {
       "category": "किराणा, बेकरी, फार्मसी…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "पडताळून अपडेट करात",
-    "orderLanguageAuto": "गिरायकाची भास (सुचयल्ली)"
+    "orderLanguageAuto": "गिरायकाची भास (सुचयल्ली)",
+    "deliveryTitle": "डिलिव्हरी",
+    "freeDelivery": "फुकट डिलिव्हरी (डिलिव्हरी शुल्क ना)"
   },
   "msgimp": {
     "title": "WhatsApp मेसेजांतल्यान उत्पादनां जोडात",

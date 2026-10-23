@@ -55,7 +55,9 @@
     "deliveryFee": "ڊليوري فيس {amount}.",
     "moreIn": "{category} ۾ وڌيڪ",
     "updateBag": "بيگ اپڊيٽ ڪريو",
-    "addToBag": "بيگ ۾ شامل ڪريو"
+    "addToBag": "بيگ ۾ شامل ڪريو",
+    "freeDelivery": "مفت ڊليوري.",
+    "freeDeliveryAbove": "{amount} کان وڌيڪ آرڊر تي مفت ڊليوري."
   },
   "store": {
     "chatGreeting": "سلام {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "گهٽ ۾ گهٽ آرڊر {min} آهي. آرڊر ڪرڻ لاءِ {more} جون وڌيڪ شيون شامل ڪريو.",
     "notAccepting": "هي اسٽور اڃا آن لائين آرڊر نٿو وٺي.",
     "placeOrder": "WhatsApp ذريعي آرڊر ڪريو",
-    "payInfo": "ڊليوري وقت ادائگي · نقد / UPI · ڪا پليٽفارم فيس ناهي"
+    "payInfo": "ڊليوري وقت ادائگي · نقد / UPI · ڪا پليٽفارم فيس ناهي",
+    "freeDelivery": "مفت ڊليوري",
+    "freeDeliveryAbove": "مفت ڊليوري لاءِ {more} وڌيڪ شامل ڪريو."
   },
   "offline": {
     "syncing_one": "{count} آرڊر اسٽور ۾ محفوظ ٿي رهيو آهي…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "ماهر",
     "apptDate": "تاريخ",
     "apptTime": "وقت",
-    "apptPleaseConfirm": "مهرباني ڪري منهنجي اپوائنٽمينٽ پڪي ڪريو. 🙏"
+    "apptPleaseConfirm": "مهرباني ڪري منهنجي اپوائنٽمينٽ پڪي ڪريو. 🙏",
+    "free": "مفت"
   },
   "status": {
     "storeNotFound": "اسٽور نه مليو",
@@ -807,18 +812,22 @@
       "minimum_order": "گهٽ ۾ گهٽ آرڊر (₹)",
       "delivery_fee": "ڊليوري فيس (₹)",
       "instagram_handle": "Instagram هينڊل",
-      "theme_color": "برانڊ جو رنگ"
+      "theme_color": "برانڊ جو رنگ",
+      "free_delivery_above": "ان کان وڌيڪ آرڊر تي مفت ڊليوري (₹)"
     },
     "h": {
       "slug": "ننڍا انگريزي اکر، انگ ۽ هائفن. بدلائڻ سان پراڻيون لنڪون/QR ڪوڊ ڪم نه ڪندا.",
-      "opening_hours": "24 ڪلاڪن وارو فارميٽ، مثال: 09:00-21:00"
+      "opening_hours": "24 ڪلاڪن وارو فارميٽ، مثال: 09:00-21:00",
+      "free_delivery_above": "اختياري. هر آرڊر تي فيس وٺڻ لاءِ خالي ڇڏيو."
     },
     "p": {
       "category": "ڪريانو، بيڪري، ميڊيڪل اسٽور…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "تصديق ڪري اپڊيٽ ڪريو",
-    "orderLanguageAuto": "گراهڪ جي ٻولي (سفارش ٿيل)"
+    "orderLanguageAuto": "گراهڪ جي ٻولي (سفارش ٿيل)",
+    "deliveryTitle": "ڊليوري",
+    "freeDelivery": "مفت ڊليوري (ڪا ڊليوري فيس نه)"
   },
   "msgimp": {
     "title": "WhatsApp ميسيج مان پراڊڪٽس شامل ڪريو",

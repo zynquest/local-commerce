@@ -141,6 +141,7 @@ merchantRouter.post('/store/whatsapp/verify', async (req, res) => {
 
 merchantRouter.put('/store', async (req, res) => {
   const data = parse(S.storeSettings, req.body);
+  if (data.delivery_fee !== undefined && !(Number(data.delivery_fee) > 0)) data.free_delivery_above = null; // free delivery: no threshold
   const entries = Object.entries(data).filter(([, v]) => v !== undefined);
   if (!entries.length) throw badRequest('Nothing to update');
   if (data.slug) {

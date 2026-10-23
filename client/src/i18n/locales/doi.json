@@ -55,7 +55,9 @@
     "deliveryFee": "डिलीवरी खर्चा {amount}।",
     "moreIn": "{category} च होर",
     "updateBag": "बैग अपडेट करो",
-    "addToBag": "बैग च पाओ"
+    "addToBag": "बैग च पाओ",
+    "freeDelivery": "मुफ्त डिलीवरी।",
+    "freeDeliveryAbove": "{amount} थमां मते ऑर्डर पर मुफ्त डिलीवरी।"
   },
   "store": {
     "chatGreeting": "नमस्ते {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "घट्टो-घट्ट ऑर्डर {min} ऐ। ऑर्डर करने आस्तै {more} दा होर सामान जोड़ो।",
     "notAccepting": "एह् स्टोर अजें ऑनलाइन ऑर्डर नेईं लैआ करदा।",
     "placeOrder": "WhatsApp राहें ऑर्डर करो",
-    "payInfo": "डिलीवरी पर भुगतान · नकद / UPI · कोई प्लेटफॉर्म फीस नेईं"
+    "payInfo": "डिलीवरी पर भुगतान · नकद / UPI · कोई प्लेटफॉर्म फीस नेईं",
+    "freeDelivery": "मुफ्त डिलीवरी",
+    "freeDeliveryAbove": "मुफ्त डिलीवरी आस्तै {more} होर जोड़ो।"
   },
   "offline": {
     "syncing_one": "{count} ऑर्डर स्टोर कोल सेव होआ करदा ऐ…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "माहिर",
     "apptDate": "तरीक",
     "apptTime": "समां",
-    "apptPleaseConfirm": "कृपा करियै मेरी अपॉइंटमेंट पक्की करो। 🙏"
+    "apptPleaseConfirm": "कृपा करियै मेरी अपॉइंटमेंट पक्की करो। 🙏",
+    "free": "मुफ्त"
   },
   "status": {
     "storeNotFound": "स्टोर नेईं लब्भा",
@@ -807,18 +812,22 @@
       "minimum_order": "घट्टो-घट्ट ऑर्डर (₹)",
       "delivery_fee": "डिलीवरी खर्चा (₹)",
       "instagram_handle": "Instagram हैंडल",
-      "theme_color": "ब्रांड दा रंग"
+      "theme_color": "ब्रांड दा रंग",
+      "free_delivery_above": "इस थमां मते ऑर्डर पर मुफ्त डिलीवरी (₹)"
     },
     "h": {
       "slug": "अंग्रेज़ी दे निक्के अक्खर, अंक ते हाइफन। इसगी बदलने कन्नै पुराने लिंक/QR कोड कम्म नेईं करगन।",
-      "opening_hours": "24-घैंटे आह्ला फॉर्मेट, जियां 09:00-21:00"
+      "opening_hours": "24-घैंटे आह्ला फॉर्मेट, जियां 09:00-21:00",
+      "free_delivery_above": "वैकल्पिक। हर ऑर्डर पर फीस लैने आस्तै खाली छोड़ो।"
     },
     "p": {
       "category": "करियाना, बेकरी, कैमिस्ट…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "पुश्टी करो ते अपडेट करो",
-    "orderLanguageAuto": "ग्राहक दी भाशा (सलाह दित्ती दी)"
+    "orderLanguageAuto": "ग्राहक दी भाशा (सलाह दित्ती दी)",
+    "deliveryTitle": "डिलीवरी",
+    "freeDelivery": "मुफ्त डिलीवरी (कोई डिलीवरी फीस नेईं)"
   },
   "msgimp": {
     "title": "WhatsApp मैसेज थमां प्रोडक्ट जोड़ो",

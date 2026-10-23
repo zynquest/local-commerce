@@ -98,6 +98,8 @@ export const storeSettings = z
     currency_symbol: z.string().trim().min(1).max(4).default('₹'),
     minimum_order: money,
     delivery_fee: money,
+    // Free delivery once the subtotal reaches this amount; null/empty = the fee applies to every order.
+    free_delivery_above: z.preprocess((v) => (v === '' || v == null ? null : v), money.nullable()),
     opening_hours: z.preprocess(
       (v) => (v ? String(v).trim() : null),
       z.string().regex(/^\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}$/, 'Use HH:MM-HH:MM, e.g. 09:00-21:00').nullable(),

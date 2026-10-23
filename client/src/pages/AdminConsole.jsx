@@ -130,7 +130,7 @@ function StoreDetail({ id, onClose, onChanged }) {
               </div>
               <div><p className="label">Products</p><p className="font-semibold">{data.counts.products}</p></div>
               <div><p className="label">Orders</p><p className="font-semibold">{data.counts.orders}</p></div>
-              <div><p className="label">Fees</p><p>Min {formatMoney(s.minimum_order)} · Delivery {formatMoney(s.delivery_fee)}</p></div>
+              <div><p className="label">Fees</p><p>Min {formatMoney(s.minimum_order)} · Delivery {s.delivery_fee > 0 ? `${formatMoney(s.delivery_fee)}${s.free_delivery_above != null ? ` (free above ${formatMoney(s.free_delivery_above)})` : ''}` : 'free'}</p></div>
             </div>
 
             {/* Decision */}

@@ -55,7 +55,9 @@
     "deliveryFee": "डिलीवरी चार्ज {amount}।",
     "moreIn": "{category} मे आओर",
     "updateBag": "बैग अपडेट करू",
-    "addToBag": "बैग मे राखू"
+    "addToBag": "बैग मे राखू",
+    "freeDelivery": "मुफ्त डिलीवरी।",
+    "freeDeliveryAbove": "{amount} सँ बेसी ऑर्डर पर मुफ्त डिलीवरी।"
   },
   "store": {
     "chatGreeting": "प्रणाम {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "कम सँ कम ऑर्डर {min} के अछि। ऑर्डर करबाक लेल {more} के आओर समान जोड़ू।",
     "notAccepting": "ई स्टोर एखन ऑनलाइन ऑर्डर नहि ल' रहल अछि।",
     "placeOrder": "WhatsApp सँ ऑर्डर करू",
-    "payInfo": "डिलीवरी पर पेमेंट · कैश / UPI · कोनो प्लेटफॉर्म फीस नहि"
+    "payInfo": "डिलीवरी पर पेमेंट · कैश / UPI · कोनो प्लेटफॉर्म फीस नहि",
+    "freeDelivery": "मुफ्त डिलीवरी",
+    "freeDeliveryAbove": "मुफ्त डिलीवरीक लेल {more} आओर जोड़ू।"
   },
   "offline": {
     "syncing_one": "{count} ऑर्डर स्टोर मे सेव भ' रहल अछि…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "विशेषज्ञ",
     "apptDate": "तारीख",
     "apptTime": "समय",
-    "apptPleaseConfirm": "कृपया हमर अपॉइंटमेंट पक्का करू। 🙏"
+    "apptPleaseConfirm": "कृपया हमर अपॉइंटमेंट पक्का करू। 🙏",
+    "free": "मुफ्त"
   },
   "status": {
     "storeNotFound": "स्टोर नहि भेटल",
@@ -807,18 +812,22 @@
       "minimum_order": "कम सँ कम ऑर्डर (₹)",
       "delivery_fee": "डिलीवरी चार्ज (₹)",
       "instagram_handle": "Instagram हैंडल",
-      "theme_color": "ब्रांडक रंग"
+      "theme_color": "ब्रांडक रंग",
+      "free_delivery_above": "एहि सँ बेसी ऑर्डर पर मुफ्त डिलीवरी (₹)"
     },
     "h": {
       "slug": "छोट अंग्रेजी अक्षर, नंबर आ हाइफन। एकरा बदलला सँ पुरान लिंक/QR कोड काज नहि करत।",
-      "opening_hours": "24 घंटा बला फॉर्मेट, जेना 09:00-21:00"
+      "opening_hours": "24 घंटा बला फॉर्मेट, जेना 09:00-21:00",
+      "free_delivery_above": "वैकल्पिक। हर ऑर्डर पर शुल्क लेबाक लेल खाली छोड़ू।"
     },
     "p": {
       "category": "किराना, बेकरी, मेडिकल…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "पुष्टि करू आ अपडेट करू",
-    "orderLanguageAuto": "ग्राहकक भाषा (सुझाओल गेल)"
+    "orderLanguageAuto": "ग्राहकक भाषा (सुझाओल गेल)",
+    "deliveryTitle": "डिलीवरी",
+    "freeDelivery": "मुफ्त डिलीवरी (कोनो डिलीवरी शुल्क नहि)"
   },
   "msgimp": {
     "title": "WhatsApp मैसेज सँ प्रोडक्ट जोड़ू",

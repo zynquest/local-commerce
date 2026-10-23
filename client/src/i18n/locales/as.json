@@ -55,7 +55,9 @@
     "deliveryFee": "ডেলিভাৰী মাচুল {amount}।",
     "moreIn": "{category}ত আৰু সামগ্ৰী",
     "updateBag": "বেগ আপডেট কৰক",
-    "addToBag": "বেগত যোগ কৰক"
+    "addToBag": "বেগত যোগ কৰক",
+    "freeDelivery": "বিনামূলীয়া ডেলিভাৰী।",
+    "freeDeliveryAbove": "{amount}তকৈ অধিক অৰ্ডাৰত বিনামূলীয়া ডেলিভাৰী।"
   },
   "store": {
     "chatGreeting": "নমস্কাৰ {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "নিম্নতম অৰ্ডাৰ {min}। অৰ্ডাৰ কৰিবলৈ আৰু {more} যোগ কৰক।",
     "notAccepting": "এই ষ্ট’ৰে এতিয়াও অনলাইন অৰ্ডাৰ লোৱা নাই।",
     "placeOrder": "WhatsAppত অৰ্ডাৰ কৰক",
-    "payInfo": "ডেলিভাৰীৰ সময়ত পইচা দিয়ক · নগদ / UPI · কোনো প্লেটফৰ্ম মাচুল নাই"
+    "payInfo": "ডেলিভাৰীৰ সময়ত পইচা দিয়ক · নগদ / UPI · কোনো প্লেটফৰ্ম মাচুল নাই",
+    "freeDelivery": "বিনামূলীয়া ডেলিভাৰী",
+    "freeDeliveryAbove": "বিনামূলীয়া ডেলিভাৰীৰ বাবে আৰু {more} যোগ কৰক।"
   },
   "offline": {
     "syncing_one": "{count}টা অৰ্ডাৰ ষ্ট’ৰত ছেভ হৈ আছে…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "বিশেষজ্ঞ",
     "apptDate": "তাৰিখ",
     "apptTime": "সময়",
-    "apptPleaseConfirm": "অনুগ্ৰহ কৰি মোৰ এপইণ্টমেণ্ট নিশ্চিত কৰক। 🙏"
+    "apptPleaseConfirm": "অনুগ্ৰহ কৰি মোৰ এপইণ্টমেণ্ট নিশ্চিত কৰক। 🙏",
+    "free": "ফ্ৰী"
   },
   "status": {
     "storeNotFound": "ষ্ট’ৰ পোৱা নগ’ল",
@@ -807,18 +812,22 @@
       "minimum_order": "নিম্নতম অৰ্ডাৰ (₹)",
       "delivery_fee": "ডেলিভাৰী মাচুল (₹)",
       "instagram_handle": "Instagram হেণ্ডেল",
-      "theme_color": "ব্ৰেণ্ডৰ ৰং"
+      "theme_color": "ব্ৰেণ্ডৰ ৰং",
+      "free_delivery_above": "ইয়াতকৈ অধিক অৰ্ডাৰত বিনামূলীয়া ডেলিভাৰী (₹)"
     },
     "h": {
       "slug": "সৰু ইংৰাজী আখৰ, সংখ্যা আৰু হাইফেন। সলনি কৰিলে পুৰণি লিংক/QR ক’ড আৰু কাম নকৰিব।",
-      "opening_hours": "24-ঘণ্টাৰ ফৰ্মেট, যেনে 09:00-21:00"
+      "opening_hours": "24-ঘণ্টাৰ ফৰ্মেট, যেনে 09:00-21:00",
+      "free_delivery_above": "বৈকল্পিক। প্ৰতিটো অৰ্ডাৰত মাচুল ল'বলৈ খালী ৰাখক।"
     },
     "p": {
       "category": "গেলামাল, বেকাৰী, ঔষধৰ দোকান…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "সত্যাপন কৰি আপডেট কৰক",
-    "orderLanguageAuto": "গ্ৰাহকৰ ভাষা (পৰামৰ্শিত)"
+    "orderLanguageAuto": "গ্ৰাহকৰ ভাষা (পৰামৰ্শিত)",
+    "deliveryTitle": "ডেলিভাৰী",
+    "freeDelivery": "বিনামূলীয়া ডেলিভাৰী (কোনো ডেলিভাৰী মাচুল নাই)"
   },
   "msgimp": {
     "title": "WhatsApp মেছেজৰ পৰা সামগ্ৰী যোগ কৰক",

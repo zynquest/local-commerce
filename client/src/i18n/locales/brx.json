@@ -55,7 +55,9 @@
     "deliveryFee": "डेलिभारि मासुल {amount}।",
     "moreIn": "{category}आव बांसिन",
     "updateBag": "बेग आपडेट खालाम",
-    "addToBag": "बेगआव दाजाब"
+    "addToBag": "बेगआव दाजाब",
+    "freeDelivery": "फ्री डेलिभारि।",
+    "freeDeliveryAbove": "{amount} निफ्राय बांसिन अर्डारआव फ्री डेलिभारि।"
   },
   "store": {
     "chatGreeting": "{name}, खुलुम!",
@@ -108,7 +110,9 @@
     "minOrder": "खमसिनबो ऑर्डर {min}। ऑर्डर होनो बांसिन {more} दाजाब।",
     "notAccepting": "बे दोकानआ दासिम अनलाइन ऑर्डर लाया।",
     "placeOrder": "WhatsApp-जों ऑर्डर हो",
-    "payInfo": "डेलिभारि मोनब्ला रां हो · नगद / UPI · प्लेटफर्म मासुल गैया"
+    "payInfo": "डेलिभारि मोनब्ला रां हो · नगद / UPI · प्लेटफर्म मासुल गैया",
+    "freeDelivery": "फ्री डेलिभारि",
+    "freeDeliveryAbove": "फ्री डेलिभारिनि थाखाय {more} बांसिन दाजाब।"
   },
   "offline": {
     "syncing_one": "{count} ऑर्डर दोकानआव सेभ खालामगासिनो दं…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "रोंगौ मानसि",
     "apptDate": "अक्ट'",
     "apptTime": "सम",
-    "apptPleaseConfirm": "अननानै आंनि एपइन्टमेन्टखौ फोरमान खालाम। 🙏"
+    "apptPleaseConfirm": "अननानै आंनि एपइन्टमेन्टखौ फोरमान खालाम। 🙏",
+    "free": "फ्री"
   },
   "status": {
     "storeNotFound": "दोकान मोनाखै",
@@ -807,18 +812,22 @@
       "minimum_order": "खमसिनबो ऑर्डर (₹)",
       "delivery_fee": "डेलिभारि मासुल (₹)",
       "instagram_handle": "Instagram हेन्डल",
-      "theme_color": "ब्रेन्डनि गाब"
+      "theme_color": "ब्रेन्डनि गाब",
+      "free_delivery_above": "बेनिफ्राय बांसिन अर्डारआव फ्री डेलिभारि (₹)"
     },
     "h": {
       "slug": "फिसा इंराजि हांखो, अनजिमा आरो हाइफेन। बेखौ सोलायब्ला गोजाम लिंक/QR कोडफोरा खामानि मावा।",
-      "opening_hours": "24 घन्टानि महर, बिदिन्थि: 09:00-21:00"
+      "opening_hours": "24 घन्टानि महर, बिदिन्थि: 09:00-21:00",
+      "free_delivery_above": "गोसोखाय। गासै अर्डारआव फि लानो खाली दोन।"
     },
     "p": {
       "category": "किराना, बेकारि, फार्मेसि…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "फोरमान खालामनानै आपडेट खालाम",
-    "orderLanguageAuto": "बायग्राफोरनि राव (बिजिरनाय होनाय)"
+    "orderLanguageAuto": "बायग्राफोरनि राव (बिजिरनाय होनाय)",
+    "deliveryTitle": "डेलिभारि",
+    "freeDelivery": "फ्री डेलिभारि (डेलिभारि फि गैया)"
   },
   "msgimp": {
     "title": "WhatsApp मेसेजनिफ्राय मुवा दाजाब",

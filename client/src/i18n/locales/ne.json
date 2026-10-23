@@ -55,7 +55,9 @@
     "deliveryFee": "डेलिभरी शुल्क {amount}।",
     "moreIn": "{category} मा थप",
     "updateBag": "झोला अपडेट गर्नुहोस्",
-    "addToBag": "झोलामा थप्नुहोस्"
+    "addToBag": "झोलामा थप्नुहोस्",
+    "freeDelivery": "निःशुल्क डेलिभरी।",
+    "freeDeliveryAbove": "{amount} भन्दा माथिको अर्डरमा निःशुल्क डेलिभरी।"
   },
   "store": {
     "chatGreeting": "नमस्ते {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "न्यूनतम अर्डर {min} हो। अर्डर गर्न {more} अझै थप्नुहोस्।",
     "notAccepting": "यो पसलले अझै अनलाइन अर्डर लिँदैन।",
     "placeOrder": "WhatsApp बाट अर्डर गर्नुहोस्",
-    "payInfo": "डेलिभरीमा तिर्नुहोस् · नगद / UPI · कुनै प्लेटफर्म शुल्क छैन"
+    "payInfo": "डेलिभरीमा तिर्नुहोस् · नगद / UPI · कुनै प्लेटफर्म शुल्क छैन",
+    "freeDelivery": "निःशुल्क डेलिभरी",
+    "freeDeliveryAbove": "निःशुल्क डेलिभरीका लागि थप {more} थप्नुहोस्।"
   },
   "offline": {
     "syncing_one": "{count} अर्डर पसलमा सेभ हुँदैछ…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "विशेषज्ञ",
     "apptDate": "मिति",
     "apptTime": "समय",
-    "apptPleaseConfirm": "कृपया मेरो अपोइन्टमेन्ट पक्का गरिदिनुहोस्। 🙏"
+    "apptPleaseConfirm": "कृपया मेरो अपोइन्टमेन्ट पक्का गरिदिनुहोस्। 🙏",
+    "free": "निःशुल्क"
   },
   "status": {
     "storeNotFound": "पसल भेटिएन",
@@ -807,18 +812,22 @@
       "minimum_order": "न्यूनतम अर्डर (₹)",
       "delivery_fee": "डेलिभरी शुल्क (₹)",
       "instagram_handle": "Instagram ह्यान्डल",
-      "theme_color": "ब्रान्डको रङ"
+      "theme_color": "ब्रान्डको रङ",
+      "free_delivery_above": "यो भन्दा माथिको अर्डरमा निःशुल्क डेलिभरी (₹)"
     },
     "h": {
       "slug": "साना अङ्ग्रेजी अक्षर, अङ्क र हाइफन। यसलाई फेर्दा पुराना लिङ्क/QR कोड काम गर्दैनन्।",
-      "opening_hours": "24-घण्टे ढाँचा, जस्तै 09:00-21:00"
+      "opening_hours": "24-घण्टे ढाँचा, जस्तै 09:00-21:00",
+      "free_delivery_above": "वैकल्पिक। हरेक अर्डरमा शुल्क लिन खाली छोड्नुहोस्।"
     },
     "p": {
       "category": "किराना, बेकरी, फार्मेसी…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "प्रमाणित गरेर अपडेट गर्नुहोस्",
-    "orderLanguageAuto": "ग्राहकको भाषा (सिफारिस गरिएको)"
+    "orderLanguageAuto": "ग्राहकको भाषा (सिफारिस गरिएको)",
+    "deliveryTitle": "डेलिभरी",
+    "freeDelivery": "निःशुल्क डेलिभरी (डेलिभरी शुल्क छैन)"
   },
   "msgimp": {
     "title": "WhatsApp सन्देशबाट सामान थप्नुहोस्",

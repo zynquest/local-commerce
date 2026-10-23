@@ -23,7 +23,7 @@ export default function CartDrawer() {
   const [authOpen, setAuthOpen] = useState(false);
   const cur = config?.currency_symbol || '₹';
   const money = (n) => formatMoney(n, cur);
-  const { subtotal, savings, deliveryFee, total } = cart.totals;
+  const { subtotal, savings, deliveryFee, freeDelivery, freeDeliveryGap, total } = cart.totals;
 
   // Prefill blank delivery fields from the shopper's account.
   useEffect(() => {
@@ -238,6 +238,12 @@ export default function CartDrawer() {
                       <dd>{money(deliveryFee)}</dd>
                     </div>
                   )}
+                  {freeDelivery && (
+                    <div className="flex justify-between text-emerald-700">
+                      <dt>{t('cart.deliveryFee')}</dt>
+                      <dd>{t('cart.freeDelivery')}</dd>
+                    </div>
+                  )}
                   {savings > 0 && (
                     <div className="flex justify-between text-emerald-700">
                       <dt>{t('cart.youSave')}</dt>
@@ -253,6 +259,11 @@ export default function CartDrawer() {
               {belowMin && (
                 <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">
                   {t('cart.minOrder', { min: money(minOrder), more: money(minOrder - subtotal) })}
+                </p>
+              )}
+              {hasItems && !belowMin && freeDeliveryGap > 0 && (
+                <p className="rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                  {t('cart.freeDeliveryAbove', { more: money(freeDeliveryGap) })}
                 </p>
               )}
               {!config.whatsapp_number && (

@@ -18,11 +18,19 @@ export function computeTotals(cartItems, storeConfig) {
     if (item.mrp > item.offer_price) savings += (item.mrp - item.offer_price) * item.quantity;
   }
   const hasItems = cartItems.length > 0;
-  const deliveryFee = hasItems ? Number(storeConfig.delivery_fee) || 0 : 0;
+  subtotal = round2(subtotal);
+  // Store's delivery fee, waived once the subtotal reaches free_delivery_above (mirrored by the server).
+  const fee = hasItems ? Number(storeConfig.delivery_fee) || 0 : 0;
+  const threshold = storeConfig.free_delivery_above == null || storeConfig.free_delivery_above === '' ? null : Number(storeConfig.free_delivery_above);
+  const freeDelivery = fee > 0 && threshold != null && subtotal >= threshold;
+  const deliveryFee = freeDelivery ? 0 : fee;
   return {
-    subtotal: round2(subtotal),
+    subtotal,
     savings: round2(savings),
     deliveryFee,
+    freeDelivery, // fee waived by the threshold rule
+    // How much more to add for free delivery (0 when there is no rule or it's already met).
+    freeDeliveryGap: fee > 0 && threshold != null && !freeDelivery ? round2(threshold - subtotal) : 0,
     total: round2(subtotal + deliveryFee),
   };
 }
@@ -62,6 +70,7 @@ export function buildOrderMessage(storeConfig, cartItems, unlistedNotes, custome
     m += `${DIVIDER}\n`;
     m += `💵 *${t('wa.subtotal')}:* ${money(totals.subtotal)}\n`;
     if (totals.deliveryFee > 0) m += `🛵 *${t('wa.deliveryFee')}:* ${money(totals.deliveryFee)}\n`;
+    else if (totals.freeDelivery) m += `🛵 *${t('wa.deliveryFee')}:* ${t('wa.free')}\n`;
     m += `💰 *${t('wa.total')}: ${money(totals.total)}*\n`;
     if (totals.savings > 0) m += `🎉 *${t('wa.totalSavings')}: ${money(totals.savings)}*\n`;
     m += `${DIVIDER}\n\n`;

@@ -55,7 +55,9 @@
     "deliveryFee": "Delivery fee {amount}.",
     "moreIn": "More in {category}",
     "updateBag": "Update Bag",
-    "addToBag": "Add to Bag"
+    "addToBag": "Add to Bag",
+    "freeDelivery": "Free delivery.",
+    "freeDeliveryAbove": "Free delivery on orders above {amount}."
   },
   "store": {
     "chatGreeting": "Hi {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "Minimum order is {min}. Add {more} more to checkout.",
     "notAccepting": "This store isn't accepting online orders yet.",
     "placeOrder": "Place Order via WhatsApp",
-    "payInfo": "Pay on delivery · Cash / UPI · No platform fees"
+    "payInfo": "Pay on delivery · Cash / UPI · No platform fees",
+    "freeDelivery": "Free delivery",
+    "freeDeliveryAbove": "Add {more} more for free delivery."
   },
   "offline": {
     "syncing_one": "Saving {count} order to the store…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "Specialist",
     "apptDate": "Date",
     "apptTime": "Time",
-    "apptPleaseConfirm": "Please confirm my appointment. 🙏"
+    "apptPleaseConfirm": "Please confirm my appointment. 🙏",
+    "free": "FREE"
   },
   "status": {
     "storeNotFound": "Store not found",
@@ -807,18 +812,22 @@
       "minimum_order": "Minimum order (₹)",
       "delivery_fee": "Delivery fee (₹)",
       "instagram_handle": "Instagram handle",
-      "theme_color": "Brand colour"
+      "theme_color": "Brand colour",
+      "free_delivery_above": "Free delivery for orders above (₹)"
     },
     "h": {
       "slug": "Lowercase letters, numbers and hyphens. Changing it breaks old links/QR codes.",
-      "opening_hours": "24-hour format, e.g. 09:00-21:00"
+      "opening_hours": "24-hour format, e.g. 09:00-21:00",
+      "free_delivery_above": "Optional. Leave empty to charge the fee on every order."
     },
     "p": {
       "category": "Grocery, Bakery, Pharmacy…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "Verify & update",
-    "orderLanguageAuto": "Customer's language (recommended)"
+    "orderLanguageAuto": "Customer's language (recommended)",
+    "deliveryTitle": "Delivery",
+    "freeDelivery": "Free delivery (no delivery fee)"
   },
   "msgimp": {
     "title": "Add products from a WhatsApp message",

@@ -55,7 +55,9 @@
     "deliveryFee": "ڈیلیوری فیس {amount}۔",
     "moreIn": "{category} میں مزید",
     "updateBag": "بیگ اپڈیٹ کریں",
-    "addToBag": "بیگ میں ڈالیں"
+    "addToBag": "بیگ میں ڈالیں",
+    "freeDelivery": "مفت ڈیلیوری۔",
+    "freeDeliveryAbove": "{amount} سے زیادہ کے آرڈر پر مفت ڈیلیوری۔"
   },
   "store": {
     "chatGreeting": "السلام علیکم {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "کم از کم آرڈر {min} ہے۔ آرڈر کرنے کے لیے {more} کا اور سامان شامل کریں۔",
     "notAccepting": "یہ اسٹور ابھی آن لائن آرڈر نہیں لے رہا۔",
     "placeOrder": "WhatsApp سے آرڈر کریں",
-    "payInfo": "ڈیلیوری پر ادائیگی · نقد / UPI · کوئی پلیٹ فارم فیس نہیں"
+    "payInfo": "ڈیلیوری پر ادائیگی · نقد / UPI · کوئی پلیٹ فارم فیس نہیں",
+    "freeDelivery": "مفت ڈیلیوری",
+    "freeDeliveryAbove": "مفت ڈیلیوری کے لیے {more} مزید شامل کریں۔"
   },
   "offline": {
     "syncing_one": "{count} آرڈر اسٹور میں محفوظ ہو رہا ہے…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "اسپیشلسٹ",
     "apptDate": "تاریخ",
     "apptTime": "وقت",
-    "apptPleaseConfirm": "براہ کرم میری اپوائنٹمنٹ کنفرم کریں۔ 🙏"
+    "apptPleaseConfirm": "براہ کرم میری اپوائنٹمنٹ کنفرم کریں۔ 🙏",
+    "free": "مفت"
   },
   "status": {
     "storeNotFound": "اسٹور نہیں ملا",
@@ -807,18 +812,22 @@
       "minimum_order": "کم از کم آرڈر (₹)",
       "delivery_fee": "ڈیلیوری فیس (₹)",
       "instagram_handle": "Instagram ہینڈل",
-      "theme_color": "برانڈ کا رنگ"
+      "theme_color": "برانڈ کا رنگ",
+      "free_delivery_above": "اس سے زیادہ کے آرڈر پر مفت ڈیلیوری (₹)"
     },
     "h": {
       "slug": "چھوٹے انگریزی حروف، نمبر اور ہائفن۔ اسے بدلنے سے پرانے لنک/QR کوڈ کام نہیں کریں گے۔",
-      "opening_hours": "24 گھنٹے کا فارمیٹ، مثلاً 09:00-21:00"
+      "opening_hours": "24 گھنٹے کا فارمیٹ، مثلاً 09:00-21:00",
+      "free_delivery_above": "اختیاری۔ ہر آرڈر پر فیس لینے کے لیے خالی چھوڑیں۔"
     },
     "p": {
       "category": "کریانہ، بیکری، فارمیسی…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "تصدیق کریں اور اپڈیٹ کریں",
-    "orderLanguageAuto": "گاہک کی زبان (تجویز کردہ)"
+    "orderLanguageAuto": "گاہک کی زبان (تجویز کردہ)",
+    "deliveryTitle": "ڈیلیوری",
+    "freeDelivery": "مفت ڈیلیوری (کوئی ڈیلیوری فیس نہیں)"
   },
   "msgimp": {
     "title": "WhatsApp میسج سے پروڈکٹس شامل کریں",

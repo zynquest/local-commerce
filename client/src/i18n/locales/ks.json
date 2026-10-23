@@ -55,7 +55,9 @@
     "deliveryFee": "ڈیلیوری فیس {amount}۔",
     "moreIn": "{category} مَنٛز بێیہِ",
     "updateBag": "بیگ اپڈیٹ کٔرِو",
-    "addToBag": "بیگس مَنٛز ژٕھنِو"
+    "addToBag": "بیگس مَنٛز ژٕھنِو",
+    "freeDelivery": "مُفت ڈیلیوری۔",
+    "freeDeliveryAbove": "{amount} کھوتہٕ زیادٕ آرڈرَن پؠٹھ مُفت ڈیلیوری۔"
   },
   "store": {
     "chatGreeting": "سلام {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "کم از کم آرڈر چھُ {min}۔ آرڈر کرنہٕ خٲطرٕ کٔرِو {more} بێیِ شٲمِل۔",
     "notAccepting": "یہِ دُکان چھےٚنہٕ وۄنہِ آن لائن آرڈر ہیوان۔",
     "placeOrder": "WhatsApp سٟتۍ آرڈر کٔرِو",
-    "payInfo": "ڈیلیوری وِزِ پیمنٹ · کیش / UPI · کانٛہہ پلیٹ فارم فیس نہٕ"
+    "payInfo": "ڈیلیوری وِزِ پیمنٹ · کیش / UPI · کانٛہہ پلیٹ فارم فیس نہٕ",
+    "freeDelivery": "مُفت ڈیلیوری",
+    "freeDeliveryAbove": "مُفت ڈیلیوری خٲطرٕ {more} بیٛیہِ شٲمِل کرِو۔"
   },
   "offline": {
     "syncing_one": "{count} آرڈر گژھان دُکانہِ مَنٛز محفوظ…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "ماہر",
     "apptDate": "تٲریخ",
     "apptTime": "وَقت",
-    "apptPleaseConfirm": "مہربٲنی کٔرِتھ کٔرِو میٲنۍ اپائنٹمنٹ پَکٕہ۔ 🙏"
+    "apptPleaseConfirm": "مہربٲنی کٔرِتھ کٔرِو میٲنۍ اپائنٹمنٹ پَکٕہ۔ 🙏",
+    "free": "مُفت"
   },
   "status": {
     "storeNotFound": "دُکان لٔج نہٕ",
@@ -807,18 +812,22 @@
       "minimum_order": "کم از کم آرڈر (₹)",
       "delivery_fee": "ڈیلیوری فیس (₹)",
       "instagram_handle": "Instagram ہینڈل",
-      "theme_color": "برانڈ رنگ"
+      "theme_color": "برانڈ رنگ",
+      "free_delivery_above": "اَتھ کھوتہٕ زیادٕ آرڈرَن پؠٹھ مُفت ڈیلیوری (₹)"
     },
     "h": {
       "slug": "لۄکٹۍ انگریزی حرف، نمبر تہٕ ہائفن۔ یہِ بدلاونہٕ سٟتۍ گژھن پرانہٕ لِنک/QR کوڈ خراب۔",
-      "opening_hours": "24 گٲنٹن ہُنٛد فارمیٹ، مثلن 09:00-21:00"
+      "opening_hours": "24 گٲنٹن ہُنٛد فارمیٹ، مثلن 09:00-21:00",
+      "free_delivery_above": "اختیٲری۔ پرٛتھ آرڈرَس پؠٹھ فیس نِنہٕ خٲطرٕ خٲلی تھٲوِو۔"
     },
     "p": {
       "category": "گروسری، بیکری، فارمیسی…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "تصدیق کٔرِتھ اپڈیٹ کٔرِو",
-    "orderLanguageAuto": "گاہکٕچ زبان (سفارش کرنہٕ آمٕژ)"
+    "orderLanguageAuto": "گاہکٕچ زبان (سفارش کرنہٕ آمٕژ)",
+    "deliveryTitle": "ڈیلیوری",
+    "freeDelivery": "مُفت ڈیلیوری (کانٛہہ ڈیلیوری فیس نہٕ)"
   },
   "msgimp": {
     "title": "WhatsApp میسجہٕ پیٚٹھٕ پروڈکٹ شٲمِل کٔرِو",

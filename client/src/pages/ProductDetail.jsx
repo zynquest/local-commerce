@@ -223,6 +223,8 @@ export default function ProductDetail() {
               {t('product.deliveryInfo', { store: config.name })}
               {config.minimum_order > 0 && ` ${t('product.minOrder', { amount: money(config.minimum_order) })}`}
               {config.delivery_fee > 0 && ` ${t('product.deliveryFee', { amount: money(config.delivery_fee) })}`}
+              {config.delivery_fee > 0 && config.free_delivery_above != null && ` ${t('product.freeDeliveryAbove', { amount: money(config.free_delivery_above) })}`}
+              {!(config.delivery_fee > 0) && ` ${t('product.freeDelivery')}`}
             </Accordion>
           </div>
         </div>

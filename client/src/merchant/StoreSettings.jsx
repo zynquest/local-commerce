@@ -20,7 +20,6 @@ const FIELDS = [
   ['opening_hours', { placeholder: '09:00-21:00', hint: true }],
   ['closed_days', { placeholder: 'Sun' }],
   ['minimum_order', { type: 'number', min: 0, shopOnly: true }],
-  ['delivery_fee', { type: 'number', min: 0, shopOnly: true }],
   ['instagram_handle', { placeholder: 'yourstore' }],
   ['theme_color', { type: 'color' }],
 ];
@@ -102,7 +101,7 @@ export default function StoreSettings({ store, onSaved }) {
   const appointments = store.business_type === 'appointments';
   const [form, setForm] = useState(() => ({
     ...Object.fromEntries(
-      [...FIELDS.map(([k]) => k), 'logo_url', 'banner_url', 'order_language', 'address_text', 'maps_url', 'place_id'].map((k) => [
+      [...FIELDS.map(([k]) => k), 'delivery_fee', 'free_delivery_above', 'logo_url', 'banner_url', 'order_language', 'address_text', 'maps_url', 'place_id'].map((k) => [
         k,
         store[k] ?? (k === 'theme_color' ? '#15803d' : k === 'order_language' ? 'auto' : ''),
       ]),
@@ -111,6 +110,8 @@ export default function StoreSettings({ store, onSaved }) {
     lng: store.lng ?? null,
     ...Object.fromEntries(Object.entries(APPT_DEFAULTS).map(([k, d]) => [k, store[k] ?? d])),
   }));
+  // Delivery: free by default (fee 0). Unticking reveals the fee and the optional "free above ₹X" rule.
+  const [freeDelivery, setFreeDelivery] = useState(() => !(Number(store.delivery_fee) > 0));
   const [fields, setFields] = useState({});
   const [status, setStatus] = useState({ busy: false, error: '', saved: false });
   const [uploading, setUploading] = useState('');
@@ -138,6 +139,7 @@ export default function StoreSettings({ store, onSaved }) {
     setFields({});
     try {
       const payload = appointments ? form : Object.fromEntries(Object.entries(form).filter(([k]) => !(k in APPT_DEFAULTS)));
+      if (!appointments && freeDelivery) Object.assign(payload, { delivery_fee: 0, free_delivery_above: null });
       const { store: saved } = await put('/merchant/store', payload);
       setStatus({ busy: false, error: '', saved: true });
       onSaved(saved, t('settings.saved'));
@@ -221,6 +223,34 @@ export default function StoreSettings({ store, onSaved }) {
         </select>
         <p className="mt-1 text-[11px] text-stone-400">{t('settings.orderLanguageHint')}</p>
       </div>
+
+      {!appointments && (
+        <div className="space-y-3 rounded-2xl border border-stone-200 p-4">
+          <p className="label mb-0">{t('settings.deliveryTitle')}</p>
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input type="checkbox" className="h-4 w-4 accent-brand" checked={freeDelivery} onChange={(e) => setFreeDelivery(e.target.checked)} />
+            {t('settings.freeDelivery')}
+          </label>
+          {!freeDelivery && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="st-delivery_fee">{t('settings.f.delivery_fee')} <span className="text-rose-500">*</span></label>
+                <input id="st-delivery_fee" className="input" type="number" min={1} step="1" inputMode="numeric" value={form.delivery_fee} onChange={set('delivery_fee')} required />
+                {fields.delivery_fee && <p className="mt-1 text-xs text-rose-600">{fields.delivery_fee}</p>}
+              </div>
+              <div>
+                <label className="label" htmlFor="st-free_delivery_above">{t('settings.f.free_delivery_above')}</label>
+                <input id="st-free_delivery_above" className="input" type="number" min={0} step="1" inputMode="numeric" value={form.free_delivery_above ?? ''} onChange={set('free_delivery_above')} />
+                {fields.free_delivery_above ? (
+                  <p className="mt-1 text-xs text-rose-600">{fields.free_delivery_above}</p>
+                ) : (
+                  <p className="mt-1 text-[11px] text-stone-400">{t('settings.h.free_delivery_above')}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {FIELDS.filter(([, opts]) => !(appointments && opts.shopOnly)).map(([key, opts]) => (

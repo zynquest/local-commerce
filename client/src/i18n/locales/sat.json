@@ -55,7 +55,9 @@
     "deliveryFee": "ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱪᱟᱨᱡᱽ {amount}᱾",
     "moreIn": "{category} ᱨᱮ ᱟᱨᱦᱚᱸ",
     "updateBag": "ᱡᱷᱚᱞᱟ ᱟᱯᱰᱮᱴ ᱢᱮ",
-    "addToBag": "ᱡᱷᱚᱞᱟ ᱨᱮ ᱥᱮᱞᱮᱫ ᱢᱮ"
+    "addToBag": "ᱡᱷᱚᱞᱟ ᱨᱮ ᱥᱮᱞᱮᱫ ᱢᱮ",
+    "freeDelivery": "ᱯᱷᱨᱤ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ᱾",
+    "freeDeliveryAbove": "{amount} ᱠᱷᱚᱱ ᱵᱟᱹᱲᱛᱤ ᱚᱨᱰᱚᱨ ᱨᱮ ᱯᱷᱨᱤ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ᱾"
   },
   "store": {
     "chatGreeting": "ᱡᱚᱦᱟᱨ {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "ᱠᱚᱢ ᱥᱮ ᱠᱚᱢ ᱚᱨᱰᱟᱨ {min}᱾ ᱚᱨᱰᱟᱨ ᱞᱟᱹᱜᱤᱫ ᱟᱨᱦᱚᱸ {more} ᱨᱮᱭᱟᱜ ᱡᱤᱱᱤᱥ ᱥᱮᱞᱮᱫ ᱢᱮ᱾",
     "notAccepting": "ᱱᱚᱶᱟ ᱫᱚᱠᱟᱱ ᱫᱚ ᱱᱤᱛ ᱦᱟᱹᱵᱤᱡ ᱚᱱᱞᱟᱭᱤᱱ ᱚᱨᱰᱟᱨ ᱵᱟᱭ ᱦᱟᱛᱟᱣ ᱮᱫᱟ᱾",
     "placeOrder": "WhatsApp ᱛᱮ ᱚᱨᱰᱟᱨ ᱢᱮ",
-    "payInfo": "ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱚᱠᱛᱚ ᱴᱟᱠᱟ ᱮᱢ · ᱱᱚᱜᱚᱫ / UPI · ᱡᱟᱦᱟᱱ ᱯᱞᱮᱴᱯᱷᱚᱨᱢ ᱪᱟᱨᱡᱽ ᱵᱟᱹᱱᱩᱜᱼᱟ"
+    "payInfo": "ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱚᱠᱛᱚ ᱴᱟᱠᱟ ᱮᱢ · ᱱᱚᱜᱚᱫ / UPI · ᱡᱟᱦᱟᱱ ᱯᱞᱮᱴᱯᱷᱚᱨᱢ ᱪᱟᱨᱡᱽ ᱵᱟᱹᱱᱩᱜᱼᱟ",
+    "freeDelivery": "ᱯᱷᱨᱤ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ",
+    "freeDeliveryAbove": "ᱯᱷᱨᱤ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱞᱟᱹᱜᱤᱫ ᱟᱨᱦᱚᱸ {more} ᱥᱮᱞᱮᱫ ᱢᱮ᱾"
   },
   "offline": {
     "syncing_one": "{count} ᱚᱨᱰᱟᱨ ᱫᱚᱠᱟᱱ ᱨᱮ ᱥᱮᱵᱷ ᱦᱩᱭᱩᱜ ᱠᱟᱱᱟ…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "ᱵᱤᱥᱮᱥᱚᱜᱽ",
     "apptDate": "ᱛᱟᱨᱤᱠ",
     "apptTime": "ᱚᱠᱛᱚ",
-    "apptPleaseConfirm": "ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱤᱧᱟᱜ ᱮᱯᱚᱭᱮᱱᱴᱢᱮᱱᱴ ᱯᱟᱠᱟ ᱢᱮ᱾ 🙏"
+    "apptPleaseConfirm": "ᱫᱟᱭᱟ ᱠᱟᱛᱮ ᱤᱧᱟᱜ ᱮᱯᱚᱭᱮᱱᱴᱢᱮᱱᱴ ᱯᱟᱠᱟ ᱢᱮ᱾ 🙏",
+    "free": "ᱯᱷᱨᱤ"
   },
   "status": {
     "storeNotFound": "ᱫᱚᱠᱟᱱ ᱵᱟᱝ ᱧᱟᱢ ᱞᱮᱱᱟ",
@@ -807,18 +812,22 @@
       "minimum_order": "ᱠᱚᱢ ᱥᱮ ᱠᱚᱢ ᱚᱨᱰᱟᱨ (₹)",
       "delivery_fee": "ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱪᱟᱨᱡᱽ (₹)",
       "instagram_handle": "Instagram ᱦᱮᱱᱰᱮᱞ",
-      "theme_color": "ᱵᱽᱨᱮᱱᱰ ᱨᱚᱝ"
+      "theme_color": "ᱵᱽᱨᱮᱱᱰ ᱨᱚᱝ",
+      "free_delivery_above": "ᱱᱚᱶᱟ ᱠᱷᱚᱱ ᱵᱟᱹᱲᱛᱤ ᱚᱨᱰᱚᱨ ᱨᱮ ᱯᱷᱨᱤ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ (₹)"
     },
     "h": {
       "slug": "ᱦᱩᱰᱤᱧ ᱟᱠᱷᱚᱨ (a-z), ᱮᱞ ᱟᱨ ᱦᱟᱭᱯᱷᱮᱱ (-)᱾ ᱵᱚᱫᱚᱞ ᱠᱷᱟᱱ ᱢᱟᱨᱮ ᱞᱤᱝᱠ/QR ᱠᱚᱰ ᱵᱟᱝ ᱠᱟᱹᱢᱤᱭᱟ᱾",
-      "opening_hours": "24 ᱜᱷᱚᱰᱤ ᱯᱷᱚᱨᱢᱮᱴ, ᱡᱮᱞᱮᱠᱟ 09:00-21:00"
+      "opening_hours": "24 ᱜᱷᱚᱰᱤ ᱯᱷᱚᱨᱢᱮᱴ, ᱡᱮᱞᱮᱠᱟ 09:00-21:00",
+      "free_delivery_above": "ᱚᱯᱥᱚᱱᱟᱞ᱾ ᱡᱚᱛᱚ ᱚᱨᱰᱚᱨ ᱨᱮ ᱯᱷᱤᱥ ᱦᱟᱛᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱠᱷᱟᱹᱞᱤ ᱵᱟᱜᱤ ᱢᱮ᱾"
     },
     "p": {
       "category": "ᱢᱩᱫᱤ, ᱵᱮᱠᱟᱨᱤ, ᱨᱟᱱ ᱫᱚᱠᱟᱱ…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "ᱡᱟᱸᱪ ᱠᱟᱛᱮ ᱟᱯᱰᱮᱴ ᱢᱮ",
-    "orderLanguageAuto": "ᱜᱨᱟᱦᱟᱠ ᱨᱮᱭᱟᱜ ᱯᱟᱹᱨᱥᱤ (ᱥᱚᱞᱦᱟ ᱮᱢ ᱟᱠᱟᱱ)"
+    "orderLanguageAuto": "ᱜᱨᱟᱦᱟᱠ ᱨᱮᱭᱟᱜ ᱯᱟᱹᱨᱥᱤ (ᱥᱚᱞᱦᱟ ᱮᱢ ᱟᱠᱟᱱ)",
+    "deliveryTitle": "ᱰᱮᱞᱤᱵᱷᱟᱨᱤ",
+    "freeDelivery": "ᱯᱷᱨᱤ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ (ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱯᱷᱤᱥ ᱵᱟᱹᱱᱩᱜ)"
   },
   "msgimp": {
     "title": "WhatsApp ᱢᱮᱥᱮᱡ ᱠᱷᱚᱱ ᱡᱤᱱᱤᱥ ᱥᱮᱞᱮᱫ ᱢᱮ",

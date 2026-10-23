@@ -55,7 +55,9 @@
     "deliveryFee": "डिलिव्हरी शुल्क {amount}.",
     "moreIn": "{category} मधील आणखी",
     "updateBag": "बॅग अपडेट करा",
-    "addToBag": "बॅगेत टाका"
+    "addToBag": "बॅगेत टाका",
+    "freeDelivery": "मोफत डिलिव्हरी.",
+    "freeDeliveryAbove": "{amount} पेक्षा जास्त ऑर्डरवर मोफत डिलिव्हरी."
   },
   "store": {
     "chatGreeting": "नमस्कार {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "किमान ऑर्डर {min} आहे. ऑर्डर करण्यासाठी आणखी {more} च्या वस्तू जोडा.",
     "notAccepting": "हे स्टोअर अजून ऑनलाइन ऑर्डर घेत नाही.",
     "placeOrder": "WhatsApp वरून ऑर्डर करा",
-    "payInfo": "डिलिव्हरीच्या वेळी पैसे द्या · रोख / UPI · प्लॅटफॉर्म शुल्क नाही"
+    "payInfo": "डिलिव्हरीच्या वेळी पैसे द्या · रोख / UPI · प्लॅटफॉर्म शुल्क नाही",
+    "freeDelivery": "मोफत डिलिव्हरी",
+    "freeDeliveryAbove": "मोफत डिलिव्हरीसाठी आणखी {more} जोडा."
   },
   "offline": {
     "syncing_one": "{count} ऑर्डर स्टोअरकडे सेव्ह होत आहे…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "तज्ज्ञ",
     "apptDate": "तारीख",
     "apptTime": "वेळ",
-    "apptPleaseConfirm": "कृपया माझी अपॉइंटमेंट कन्फर्म करा. 🙏"
+    "apptPleaseConfirm": "कृपया माझी अपॉइंटमेंट कन्फर्म करा. 🙏",
+    "free": "मोफत"
   },
   "status": {
     "storeNotFound": "स्टोअर सापडले नाही",
@@ -807,18 +812,22 @@
       "minimum_order": "किमान ऑर्डर (₹)",
       "delivery_fee": "डिलिव्हरी शुल्क (₹)",
       "instagram_handle": "Instagram हँडल",
-      "theme_color": "ब्रँडचा रंग"
+      "theme_color": "ब्रँडचा रंग",
+      "free_delivery_above": "यापेक्षा जास्त ऑर्डरवर मोफत डिलिव्हरी (₹)"
     },
     "h": {
       "slug": "लहान इंग्रजी अक्षरे, अंक आणि हायफन. बदलल्यास जुन्या लिंक्स/QR कोड चालणार नाहीत.",
-      "opening_hours": "24 तासांचे स्वरूप, उदा. 09:00-21:00"
+      "opening_hours": "24 तासांचे स्वरूप, उदा. 09:00-21:00",
+      "free_delivery_above": "ऐच्छिक. प्रत्येक ऑर्डरवर शुल्क आकारण्यासाठी रिकामे ठेवा."
     },
     "p": {
       "category": "किराणा, बेकरी, फार्मसी…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "पडताळणी करून अपडेट करा",
-    "orderLanguageAuto": "ग्राहकाची भाषा (शिफारस केलेली)"
+    "orderLanguageAuto": "ग्राहकाची भाषा (शिफारस केलेली)",
+    "deliveryTitle": "डिलिव्हरी",
+    "freeDelivery": "मोफत डिलिव्हरी (डिलिव्हरी शुल्क नाही)"
   },
   "msgimp": {
     "title": "WhatsApp मेसेजमधून उत्पादने जोडा",

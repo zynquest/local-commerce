@@ -55,7 +55,9 @@
     "deliveryFee": "ଡେଲିଭରି ଚାର୍ଜ {amount}।",
     "moreIn": "{category}ରେ ଆହୁରି",
     "updateBag": "ବ୍ୟାଗ୍ ଅପଡେଟ୍ କରନ୍ତୁ",
-    "addToBag": "ବ୍ୟାଗ୍‌ରେ ଯୋଡ଼ନ୍ତୁ"
+    "addToBag": "ବ୍ୟାଗ୍‌ରେ ଯୋଡ଼ନ୍ତୁ",
+    "freeDelivery": "ମାଗଣା ଡେଲିଭରି।",
+    "freeDeliveryAbove": "{amount}ରୁ ଅଧିକ ଅର୍ଡରରେ ମାଗଣା ଡେଲିଭରି।"
   },
   "store": {
     "chatGreeting": "ନମସ୍କାର {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "ସର୍ବନିମ୍ନ ଅର୍ଡର {min}। ଅର୍ଡର କରିବାକୁ ଆଉ {more} ର ଜିନିଷ ଯୋଡ଼ନ୍ତୁ।",
     "notAccepting": "ଏହି ଦୋକାନ ଏଯାଏଁ ଅନଲାଇନ୍ ଅର୍ଡର ନେଉନାହିଁ।",
     "placeOrder": "WhatsApp ରେ ଅର୍ଡର କରନ୍ତୁ",
-    "payInfo": "ଡେଲିଭରି ସମୟରେ ପଇସା · ନଗଦ / UPI · କୌଣସି ପ୍ଲାଟଫର୍ମ ଚାର୍ଜ ନାହିଁ"
+    "payInfo": "ଡେଲିଭରି ସମୟରେ ପଇସା · ନଗଦ / UPI · କୌଣସି ପ୍ଲାଟଫର୍ମ ଚାର୍ଜ ନାହିଁ",
+    "freeDelivery": "ମାଗଣା ଡେଲିଭରି",
+    "freeDeliveryAbove": "ମାଗଣା ଡେଲିଭରି ପାଇଁ ଆଉ {more} ଯୋଡ଼ନ୍ତୁ।"
   },
   "offline": {
     "syncing_one": "{count}ଟି ଅର୍ଡର ଦୋକାନରେ ସେଭ୍ ହେଉଛି…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "ବିଶେଷଜ୍ଞ",
     "apptDate": "ତାରିଖ",
     "apptTime": "ସମୟ",
-    "apptPleaseConfirm": "ଦୟାକରି ମୋ ଆପଏଣ୍ଟମେଣ୍ଟ ନିଶ୍ଚିତ କରନ୍ତୁ। 🙏"
+    "apptPleaseConfirm": "ଦୟାକରି ମୋ ଆପଏଣ୍ଟମେଣ୍ଟ ନିଶ୍ଚିତ କରନ୍ତୁ। 🙏",
+    "free": "ମାଗଣା"
   },
   "status": {
     "storeNotFound": "ଦୋକାନ ମିଳିଲା ନାହିଁ",
@@ -807,18 +812,22 @@
       "minimum_order": "ସର୍ବନିମ୍ନ ଅର୍ଡର (₹)",
       "delivery_fee": "ଡେଲିଭରି ଚାର୍ଜ (₹)",
       "instagram_handle": "Instagram ହ୍ୟାଣ୍ଡଲ୍",
-      "theme_color": "ବ୍ରାଣ୍ଡ ରଙ୍ଗ"
+      "theme_color": "ବ୍ରାଣ୍ଡ ରଙ୍ଗ",
+      "free_delivery_above": "ଏହାଠାରୁ ଅଧିକ ଅର୍ଡରରେ ମାଗଣା ଡେଲିଭରି (₹)"
     },
     "h": {
       "slug": "ଛୋଟ ଅକ୍ଷର (a-z), ସଂଖ୍ୟା ଓ ହାଇଫେନ୍ (-)। ଏହାକୁ ବଦଳାଇଲେ ପୁରୁଣା ଲିଙ୍କ୍/QR କୋଡ୍ କାମ କରିବ ନାହିଁ।",
-      "opening_hours": "24 ଘଣ୍ଟା ଫର୍ମାଟ୍, ଯେପରି 09:00-21:00"
+      "opening_hours": "24 ଘଣ୍ଟା ଫର୍ମାଟ୍, ଯେପରି 09:00-21:00",
+      "free_delivery_above": "ଐଚ୍ଛିକ। ପ୍ରତ୍ୟେକ ଅର୍ଡରରେ ଫି ନେବାକୁ ଖାଲି ଛାଡ଼ନ୍ତୁ।"
     },
     "p": {
       "category": "ମୁଦି ଦୋକାନ, ବେକେରି, ଔଷଧ ଦୋକାନ…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "ଯାଞ୍ଚ କରି ଅପଡେଟ୍ କରନ୍ତୁ",
-    "orderLanguageAuto": "ଗ୍ରାହକଙ୍କ ଭାଷା (ସୁପାରିଶ କରାଯାଇଛି)"
+    "orderLanguageAuto": "ଗ୍ରାହକଙ୍କ ଭାଷା (ସୁପାରିଶ କରାଯାଇଛି)",
+    "deliveryTitle": "ଡେଲିଭରି",
+    "freeDelivery": "ମାଗଣା ଡେଲିଭରି (କୌଣସି ଡେଲିଭରି ଫି ନାହିଁ)"
   },
   "msgimp": {
     "title": "WhatsApp ମେସେଜରୁ ଜିନିଷ ଯୋଡ଼ନ୍ତୁ",

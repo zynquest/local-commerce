@@ -24,6 +24,7 @@ export const demoStore = {
   city: 'Bengaluru',
   minimum_order: 199,
   delivery_fee: 20,
+  free_delivery_above: 499,
   opening_hours: '07:00-22:00',
   theme_color: '#15803d',
   verified: true,

@@ -331,6 +331,24 @@ describe('storefront + orders', () => {
     assert.equal(changed.body.products.length, r.body.products.length - 1);
   });
 
+  test('delivery fee is waived once the subtotal reaches free_delivery_above', async () => {
+    const list = await shopper('GET', `/api/stores/${slug}`);
+    const item = list.body.products.find((p) => p.name === 'Dal');
+    const code = (n) => `ORD-FD${String(n)}${run.toUpperCase().slice(-3)}`.slice(0, 10);
+    await owner('PUT', '/api/merchant/store', { delivery_fee: 20, free_delivery_above: 500 });
+    const pub = await shopper('GET', `/api/stores/${slug}`);
+    assert.equal(pub.body.store.free_delivery_above, 500);
+    const small = await shopper('POST', `/api/stores/${slug}/orders`, { order_code: code(1), items: [{ sku_id: item.sku_id, quantity: 1, unit_price: 90 }] });
+    assert.equal(small.status, 201, JSON.stringify(small.body));
+    assert.equal(small.body.order.total, 110, '90 + ₹20 delivery');
+    const big = await shopper('POST', `/api/stores/${slug}/orders`, { order_code: code(2), items: [{ sku_id: item.sku_id, quantity: 6, unit_price: 90 }] });
+    assert.equal(big.body.order.total, 540, '540 subtotal, delivery waived');
+    // Free delivery (fee 0) clears the threshold.
+    const freed = await owner('PUT', '/api/merchant/store', { delivery_fee: 0 });
+    assert.equal(freed.body.store.free_delivery_above, null);
+    await owner('PUT', '/api/merchant/store', { delivery_fee: 20 });
+  });
+
   test('guest order is idempotent and flags stale prices', async () => {
     const list = await shopper('GET', `/api/stores/${slug}`);
     const item = list.body.products.find((p) => p.name === 'Dal');

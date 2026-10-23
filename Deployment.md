@@ -415,7 +415,7 @@ Eight ready-made demo businesses (all in Bengaluru) show visitors how the platfo
 | Malligai Flower Stall | `/s/demo-flowers` | 12 |
 | Sri Ganesh Electricals | `/s/demo-electricals` | 12 |
 | Iyengar Fresh Bakery | `/s/demo-bakery` | 12 |
-| Annapoorna Family Restaurant (food delivery, veg + non-veg menu) | `/s/demo-restaurant` | 24 |
+| Annapoorna Family Restaurant (pure-veg food delivery) | `/s/demo-restaurant` | 19 |
 | Glow Hair & Beauty Studio (appointments) | `/s/demo-salon` | 8 services, 3 specialists |
 | SmileCare Dental & Physio Clinic (appointments) | `/s/demo-clinic` | 6 services, 2 specialists |
 

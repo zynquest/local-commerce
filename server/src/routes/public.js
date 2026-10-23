@@ -8,7 +8,7 @@ import { clientKey } from '../clientIp.js';
 import { query, tx } from '../db.js';
 import { badRequest, notFound, parse } from '../errors.js';
 import * as S from '../schemas.js';
-import { PRODUCT_COLUMNS, PUBLIC_STORE_COLUMNS, product as serializeProduct, publicStore, round2 } from '../serialize.js';
+import { PRODUCT_COLUMNS, PUBLIC_STORE_COLUMNS, deliveryFeeFor, product as serializeProduct, publicStore, round2 } from '../serialize.js';
 import { publicBookingCatalog } from './appointments.js';
 
 export const publicRouter = Router();
@@ -135,7 +135,7 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
   const o = parse(S.placeOrder, req.body);
   if (!o.items.length && !o.notes) throw badRequest('Add at least one item or a note');
 
-  const storeRes = await query(`SELECT id, delivery_fee, whatsapp_number, business_type FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
+  const storeRes = await query(`SELECT id, delivery_fee, free_delivery_above, whatsapp_number, business_type FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
   const store = storeRes.rows[0];
   if (!store) throw notFound('Store not found');
   if (store.business_type === 'appointments') throw badRequest('This business takes appointments, not orders');
@@ -169,7 +169,7 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
   });
   const subtotal = round2(lines.reduce((s, l) => s + l.line_total, 0));
   const savings = round2(lines.reduce((s, l) => s + (l.mrp - l.unit_price) * l.quantity, 0));
-  const deliveryFee = lines.length ? Number(store.delivery_fee) : 0;
+  const deliveryFee = deliveryFeeFor(store, subtotal, lines.length > 0);
 
   let { customer_name: name, customer_phone: phone } = o;
   if (req.customerId && (!name || !phone)) {

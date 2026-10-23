@@ -55,7 +55,9 @@
     "deliveryFee": "দেলিভরি মমল {amount}।",
     "moreIn": "{category}দা হেন্না",
     "updateBag": "বেগ অপদেত তৌবা",
-    "addToBag": "বেগতা হাপচিনবা"
+    "addToBag": "বেগতা হাপচিনবা",
+    "freeDelivery": "ফ্রী দেলিভরি।",
+    "freeDeliveryAbove": "{amount}দগী হেনবা ওর্দরদা ফ্রী দেলিভরি।"
   },
   "store": {
     "chatGreeting": "খুরুমজরি {name}!",
@@ -108,7 +110,9 @@
     "minOrder": "খ্বাইদগী অপিকপা অর্দর {min}নি। অর্দর তৌনবা {more} হেন্না হাপচিল্লু।",
     "notAccepting": "দুকান অসিনা হৌজিক অনলাইন অর্দর লৌদ্রি।",
     "placeOrder": "WhatsAppনা অর্দর থাবা",
-    "payInfo": "দেলিভরি মতমদা শেল পীবা · কেস / UPI · প্লেতফোর্ম ফী লৈতে"
+    "payInfo": "দেলিভরি মতমদা শেল পীবা · কেস / UPI · প্লেতফোর্ম ফী লৈতে",
+    "freeDelivery": "ফ্রী দেলিভরি",
+    "freeDeliveryAbove": "ফ্রী দেলিভরিগীদমক {more} অমুক হাপচিল্লু।"
   },
   "offline": {
     "syncing_one": "অর্দর {count} দুকানদা সেভ তৌরি…",
@@ -145,7 +149,8 @@
     "apptSpecialist": "মশিং খঙবা",
     "apptDate": "তারিখ",
     "apptTime": "মতম",
-    "apptPleaseConfirm": "অমুক হন্না ঐগী এপোইন্তমেন্ত চুমথোকপিয়ু। 🙏"
+    "apptPleaseConfirm": "অমুক হন্না ঐগী এপোইন্তমেন্ত চুমথোকপিয়ু। 🙏",
+    "free": "ফ্রী"
   },
   "status": {
     "storeNotFound": "দুকান ফংদ্রে",
@@ -807,18 +812,22 @@
       "minimum_order": "খ্বাইদগী অপিকপা অর্দর (₹)",
       "delivery_fee": "দেলিভরি মমল (₹)",
       "instagram_handle": "Instagram হেন্দেল",
-      "theme_color": "ব্রেন্দকী মচু"
+      "theme_color": "ব্রেন্দকী মচু",
+      "free_delivery_above": "মসিদগী হেনবা ওর্দরদা ফ্রী দেলিভরি (₹)"
     },
     "h": {
       "slug": "অপিকপা অক্ষর (lowercase), মশিং অমসুং হাইফেন। মসি হোংদোকপনা অরিবা লিঙ্ক/QR কোদশিং থবক তৌদবা ওইহনগনি।",
-      "opening_hours": "পুং 24গী ফোর্মেত, খুদম: 09:00-21:00"
+      "opening_hours": "পুং 24গী ফোর্মেত, খুদম: 09:00-21:00",
+      "free_delivery_above": "ওপসনেল। ওর্দর খুদিংমক্তা ফী লৌনবা হাংনা থম্মু।"
     },
     "p": {
       "category": "গ্রোসরি, বেকরি, ফার্মেসি…",
       "city": "Indiranagar, Bengaluru"
     },
     "verifyUpdate": "চুমথোক্লগা অপদেত তৌবা",
-    "orderLanguageAuto": "কস্তমরগী লোন্ (পাউতাক পীরিবা)"
+    "orderLanguageAuto": "কস্তমরগী লোন্ (পাউতাক পীরিবা)",
+    "deliveryTitle": "দেলিভরি",
+    "freeDelivery": "ফ্রী দেলিভরি (দেলিভরি ফী লৈতে)"
   },
   "msgimp": {
     "title": "WhatsApp মেসেজদগী পোত্লম হাপচিনবা",

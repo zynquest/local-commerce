@@ -609,7 +609,7 @@ Fast2SMS's *OTP route* sends `Your OTP: 123456` from Fast2SMS's own DLT-register
 4. Run `sudo systemctl restart vfl-api`, then check `sudo journalctl -u vfl-api -n 20 --no-pager` for `[otp] provider: sms`. The API refuses to start with `OTP_PROVIDER=sms` and no key.
 5. Log in once with your own mobile. The app stops showing the "WhatsApp us for your code" box automatically (`/api/config` reports `otpDelivery: "sms"`) and tells the user the code was sent by SMS.
 
-Delivery failures (no balance, Fast2SMS outage) are logged as `[otp] delivery failed (sms): Fast2SMS <code>: <message>` and the user sees "Could not send the code right now". Switching back to `email` or `whatsapp_reply` is the same env change plus a restart. The code lives in `server/src/otp/fast2sms.js`; to use another gateway (MSG91, Twilio, …) replace that file's `sendOtpSms` and nothing else changes.
+Delivery failures (no balance, Fast2SMS outage) are logged as `[otp] delivery failed (sms): Fast2SMS <code>: <message>` and the user sees "Could not send the code right now". Switching back to `email` or `whatsapp_reply` is the same env change plus a restart. The code lives in `server/src/otp/fast2sms.js`.
 
 **Existing owners without a mobile** (for example, accounts created before OTP login) can't log in until you attach one:
 
@@ -815,6 +815,7 @@ By default login codes are emailed to you and relayed by hand (`OTP_PROVIDER=ema
 | `whatsapp_reply` **(recommended, free)** | The user taps **"Open WhatsApp & send"**. WhatsApp opens with a pre-filled message such as *"Hi Vocal For Local, please send my verification code. Request #K7Q2XZ"* to your business number. Our webhook replies immediately with the 6-digit code. | **₹0**: replies inside the 24-hour customer-service window are free. The message also proves the user owns that number. |
 | `whatsapp` | The server pushes the code automatically using an approved **Authentication** template (like an SMS). | ≈ ₹0.115 + 18% GST per code (Meta's rate; volume discounts apply). |
 | `sms` ([B14](#b14-login-otps-email-relay-whatsapp-or-sms-via-fast2sms)) | Plain SMS *"Your OTP: 123456"* through Fast2SMS's OTP route. No Meta setup, no DLT registration, works on phones without WhatsApp. | ≈ ₹0.11 per SMS, prepaid (₹100 minimum top-up). |
+| `msg91_whatsapp` | Same as `whatsapp`, but the WhatsApp number, the Meta onboarding and the template live in the **MSG91** panel and the message goes through MSG91's API. No developer-dashboard, system-user or webhook work; MSG91 support deals with Meta. | Meta's ≈ ₹0.115 + MSG91's margin + 18% GST per code, from the MSG91 wallet. |
 
 The rest is unchanged: 6-digit codes, a 10-minute expiry, 5 attempts, and limits per number. Register and login screens for owners and customers, and the WhatsApp-number change, all use it.
 
@@ -844,6 +845,7 @@ The rest is unchanged: 6-digit codes, a 10-minute expiry, 5 attempts, and limits
 ```bash
 sudo nano /etc/vfl/env
 # OTP_PROVIDER=whatsapp_reply            # or: whatsapp (paid template mode)
+# CUSTOMER_LOGIN=mobile                  # shoppers too (default "email" keeps shoppers on emailed codes)
 # WHATSAPP_PHONE_NUMBER_ID=123456789012345
 # WHATSAPP_ACCESS_TOKEN=EAAG…            # system-user token from step 4
 # WHATSAPP_APP_SECRET=…                  # from step 5
@@ -875,11 +877,24 @@ WhatsApp Manager → **Message templates → Create**:
 
 Optionally add more languages with the same name. Approval is usually quick. Put the name and language in `WHATSAPP_OTP_TEMPLATE` / `WHATSAPP_OTP_TEMPLATE_LANG`.
 
+### MSG91 instead of Meta's dashboard (`OTP_PROVIDER=msg91_whatsapp`)
+Skip sections 1–4. In the MSG91 panel: **WhatsApp → Add number** (their wizard runs Meta's embedded signup; the number must not be on a WhatsApp app, or use the "connect WhatsApp Business app" option if offered), then **WhatsApp → Templates → Create** with category **Authentication**, language English, the **Copy code** button, named e.g. `login_code`. Note the number, the template name and, if shown, its namespace; create an auth key under **Settings → API Keys**. Then in `/etc/vfl/env`:
+```bash
+OTP_PROVIDER=msg91_whatsapp
+CUSTOMER_LOGIN=mobile                 # shoppers get WhatsApp codes too; leave "email" to keep emailed codes
+MSG91_AUTH_KEY=<auth key>
+MSG91_WHATSAPP_NUMBER=91XXXXXXXXXX     # the number connected in the MSG91 panel
+MSG91_WHATSAPP_TEMPLATE=login_code
+MSG91_WHATSAPP_TEMPLATE_LANG=en
+```
+Restart and check the log for `[otp] provider: msg91_whatsapp`. Failures are logged as `[otp] delivery failed (whatsapp, <purpose>): MSG91 WhatsApp <status>: <message>` (wrong key, template not approved, account restricted, no balance). The code lives in `server/src/otp/msg91.js`.
+
 ### 5. Test it
 1. Open https://sonsari.in/register.
 2. Enter a mobile that has WhatsApp and tap **Send verification code**, then **Open WhatsApp & send**.
 3. Send the pre-filled message. The code should come back within seconds.
-4. If it doesn't, check `sudo journalctl -u vfl-api --since "5 min ago" | grep -i whatsapp`:
+4. Shoppers (with `CUSTOMER_LOGIN=mobile`): open https://sonsari.in/account → **Log in or sign up**, enter a mobile, same WhatsApp round trip, then **Continue**. A new number is asked for a name; a known one lands on its orders.
+5. If it doesn't, check `sudo journalctl -u vfl-api --since "5 min ago" | grep -i whatsapp`:
    - a `401` means `WHATSAPP_APP_SECRET` is wrong;
    - `WhatsApp API 401/403` means the token or phone number ID is wrong;
    - no log line at all means the webhook isn't subscribed to **messages**.

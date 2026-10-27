@@ -65,6 +65,15 @@ export const config = {
   fast2sms: {
     apiKey: process.env.FAST2SMS_API_KEY || '',
   },
+  // WhatsApp OTPs through MSG91 (OTP_PROVIDER=msg91_whatsapp): auth key (Settings → API Keys), the WhatsApp number
+  // connected in the MSG91 panel, and the approved authentication template's name. See Deployment.md §B20.
+  msg91: {
+    authKey: process.env.MSG91_AUTH_KEY || '',
+    whatsappNumber: (process.env.MSG91_WHATSAPP_NUMBER || '').replace(/\D/g, ''),
+    template: process.env.MSG91_WHATSAPP_TEMPLATE || '',
+    templateLang: process.env.MSG91_WHATSAPP_TEMPLATE_LANG || 'en',
+    namespace: process.env.MSG91_WHATSAPP_NAMESPACE || '', // optional, shown with the template in the MSG91 panel
+  },
   smtp: {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: Number(process.env.SMTP_PORT) || 465,
@@ -79,7 +88,7 @@ export const config = {
 /** Fails fast on unsafe or incomplete OTP setups (called at server start). */
 export function assertOtpConfig() {
   const p = config.otpProvider;
-  if (!['fixed', 'console', 'email', 'sms', 'whatsapp', 'whatsapp_reply'].includes(p)) throw new Error(`Unknown OTP_PROVIDER "${p}"`);
+  if (!['fixed', 'console', 'email', 'sms', 'whatsapp', 'whatsapp_reply', 'msg91_whatsapp'].includes(p)) throw new Error(`Unknown OTP_PROVIDER "${p}"`);
   if (!['email', 'mobile'].includes(config.customerLogin)) throw new Error(`CUSTOMER_LOGIN must be "email" or "mobile", not "${config.customerLogin}"`);
   const wa = config.whatsapp;
   if (p === 'whatsapp' || p === 'whatsapp_reply') {
@@ -92,10 +101,15 @@ export function assertOtpConfig() {
     if (missing.length) throw new Error(`OTP_PROVIDER=${p} needs ${missing.join(', ')} (Deployment.md §B20).`);
   }
   if (config.isProd && (p === 'fixed' || p === 'console')) {
-    throw new Error(`OTP_PROVIDER=${p} is for local development only. Use "email" (or "sms") in production.`);
+    throw new Error(`OTP_PROVIDER=${p} is for local development only. Use "email", "sms" or a WhatsApp provider in production.`);
   }
   if (p === 'sms' && !config.fast2sms.apiKey) {
     throw new Error('OTP_PROVIDER=sms needs FAST2SMS_API_KEY (fast2sms.com → Dev API; Deployment.md §B14).');
+  }
+  if (p === 'msg91_whatsapp') {
+    const missing = [['MSG91_AUTH_KEY', config.msg91.authKey], ['MSG91_WHATSAPP_NUMBER', config.msg91.whatsappNumber], ['MSG91_WHATSAPP_TEMPLATE', config.msg91.template]]
+      .filter(([, v]) => !v).map(([k]) => k);
+    if (missing.length) throw new Error(`OTP_PROVIDER=msg91_whatsapp needs ${missing.join(', ')} (MSG91 panel; Deployment.md §B20).`);
   }
   if ((p === 'email' || (config.isProd && config.customerLogin === 'email')) && (!config.smtp.user || !config.smtp.pass)) {
     throw new Error('SMTP_USER and SMTP_PASS (Gmail address + App Password) are required for OTP_PROVIDER=email and CUSTOMER_LOGIN=email.');

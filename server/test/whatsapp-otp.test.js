@@ -46,6 +46,7 @@ after(async () => {
   Object.assign(config.whatsapp, saved.wa);
   globalThis.fetch = realFetch;
   await query(`DELETE FROM users WHERE phone = ANY($1)`, [[phone, other]]);
+  await query(`DELETE FROM customers WHERE phone = ANY($1)`, [[phone, other]]);
   await query(`DELETE FROM otp_codes WHERE phone = ANY($1)`, [[phone, other]]);
   await query(`DELETE FROM otp_wa_requests WHERE phone = ANY($1)`, [[phone, other]]);
   server.close();
@@ -133,6 +134,28 @@ describe('WhatsApp OTP — free reply mode (OTP_PROVIDER=whatsapp_reply)', () =>
     assert.equal((await webhook(phone, 'Do you deliver to HSR Layout?')).status, 200);
     await settle();
     assert.equal(sent.length, 0);
+  });
+
+  test('shoppers (CUSTOMER_LOGIN=mobile): any number can request a code; new ones are asked for a name', async () => {
+    const saved = config.customerLogin;
+    config.customerLogin = 'mobile';
+    sent.length = 0;
+    try {
+      const r = await api('/api/otp/request', { phone: other.slice(2), purpose: 'customer_login', language: 'en' });
+      assert.equal(r.status, 200, JSON.stringify(r.body));
+      assert.equal(r.body.delivery, 'whatsapp_reply');
+      await webhook(other, r.body.waText);
+      await settle();
+      const code = sent.at(-1).body.text.body.match(/\d{6}/)?.[0];
+      assert.ok(code, 'unknown number still gets a code (sign-up happens after it is verified)');
+      const first = await api('/api/customer/auth', { phone: other.slice(2), code });
+      assert.equal(first.body.needsName, true);
+      const made = await api('/api/customer/auth', { phone: other.slice(2), code, name: 'WA Shopper' });
+      assert.equal(made.status, 201, JSON.stringify(made.body));
+      assert.equal(made.body.customer.phone, other);
+    } finally {
+      config.customerLogin = saved;
+    }
   });
 
   test('config: WhatsApp providers refuse to start without their Meta settings', async () => {

@@ -8,11 +8,13 @@
 //   send(phone, code, purpose, meta)
 //
 //             'sms'            → real SMS via Fast2SMS's OTP route (no DLT registration needed, paid per SMS)
+//             'msg91_whatsapp' → WhatsApp authentication template sent through MSG91 (paid per message)
 import { config } from '../config.js';
 import { makeServerT } from '../i18n.js';
 import { sendMail } from '../mail.js';
 import { sendOtpTemplate, sendText } from '../whatsapp/cloud.js';
 import { sendOtpSms } from './fast2sms.js';
+import { sendOtpWhatsApp } from './msg91.js';
 
 export const PURPOSE_LABELS = {
   owner_login: 'Store owner login',
@@ -113,6 +115,18 @@ export const providers = {
     delivery: 'sms',
     async send(phone, code) {
       await sendOtpSms(phone, code);
+    },
+  },
+
+  /**
+   * WhatsApp, business-initiated through MSG91 (Deployment.md §B20): an approved AUTHENTICATION template from the
+   * number connected in the MSG91 panel. Like `whatsapp` (Meta's API directly) but MSG91 handles the Meta side.
+   * Needs MSG91_AUTH_KEY, MSG91_WHATSAPP_NUMBER and MSG91_WHATSAPP_TEMPLATE.
+   */
+  msg91_whatsapp: {
+    delivery: 'whatsapp',
+    async send(phone, code) {
+      await sendOtpWhatsApp(phone, code);
     },
   },
 };

@@ -43,6 +43,9 @@ export default function GoogleSignIn({ clientId, onCredential, onUnavailable, la
           cancel_on_tap_outside: true,
         });
         const width = Math.round(Math.min(400, Math.max(200, ref.current.getBoundingClientRect().width || 320)));
+        // renderButton adds a button each time it's called; an effect re-run (dev double render, language change) must
+        // replace the old one, not stack a second "Continue with Google" under it.
+        ref.current.replaceChildren();
         window.google.accounts.id.renderButton(ref.current, {
           type: 'standard',
           theme: 'outline',

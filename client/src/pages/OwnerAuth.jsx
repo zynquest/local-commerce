@@ -49,7 +49,7 @@ function BusinessTypePicker({ value, onChange, error }) {
   );
 }
 
-function AuthShell({ isRegister, children, onSubmit }) {
+function AuthShell({ isRegister, children, onSubmit, extra }) {
   const t = useT();
   const { appConfig } = useSession();
   useSeo({
@@ -78,18 +78,31 @@ function AuthShell({ isRegister, children, onSubmit }) {
           </p>
         </div>
         {children}
-        <p className="text-center text-sm text-stone-600">
-          {isRegister
-            ? rich(t('owner.alreadyRegistered'), { link: (x) => <Link to="/login" className="font-semibold text-brand">{x}</Link> })
-            : rich(t('owner.newHere'), { link: (x) => <Link to="/register" className="font-semibold text-brand">{x}</Link> })}
-        </p>
-        <p className="text-center text-xs text-stone-400">
+      </form>
+      <AuthLinks isRegister={isRegister}>{extra}</AuthLinks>
+    </div>
+  );
+}
+
+/** The second section under the sign-in card: other ways in, login/register switch, shop link, privacy. */
+function AuthLinks({ isRegister, children }) {
+  const t = useT();
+  return (
+    <div className="mt-3 w-full max-w-sm space-y-4 rounded-2xl border border-stone-200/80 bg-white/70 p-5 text-center">
+      {children}
+      <p className="text-sm text-stone-600">
+        {isRegister
+          ? rich(t('owner.alreadyRegistered'), { link: (x) => <Link to="/login" className="font-semibold text-brand">{x}</Link> })
+          : rich(t('owner.newHere'), { link: (x) => <Link to="/register" className="font-semibold text-brand">{x}</Link> })}
+      </p>
+      <div className="space-y-1.5 border-t border-stone-200/80 pt-3">
+        <p className="text-xs text-stone-500">
           {rich(t('owner.shopInstead'), { link: (x) => <Link to="/stores" className="underline">{x}</Link> })}
         </p>
-        <p className="text-center text-[11px] text-stone-400">
+        <p className="text-[11px] text-stone-400">
           {rich(t('owner.consent'), { link: (x) => <a href="/privacy" target="_blank" rel="noopener" className="underline">{x}</a> })}
         </p>
-      </form>
+      </div>
     </div>
   );
 }
@@ -177,18 +190,21 @@ function EmailOwnerAuth({ mode }) {
   const showSubmit = needsStore || emailForm;
 
   return (
-    <AuthShell isRegister={isRegister || needsStore} onSubmit={submit}>
+    <AuthShell
+      isRegister={isRegister || needsStore}
+      onSubmit={submit}
+      extra={
+        !needsStore && appConfig.googleClientId && !emailForm && (
+          <button type="button" onClick={() => setEmailChosen(true)} className="btn-ghost w-full py-2.5 text-sm">
+            <Mail size={16} /> {t('auth.noGoogle')}
+          </button>
+        )
+      }
+    >
       {needsStore && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{t('owner.newStoreBody')}</p>}
       {askStore && storeFields}
       {!needsStore && appConfig.googleClientId && (
-        <div className="space-y-2 text-center">
-          <GoogleSignIn clientId={appConfig.googleClientId} onCredential={onGoogle} onUnavailable={showGoogleUnavailable} lang={lang} />
-          {!emailForm && (
-            <button type="button" onClick={() => setEmailChosen(true)} className="text-sm font-semibold text-brand underline">
-              {t('auth.noGoogle')}
-            </button>
-          )}
-        </div>
+        <GoogleSignIn clientId={appConfig.googleClientId} onCredential={onGoogle} onUnavailable={showGoogleUnavailable} lang={lang} />
       )}
       {!needsStore && emailForm && (
         <>
@@ -351,18 +367,8 @@ function MobileOwnerAuth({ mode }) {
           {busy && <Loader2 size={16} className="animate-spin" />}
           {isRegister ? t('owner.createStore') : t('auth.login')}
         </button>
-        <p className="text-center text-sm text-stone-600">
-          {isRegister
-            ? rich(t('owner.alreadyRegistered'), { link: (x) => <Link to="/login" className="font-semibold text-brand">{x}</Link> })
-            : rich(t('owner.newHere'), { link: (x) => <Link to="/register" className="font-semibold text-brand">{x}</Link> })}
-        </p>
-        <p className="text-center text-xs text-stone-400">
-          {rich(t('owner.shopInstead'), { link: (x) => <Link to="/stores" className="underline">{x}</Link> })}
-        </p>
-        <p className="text-center text-[11px] text-stone-400">
-          {rich(t('owner.consent'), { link: (x) => <a href="/privacy" target="_blank" rel="noopener" className="underline">{x}</a> })}
-        </p>
       </form>
+      <AuthLinks isRegister={isRegister} />
     </div>
   );
 }

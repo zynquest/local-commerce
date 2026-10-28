@@ -177,7 +177,7 @@
     "storesTitle": "Local Stores Near You — Order Online with Home Delivery | {brand}",
     "storesDesc": "Order groceries, bakery items, medicines and daily essentials online from local shops near you. Home delivery, pay on delivery, order on WhatsApp.",
     "homeTitle": "{brand} — Free Online Store for Local Businesses | Take Orders on WhatsApp",
-    "homeDesc": "Born in Sonsari, a Chhattisgarh village with no Blinkit or Zepto. A free WhatsApp-based online store for kirana, grocery, home-made pickles, papad and every local business: zero commission, all Indian languages."
+    "homeDesc": "Born in Sonsari, a Chhattisgarh village that quick commerce companies don't reach. A free WhatsApp-based online store for kirana, grocery, home-made pickles, papad and every local business: zero commission, all Indian languages."
   },
   "review": {
     "status": {
@@ -335,7 +335,6 @@
       "zero": "<b>0%</b> commission"
     },
     "hero": {
-      "badge": "Built in a village in Chhattisgarh, free for every local business",
       "line1": "Free online store for your local business.",
       "line2": "Orders on WhatsApp.",
       "line3": "Zero commission.",
@@ -400,6 +399,7 @@
     },
     "compare": {
       "title": "Aggregators vs. your own store",
+      "them": "Quick commerce companies",
       "commission": "Commission",
       "commissionThem": "18% – 30% of every order",
       "commissionUs": "0% — keep 100%",
@@ -492,7 +492,7 @@
     "story": {
       "eyebrow": "Our story",
       "title": "Born in Sonsari, a village in Chhattisgarh",
-      "p1": "Sonsari is a village of under 5,000 people in Janjgir-Champa district, Chhattisgarh. Blinkit, Zepto and Instamart don't deliver here, but mobile data now reaches almost every corner.",
+      "p1": "Sonsari is a village of under 5,000 people in Janjgir-Champa district, Chhattisgarh. Quick commerce companies don't deliver here, but mobile data now reaches almost every corner.",
       "p2": "So a villager built this: a simple WhatsApp-based quick commerce for what people already buy locally, from groceries to home-made pickles and papad.",
       "p3": "It's free for every local business in India, in every Indian language, with zero commission. No aggregator takes a cut, and the shop keeps its own customers.",
       "place": "Sonsari, Janjgir-Champa, Chhattisgarh 495553",

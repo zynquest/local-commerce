@@ -98,6 +98,7 @@ function homeLd(base, t) {
       url: base,
       logo: `${base}/icons/icon-512.png`,
       description: t('seo.homeDesc'),
+      sameAs: ['https://www.instagram.com/sonsariofficial/'],
       slogan: t('landing.story.title'),
       foundingLocation: SONSARI_PLACE,
       location: SONSARI_PLACE,

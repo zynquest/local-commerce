@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, Minus, Plus, Share2, ShoppingBag, Star } from 'lucide-react';
 import ImageCarousel from '../components/ImageCarousel.jsx';
 import ProductCard from '../components/ProductCard.jsx';
-import FloatingActions from '../components/FloatingActions.jsx';
 import { MessageScreen } from '../components/StatusScreens.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
@@ -268,7 +267,6 @@ export default function ProductDetail() {
           </button>
         </div>
       </div>
-      <FloatingActions hideCartBar raised />
     </div>
   );
 }

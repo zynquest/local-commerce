@@ -50,8 +50,100 @@ function PrintTile({ code, base }) {
   );
 }
 
+/** Store name box with suggestions from the admin store search. Picking one fills in the exact store. */
+function StorePicker({ code, value, onChange, onPick, onSubmit }) {
+  const [open, setOpen] = useState(false);
+  const [matches, setMatches] = useState([]);
+  const [active, setActive] = useState(-1);
+  const q = useDebounce(value.trim(), 200);
+
+  useEffect(() => {
+    if (q.length < 2) return setMatches([]);
+    let live = true;
+    get(`/platform/stores?status=all&q=${encodeURIComponent(q)}`)
+      .then((r) => {
+        if (!live) return;
+        // Names that start with what was typed first, then a word in the name starting with it, then the rest.
+        const needle = q.toLowerCase();
+        const rank = (n) => (n.toLowerCase().startsWith(needle) ? 0 : n.toLowerCase().split(/\s+/).some((w) => w.startsWith(needle)) ? 1 : 2);
+        setMatches([...r.stores].sort((a, b) => rank(a.name) - rank(b.name)).slice(0, 6));
+        setActive(-1);
+      })
+      .catch(() => live && setMatches([]));
+    return () => {
+      live = false;
+    };
+  }, [q]);
+
+  const pick = (s) => {
+    onPick(s);
+    setOpen(false);
+  };
+  const onKeyDown = (e) => {
+    const shown = open && matches.length;
+    if (e.key === 'ArrowDown' && shown) {
+      e.preventDefault();
+      setActive((i) => (i + 1) % matches.length);
+    } else if (e.key === 'ArrowUp' && shown) {
+      e.preventDefault();
+      setActive((i) => (i <= 0 ? matches.length - 1 : i - 1));
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (shown && active >= 0) pick(matches[active]);
+      else if (value.trim()) onSubmit();
+    }
+  };
+
+  return (
+    <div className="relative min-w-0 flex-1">
+      <input
+        className="input w-full text-base sm:text-sm"
+        placeholder="Store name"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onKeyDown={onKeyDown}
+        role="combobox"
+        aria-expanded={open && matches.length > 0}
+        aria-autocomplete="list"
+        aria-controls={`qr-stores-${code}`}
+        aria-label={`Store for QR ${code}`}
+        autoComplete="off"
+      />
+      {open && matches.length > 0 && (
+        <ul id={`qr-stores-${code}`} role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-auto rounded-xl border border-stone-200 bg-white py-1 shadow-lg">
+          {matches.map((s, i) => (
+            <li
+              key={s.id}
+              role="option"
+              aria-selected={i === active}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                pick(s);
+              }}
+              className={`cursor-pointer px-3 py-2 ${i === active ? 'bg-emerald-50' : 'hover:bg-stone-50'}`}
+            >
+              <p className="text-sm font-semibold break-words">{s.name}</p>
+              <p className="text-xs text-stone-500">
+                {[s.locality || s.city, s.status === 'approved' ? null : 'not live yet'].filter(Boolean).join(' · ') || '\u00a0'}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function Row({ qr, base, selected, onToggle, onChanged }) {
   const [store, setStore] = useState('');
+  const [picked, setPicked] = useState(null); // the suggestion chosen, so two stores with one name can't mix up
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
 
@@ -59,8 +151,9 @@ function Row({ qr, base, selected, onToggle, onChanged }) {
     setBusy('assign');
     setError('');
     try {
-      await post(`/platform/qr/${qr.code}/assign`, { store });
+      await post(`/platform/qr/${qr.code}/assign`, { store: picked && picked.name === store ? picked.slug : store });
       setStore('');
+      setPicked(null);
       onChanged();
     } catch (err) {
       setError(err.fields?.store || err.message);
@@ -104,7 +197,6 @@ function Row({ qr, base, selected, onToggle, onChanged }) {
             <a href={`/s/${qr.store_slug}`} target="_blank" rel="noreferrer" className="text-sm font-semibold break-words hover:text-brand">
               {qr.store_name}
             </a>
-            <span className="text-xs text-stone-500">/s/{qr.store_slug}</span>
             {qr.store_status !== 'approved' && <span className="text-xs text-amber-700">· store not live yet</span>}
             <button onClick={remove} disabled={!!busy} className="ms-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50">
               {busy === 'remove' ? <Loader2 size={13} className="animate-spin" /> : <Link2Off size={13} />} Remove
@@ -112,13 +204,19 @@ function Row({ qr, base, selected, onToggle, onChanged }) {
           </div>
         ) : (
           <div className="flex gap-2">
-            <input
-              className="input min-w-0 flex-1 text-base sm:text-sm"
-              placeholder="e.g. /s/annapoorna"
+            <StorePicker
+              code={qr.code}
               value={store}
-              onChange={(e) => setStore(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && store.trim() && assign()}
-              aria-label={`Store for QR ${qr.code}`}
+              onChange={(v) => {
+                setStore(v);
+                setError('');
+              }}
+              onPick={(s) => {
+                setStore(s.name);
+                setPicked(s);
+                setError('');
+              }}
+              onSubmit={assign}
             />
             <button onClick={assign} disabled={!!busy || !store.trim()} className="btn-brand flex-none text-sm">
               {busy === 'assign' ? <Loader2 size={14} className="animate-spin" /> : <Link2 size={14} />} Assign
@@ -207,7 +305,7 @@ export default function AdminQrCodes() {
           )}
         </div>
         <p className="text-sm text-stone-600">
-          Each code opens <b>{host(data.base)}/q/&lt;code&gt;</b>, which takes the shopper to the store it's linked to. Print a batch first, then link each sticker to a store when you put it up; you can move a code to another store any time.
+          Each code opens <b>{host(data.base)}/q/&lt;code&gt;</b>, which takes the shopper to the store it's linked to. Print a batch first, then type the shop's name against a code when you put the sticker up; you can move a code to another store any time.
         </p>
         <form onSubmit={generate} className="flex flex-wrap items-end gap-2">
           <label className="text-sm">

@@ -102,6 +102,20 @@ describe('printed QR codes', () => {
     assert.equal((await admin('POST', `/api/platform/qr/${b}/assign`, { store: `https://sonsari.in/s/${slug}/` })).status, 200, 'full URL works; a store may have several codes');
     assert.equal((await admin('POST', `/api/platform/qr/${a}/assign`, { store: slug })).status, 409, 'already linked');
 
+    // By the store's name (any case), as the admin types it; a name shared by two stores must be picked from the list.
+    const [c] = made.slice(2);
+    const byName = await admin('POST', `/api/platform/qr/${c}/assign`, { store: `qr test store ${run}` });
+    assert.equal(byName.status, 200, JSON.stringify(byName.body));
+    assert.equal(byName.body.store.slug, slug);
+    assert.equal((await admin('POST', `/api/platform/qr/${c}/unassign`, {})).status, 200);
+    const { rows: twinOwner } = await query(`INSERT INTO users (username) VALUES ($1) RETURNING id`, [`qrtwin${run}`]);
+    await query(`INSERT INTO stores (owner_id, slug, name, status) VALUES ($1, $2, $3, 'approved')`, [twinOwner[0].id, `${slug}-two`, `QR Test Store ${run}`]);
+    const twin = await admin('POST', `/api/platform/qr/${c}/assign`, { store: `QR Test Store ${run}` });
+    assert.equal(twin.status, 409);
+    assert.match(twin.body.fields?.store || twin.body.error, /2 stores are called/);
+    await query('DELETE FROM users WHERE id = $1', [twinOwner[0].id]);
+    assert.equal((await admin('POST', `/api/platform/qr/${c}/assign`, { store: 'No Such Shop Anywhere' })).status, 404);
+
     const scan = await anon('GET', `/q/${a}`);
     assert.equal(scan.status, 302);
     assert.equal(scan.location, `/s/${slug}`);

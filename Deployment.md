@@ -973,7 +973,7 @@ If the button shows an error or nothing happens, open the browser console: *"The
 
 1. **Generate**: enter how many (1–500 per batch) and press *Generate*. The new codes come up selected.
 2. **Print**: press *Print selected*. The sheet is A4, 3 × 4 stickers per page, each with *Vocal For Local*, the QR, "Scan to order from this shop", `sonsari.in` and the code printed under it, with dashed cut lines. In the print dialog, keep scale at 100% and turn off headers and footers.
-3. **Link**: when a sticker goes up, find its code (search box) and type the shop's link, such as `/s/annapoorna`, the full `https://sonsari.in/s/annapoorna`, or just `annapoorna`, then press *Assign*. A shop can have several codes. A code that's already linked must be removed before it can go to another shop.
+3. **Link**: when a sticker goes up, find its code (search box), start typing the shop's name and pick it from the suggestions, then press *Assign*. Typing the full name without picking also works, unless two shops share that name. A shop can have several codes. A code that's already linked must be removed before it can go to another shop.
 4. **Remove** frees the code again. Deleting a store frees its codes too.
 
 Each code encodes `https://sonsari.in/q/<code>` (from `PUBLIC_URL`). The server counts the scan and redirects to `/s/<store>`. A code that isn't linked yet shows a friendly "not linked to a shop yet" page with *Shop local stores*, *Register your store* and a WhatsApp link to you; an unknown code returns 404. Scans are counted even while a code is free.

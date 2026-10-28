@@ -36,18 +36,35 @@ export function storeSlugFrom(input) {
   return s.replace(/^\/+/, '').replace(/^s\//i, '').replace(/[/?#].*$/, '').trim().toLowerCase();
 }
 
-/** Links a free code to the store with that link; a code already linked must be removed first. */
+/** The store an admin typed: its link name ("annapoorna"), its full link, or its name ("Annapoorna Family Restaurant"). */
+async function findStore(client, input) {
+  const text = String(input || '').trim();
+  const slug = storeSlugFrom(text);
+  const bySlug = await client.query('SELECT id, name, slug FROM stores WHERE slug = $1 OR slug = $2 LIMIT 1', [slug, slug.replace(/\s+/g, '-')]);
+  if (bySlug.rows[0]) return bySlug.rows[0];
+  const byName = await client.query(
+    `SELECT id, name, slug FROM stores WHERE lower(name) = lower($1) ORDER BY (status = 'approved') DESC, created_at LIMIT 5`,
+    [text],
+  );
+  if (byName.rows.length > 1) {
+    const msg = `${byName.rows.length} stores are called "${text}". Pick one from the suggestions.`;
+    throw conflict(msg, { store: msg });
+  }
+  if (byName.rows[0]) return byName.rows[0];
+  const msg = `No store called "${text}". Pick one from the suggestions.`;
+  throw notFound(msg, { store: msg });
+}
+
+/** Links a free code to a store; a code already linked must be removed first. */
 export async function assignQrCode(code, storeRef) {
-  const slug = storeSlugFrom(storeRef);
-  if (!slug) throw badRequest('Enter the store link, e.g. /s/sri-ganesh-electricals', { store: 'Enter the store link' });
+  if (!String(storeRef || '').trim()) throw badRequest('Enter the store name', { store: 'Enter the store name' });
   return tx(async (client) => {
     const { rows: qr } = await client.query('SELECT code, store_id FROM qr_codes WHERE code = $1 FOR UPDATE', [code]);
     if (!qr[0]) throw notFound('QR code not found');
     if (qr[0].store_id) throw conflict('This QR code is already linked to a store. Remove it first.');
-    const { rows: stores } = await client.query('SELECT id, name, slug FROM stores WHERE slug = $1', [slug]);
-    if (!stores[0]) throw notFound(`No store with the link /s/${slug}`, { store: `No store with the link /s/${slug}` });
-    await client.query('UPDATE qr_codes SET store_id = $2, assigned_at = now() WHERE code = $1', [code, stores[0].id]);
-    return stores[0];
+    const store = await findStore(client, storeRef);
+    await client.query('UPDATE qr_codes SET store_id = $2, assigned_at = now() WHERE code = $1', [code, store.id]);
+    return store;
   });
 }
 

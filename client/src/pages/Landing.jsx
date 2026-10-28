@@ -5,6 +5,7 @@ import {
   Languages, MapPin, ShoppingBasket as StoreIcon, Smartphone, Store, UserRound, Users, WifiOff, X,
 } from 'lucide-react';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
+import InstagramIcon from '../components/InstagramIcon.jsx';
 import SiteHeader from '../components/SiteHeader.jsx';
 import { useSeo } from '../lib/seo.js';
 import { NearbyBar, StoreList } from './StoreDirectory.jsx';
@@ -255,10 +256,7 @@ export default function Landing() {
         <div className="pointer-events-none absolute -bottom-24 -start-24 h-96 w-96 rounded-full bg-amber-200/40 blur-3xl" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-14 md:grid-cols-2 md:py-24">
           <div className="animate-fade-up">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
-              🇮🇳 {t('landing.hero.badge')}
-            </span>
-            <h1 className="mt-4 text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl">
+            <h1 className="text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl">
               {t('landing.hero.line1')}
               <br />
               <span className="text-brand">{t('landing.hero.line2')}</span>
@@ -361,7 +359,7 @@ export default function Landing() {
               <thead>
                 <tr className="bg-stone-100 text-start">
                   <th className="p-3 sm:p-4" />
-                  <th className="p-3 sm:p-4">Blinkit / Zepto / Swiggy</th>
+                  <th className="p-3 sm:p-4">{t('landing.compare.them')}</th>
                   <th className="p-3 text-brand sm:p-4">{PLATFORM.name}</th>
                 </tr>
               </thead>
@@ -522,6 +520,17 @@ export default function Landing() {
       </section>
 
       <footer className="border-t border-stone-100 py-8 text-center text-xs text-stone-500">
+        <a
+          href={PLATFORM.instagramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-stone-700 hover:text-brand"
+        >
+          <span className="rounded-full bg-gradient-to-tr from-amber-400 via-pink-500 to-purple-600 p-2 text-white">
+            <InstagramIcon size={18} />
+          </span>
+          @{PLATFORM.instagramHandle}
+        </a>
         <p>🇮🇳 {t('landing.madeIn')}</p>
         <p className="mt-1">
           © {new Date().getFullYear()} {PLATFORM.name} · {t('landing.tagline')} ·{' '}

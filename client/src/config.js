@@ -3,6 +3,8 @@ export const PLATFORM = {
   tagline: 'Your shop. Your customers. Your WhatsApp.',
   // Company WhatsApp: merchant onboarding, custom-domain / custom-plan enquiries.
   whatsappNumber: '919353095481',
+  instagramHandle: 'sonsariofficial',
+  instagramUrl: 'https://www.instagram.com/sonsariofficial/',
   // Hostnames that render the platform. Any other hostname is treated as a store's custom domain.
   hosts: [
     'localhost',

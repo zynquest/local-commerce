@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, Circle, Clock, History, Loader2, MessageSquareWarning, Send, ShieldCheck, ShieldOff } from 'lucide-react';
+import { CheckCircle2, Circle, Clock, History, Loader2, MessageSquareWarning, ShieldCheck, ShieldOff } from 'lucide-react';
 import { post } from '../lib/api.js';
 import { useI18n, useT } from '../i18n/index.jsx';
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
@@ -41,7 +41,7 @@ export default function StoreStatusCard({ store, onChange, onGoToSettings }) {
   const { owner } = useSession();
   const [note, setNote] = useState('');
   const [wa, setWa] = useState(() => national(store.whatsapp_number));
-  const [sendWa, setSendWa] = useState(true);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [showHistory, setShowHistory] = useState(false);
@@ -58,20 +58,19 @@ export default function StoreStatusCard({ store, onChange, onGoToSettings }) {
     if (!isMobile10(wa)) return setError(t('errors.validMobile10'));
     setBusy(true);
     setError('');
-    // Open the WhatsApp tab from the click itself (mobile browsers block pop-ups opened later), then point it at
-    // the message once the submission has gone through.
-    const win = sendWa ? window.open('', '_blank') : null;
+    // One button: submit to the platform, then WhatsApp opens with the approval message (sent from the owner's
+    // number, which is how the team verifies it). The tab is opened from the click itself — mobile browsers block
+    // pop-ups opened later — and pointed at the message once the submission has gone through.
+    const win = window.open('', '_blank');
     try {
       const { store: updated } = await post('/merchant/store/submit', { note: note || undefined, whatsapp_number: wa });
       setNote('');
       onChange(updated);
-      if (sendWa) {
-        const url = approvalLink(updated, wa);
-        if (win) {
-          win.opener = null;
-          win.location.href = url;
-        } else window.location.href = url;
-      }
+      const url = approvalLink(updated, wa);
+      if (win) {
+        win.opener = null;
+        win.location.href = url;
+      } else window.location.href = url;
     } catch (err) {
       win?.close();
       setError(err.fields?.whatsapp_number || err.message);
@@ -80,9 +79,9 @@ export default function StoreStatusCard({ store, onChange, onGoToSettings }) {
     }
   };
 
-  // The WhatsApp item is satisfied by the field below, so it isn't sent to Settings.
-  const checklist = store.checklist.map((c) => (c.key === 'whatsapp' ? { ...c, done: isMobile10(wa) } : c));
-  const allDone = checklist.every((c) => c.done);
+  // The WhatsApp number is entered just below, so it isn't repeated in the checklist.
+  const checklist = store.checklist.filter((c) => c.key !== 'whatsapp');
+  const allDone = checklist.every((c) => c.done) && isMobile10(wa);
   const isResubmit = store.status === 'rejected' || store.status === 'suspended';
   const tone =
     store.status === 'rejected' || store.status === 'suspended'
@@ -111,8 +110,8 @@ export default function StoreStatusCard({ store, onChange, onGoToSettings }) {
             {t('review.pendingBody', { date: store.submitted_at ? formatDate(store.submitted_at) : '' })}
           </p>
           {store.whatsapp_number && !store.whatsapp_verified && (
-            <a href={approvalLink(store, store.whatsapp_number)} target="_blank" rel="noopener noreferrer" className="btn-whatsapp w-full py-2 text-sm">
-              <WhatsAppIcon size={16} /> {t('review.sendAgain')}
+            <a href={approvalLink(store, store.whatsapp_number)} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-emerald-800 underline">
+              {t('review.sendAgain')}
             </a>
           )}
         </>
@@ -131,18 +130,14 @@ export default function StoreStatusCard({ store, onChange, onGoToSettings }) {
               <li key={c.key} className="flex items-center gap-2">
                 {c.done ? <CheckCircle2 size={16} className="text-emerald-600" /> : <Circle size={16} className="text-stone-400" />}
                 <span className={c.done ? 'text-stone-600' : 'font-medium'}>{t(`review.check.${c.key}`, { count: c.key === 'products' ? 1 : undefined })}</span>
-                {!c.done && c.key !== 'products' && c.key !== 'whatsapp' && (
-                  <button onClick={onGoToSettings} className="text-xs font-semibold text-brand underline">{t('common.add')}</button>
+                {!c.done && c.key !== 'products' && (
+                  <button onClick={() => onGoToSettings(c.key)} className="text-xs font-semibold text-brand underline">{t('common.add')}</button>
                 )}
               </li>
             ))}
           </ul>
           <div className="rounded-xl bg-white p-3">
             <MobileInput id="submit-whatsapp" value={wa} onChange={setWa} label={t('review.waLabel')} hint={t('review.waHint')} />
-            <label className="mt-2 flex cursor-pointer items-start gap-2 text-sm">
-              <input type="checkbox" className="mt-0.5 h-4 w-4 accent-brand" checked={sendWa} onChange={(e) => setSendWa(e.target.checked)} />
-              <span>{t('review.sendOnWhatsApp')}</span>
-            </label>
           </div>
           <textarea
             className="input"
@@ -153,9 +148,10 @@ export default function StoreStatusCard({ store, onChange, onGoToSettings }) {
           />
           {error && <p className="text-sm text-rose-700">{error}</p>}
           <button onClick={submit} disabled={busy || !allDone} className="btn-brand w-full">
-            {busy ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            {busy ? <Loader2 size={16} className="animate-spin" /> : <WhatsAppIcon size={16} />}
             {isResubmit ? t('review.resubmit') : t('review.submit')}
           </button>
+          <p className="text-center text-[11px] text-stone-500">{t('review.sendOnWhatsApp')}</p>
         </>
       )}
 

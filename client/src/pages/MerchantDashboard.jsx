@@ -47,6 +47,8 @@ export default function MerchantDashboard() {
   const [params, setParams] = useSearchParams();
   const tabParam = params.get('tab');
   const setTab = (t) => setParams({ tab: t }, { replace: true });
+  // Checklist "Add" links: open Settings and bring that field into view (key: name | category | location).
+  const goToSetting = (key) => setParams({ tab: 'settings', ...(key ? { focus: `${key}.${Date.now().toString(36)}` } : {}) }, { replace: true }); // unique, so a second click scrolls again
 
   const [store, setStore] = useState(null);
   const [stats, setStats] = useState(null);
@@ -222,7 +224,7 @@ export default function MerchantDashboard() {
             </p>
           </div>
         )}
-        <StoreStatusCard store={store} onChange={(s) => setStore(s)} onGoToSettings={() => setTab('settings')} />
+        <StoreStatusCard store={store} onChange={(s) => setStore(s)} onGoToSettings={goToSetting} />
 
         {stats && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -354,6 +356,7 @@ export default function MerchantDashboard() {
         {tab === 'settings' && (
           <StoreSettings
             store={store}
+            focus={params.get('focus')}
             onSaved={(s, message) => {
               setStore((prev) => ({ ...prev, ...s }));
               flash(message || t('common.saved'));

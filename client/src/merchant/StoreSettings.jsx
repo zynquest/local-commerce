@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BadgeCheck, Camera, Check, Loader2, Pencil, Save, X } from 'lucide-react';
 import AddressPicker from '../components/AddressPicker.jsx';
 import MobileInput from '../components/MobileInput.jsx';
@@ -76,7 +76,7 @@ function WhatsAppNumber({ store, onSaved }) {
           </p>
           <p className="text-[11px] text-stone-500">{t('settings.waHint')}</p>
         </div>
-        {!editing && (
+        {!editing && !plain && (
           <button type="button" onClick={() => setEditing(true)} className="btn-ghost py-1.5 text-xs">
             <Pencil size={14} /> {t('settings.change')}
           </button>
@@ -102,8 +102,25 @@ function WhatsAppNumber({ store, onSaved }) {
 
 const APPT_DEFAULTS = { slot_minutes: 30, booking_days: 14, min_notice_minutes: 60 };
 
-export default function StoreSettings({ store, onSaved }) {
+// Checklist "Add" link → the element to bring into view in Settings.
+const FOCUS_TARGET = { name: 'st-name', category: 'st-category', location: 'settings-location' };
+
+export default function StoreSettings({ store, onSaved, focus }) {
   const t = useT();
+  const { appConfig } = useSession();
+
+  // Arriving from a checklist "Add" link: scroll the field into view, highlight it briefly, focus its input.
+  useEffect(() => {
+    const el = focus && document.getElementById(FOCUS_TARGET[focus.split('.')[0]]);
+    if (!el) return;
+    const timer = setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (el.matches('input, textarea, select') ? el : el.querySelector('input, textarea, select'))?.focus({ preventScroll: true });
+      el.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-amber-400', 'ring-offset-2'), 2500);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [focus]);
   const appointments = store.business_type === 'appointments';
   const [form, setForm] = useState(() => ({
     ...Object.fromEntries(
@@ -182,13 +199,16 @@ export default function StoreSettings({ store, onSaved }) {
         <div className="flex-1">{imagePicker('banner_url', t('settings.banner'), bannerRef, 'h-24 w-full rounded-2xl')}</div>
       </div>
 
-      <WhatsAppNumber store={store} onSaved={onSaved} />
+      {/* With email login the number is given when submitting for approval, and can't be changed here for now. */}
+      {(appConfig.ownerLogin === 'mobile' || store.whatsapp_number) && <WhatsAppNumber store={store} onSaved={onSaved} />}
 
-      <AddressPicker
-        value={form}
-        onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
-        error={fields.lat || fields.address_text}
-      />
+      <div id="settings-location" className="scroll-mt-24 rounded-2xl">
+        <AddressPicker
+          value={form}
+          onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+          error={fields.lat || fields.address_text}
+        />
+      </div>
 
       {appointments && (
         <div className="grid gap-4 rounded-2xl border border-stone-200 p-4 sm:grid-cols-3">

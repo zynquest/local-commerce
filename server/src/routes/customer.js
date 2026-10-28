@@ -44,13 +44,13 @@ async function customerAuth(req, res) {
   let created = false;
   if (!customerId) {
     const { rows } = await query(
-      `INSERT INTO customers (name, ${id.column}, last_login_at) VALUES ($1, $2, now()) ON CONFLICT DO NOTHING RETURNING id`,
+      `INSERT INTO customers (name, ${id.column}, ${id.column}_verified_at, last_login_at) VALUES ($1, $2, now(), now()) ON CONFLICT DO NOTHING RETURNING id`,
       [name, id.value],
     );
     customerId = rows[0]?.id ?? (await query(`SELECT id FROM customers WHERE ${id.column} = $1`, [id.value])).rows[0]?.id; // lost a race: log in
     created = Boolean(rows[0]);
   } else {
-    await query('UPDATE customers SET last_login_at = now() WHERE id = $1', [customerId]);
+    await query(`UPDATE customers SET last_login_at = now(), ${id.column}_verified_at = coalesce(${id.column}_verified_at, now()) WHERE id = $1`, [customerId]);
   }
   if (!customerId) throw unauthorized('Could not sign you in. Please try again.');
   await createSession(res, 'customer', customerId);

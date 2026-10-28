@@ -55,10 +55,17 @@ export const otpRequest = z
     language: z.enum(LANGUAGE_CODES).optional(), // language of the code message (WhatsApp / email)
   })
   .superRefine((v, ctx) => {
-    // Customers may send either (the route enforces the configured one); everyone else needs a mobile number.
-    if (!v.purpose.startsWith('customer_') && !v.phone) ctx.addIssue({ code: 'custom', path: ['phone'], message: 'Enter a valid 10-digit mobile number' });
+    // Customers and owners may send either (the route enforces the configured one); a WhatsApp change needs a mobile.
+    if (v.purpose === 'whatsapp_change' && !v.phone) ctx.addIssue({ code: 'custom', path: ['phone'], message: 'Enter a valid 10-digit mobile number' });
     if (!v.phone && !v.email) ctx.addIssue({ code: 'custom', path: ['email'], message: 'Enter a valid email address' });
   });
+// Owners, OWNER_LOGIN=email: one call for sign-in and sign-up. storeName (+ businessType) only when creating the store.
+export const ownerEmailAuth = z.object({
+  email,
+  code: otpCode,
+  storeName: z.preprocess((v) => (v == null || v === '' ? undefined : v), storeName.optional()),
+  businessType: z.enum(BUSINESS_TYPES).default('shop'),
+});
 export const whatsappVerify = z.object({ phone: mobile10, code: otpCode });
 // Shoppers, one flow for sign-in and sign-up: email (CUSTOMER_LOGIN=email) or 10-digit mobile (CUSTOMER_LOGIN=mobile)
 // + code; `name` only when creating the account. The route checks the configured identity.
@@ -68,7 +75,13 @@ export const customerAuth = z.object({
   code: otpCode,
   name: z.preprocess((v) => (v == null || v === '' ? undefined : cleanText(v)), z.string().min(1, 'Enter your name').max(80).optional()),
 });
-export const submitForReview = z.object({ note: optText(500).optional() });
+// The WhatsApp number for orders is given (or confirmed) when submitting; it's verified when the store is approved.
+export const submitForReview = z.object({ note: optText(500).optional(), whatsapp_number: mobile10.optional() });
+export const whatsappSet = z.object({ phone: mobile10 });
+// Seeded listing → owner: their login email (OWNER_LOGIN=email) and/or mobile; the mobile also becomes the WhatsApp number.
+export const seedClaim = z
+  .object({ email: email.optional(), phone: mobile10.optional() })
+  .refine((v) => v.email || v.phone, { message: "Enter the owner's email or mobile", path: ['email'] });
 export const reviewDecision = z.object({ remarks: optText(1000).optional() });
 export const reviewRemarksRequired = z.object({
   remarks: z.preprocess(cleanText, z.string().min(5, 'Please explain the reason (min 5 characters)').max(1000)),

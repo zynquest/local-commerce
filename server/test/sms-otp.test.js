@@ -17,7 +17,9 @@ const realFetch = globalThis.fetch;
 const api = (path, body) =>
   realFetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async (r) => ({ status: r.status, body: await r.json() }));
 
+const savedOwnerLogin = config.ownerLogin;
 before(async () => {
+  config.ownerLogin = 'mobile'; // these tests exercise the mobile-number owner flow (OWNER_LOGIN=mobile)
   await migrate({ log: () => {} });
   config.otpProvider = 'sms';
   config.fast2sms.apiKey = 'test-key';
@@ -34,6 +36,7 @@ before(async () => {
 });
 
 after(async () => {
+  config.ownerLogin = savedOwnerLogin;
   config.otpProvider = saved.provider;
   config.fast2sms.apiKey = saved.apiKey;
   globalThis.fetch = realFetch;

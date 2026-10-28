@@ -80,7 +80,11 @@
     "noResultsHint": "Add it to your unlisted items below — the store will try to arrange it.",
     "pricesUpdated": "Prices updated {time}",
     "demoBadge": "Demo",
-    "demoNotice": "Demo store: try ordering to see how it works. Orders go to the Vocal For Local team on WhatsApp, not a real shop."
+    "demoNotice": "Demo store: try ordering to see how it works. Orders go to the Vocal For Local team on WhatsApp, not a real shop.",
+    "seedNotice": "Listed by {brand} from public information. This shop doesn't take online orders yet; prices are indicative.",
+    "seedClaim": "Own this shop? Claim it free, or ask us to remove it",
+    "seedClaimMsg": "Hi, I own {name} ({link}). Please hand this listing over to me, or remove it.",
+    "seedBadge": "Not taking orders yet"
   },
   "cart": {
     "unlistedTitle": "Unlisted Items & Special Instructions",
@@ -208,8 +212,14 @@
       "approved": "Approved by the platform team",
       "rejected": "Changes requested by the platform team",
       "suspended": "Suspended by the platform team",
-      "reinstated": "Reinstated by the platform team"
-    }
+      "reinstated": "Reinstated by the platform team",
+      "claimed": "Listing handed over to you"
+    },
+    "waLabel": "WhatsApp number for orders",
+    "waHint": "Customer orders arrive here. We verify it when we approve your store.",
+    "sendOnWhatsApp": "Also send my approval request on WhatsApp from this number (faster approval)",
+    "waApprovalMsg": "Hi {brand} team, please approve my store \"{name}\" ({link}). WhatsApp for orders: {phone}. Login email: {email}.",
+    "sendAgain": "Send approval request on WhatsApp"
   },
   "nav": {
     "main": "Main",
@@ -357,7 +367,7 @@
     "how": {
       "title": "How it works",
       "s1Title": "Register in a minute",
-      "s1Body": "Store name and mobile number, verified with a one-time code. That's it. We review and approve your store quickly.",
+      "s1Body": "Store name and email, verified with a one-time code. That's it. We review and approve your store quickly.",
       "s2Title": "Add your products",
       "s2Body": "Snap photos from your phone or import an Excel/CSV sheet. Up to {limit} products free; {limit}+ on the paid plan.",
       "s3Title": "Share & get orders",
@@ -463,7 +473,7 @@
       "q2": "How do customers order from my shop?",
       "a2": "Customers open your store link, add products to the cart and tap \"Place Order via WhatsApp\". You receive the full itemised bill with delivery address on your WhatsApp.",
       "q3": "Do I need a website, app or technical knowledge?",
-      "a3": "No. Register with your store name and mobile number, add products from your phone or upload an Excel/CSV sheet, and share the link.",
+      "a3": "No. Register with your store name and email, add products from your phone or upload an Excel/CSV sheet, and share the link.",
       "q4": "Which businesses can use it?",
       "a4": "Kirana and grocery stores, bakeries, pharmacies, dairy, fruits and vegetables, sweet shops, stationery, hardware and any local shop that delivers or offers pickup.",
       "q5": "Do you charge commission on orders?",
@@ -605,7 +615,9 @@
     "shopInstead": "Looking to shop instead? <link>Browse local stores</link>",
     "phoneHintOtp": "We send a one-time code to verify it. This number also receives your WhatsApp orders (you can change it later).",
     "loginHint": "Use the mobile number you registered your store with.",
-    "consent": "By continuing you agree to our <link>Privacy policy</link>."
+    "consent": "By continuing you agree to our <link>Privacy policy</link>.",
+    "emailHint": "We'll email you a 6-digit code. No password needed.",
+    "newStoreBody": "Welcome! Tell us about your store to finish signing up."
   },
   "merchant": {
     "seoTitle": "Store dashboard",
@@ -791,7 +803,8 @@
     "passwordUpdated": "Password updated.",
     "updatePassword": "Update password",
     "loginTitle": "How you log in",
-    "loginInfo": "You log in with your mobile <b>{phone}</b> and a one-time code. No password needed."
+    "loginInfo": "You log in with your mobile <b>{phone}</b> and a one-time code. No password needed.",
+    "loginInfoEmail": "You log in with your email <b>{email}</b> and a one-time code. No password needed."
   },
   "settings": {
     "waUpdated": "WhatsApp number updated and verified",
@@ -835,7 +848,9 @@
     "verifyUpdate": "Verify & update",
     "orderLanguageAuto": "Customer's language (recommended)",
     "deliveryTitle": "Delivery",
-    "freeDelivery": "Free delivery (no delivery fee)"
+    "freeDelivery": "Free delivery (no delivery fee)",
+    "waPending": "Verified on approval",
+    "waSave": "Save number"
   },
   "msgimp": {
     "title": "Add products from a WhatsApp message",

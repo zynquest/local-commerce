@@ -55,6 +55,11 @@ export default function StoreFooter() {
           </Link>
         )}
         {!whitelabel && <p className="text-[11px] text-stone-400">🇮🇳 {t('landing.madeIn')}</p>}
+        {config.seed_source === 'osm' && (
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="text-[11px] text-stone-400 underline" dir="ltr">
+            Listing data © OpenStreetMap contributors
+          </a>
+        )}
         {!whitelabel && (
           <a href="/privacy" className="text-[11px] text-stone-400 underline hover:text-brand">{t('common.privacy')}</a>
         )}

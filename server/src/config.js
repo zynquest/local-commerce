@@ -45,6 +45,10 @@ export const config = {
   // How shoppers identify themselves: 'email' (code emailed directly, needs SMTP) or 'mobile' (10-digit number,
   // code delivered by OTP_PROVIDER like owners' codes). Owners always use mobile.
   customerLogin: process.env.CUSTOMER_LOGIN || 'email',
+  // How store owners register and log in: 'email' (code emailed, default) or 'mobile' (10-digit number, code via
+  // OTP_PROVIDER). With email, the store's WhatsApp number is given when submitting for approval and is verified
+  // when the platform approves the store.
+  ownerLogin: process.env.OWNER_LOGIN || 'email',
   otpEmailTo: process.env.OTP_EMAIL_TO || 'creativebunnyofficial@gmail.com',
   // WhatsApp number users message to receive their OTP while codes are relayed manually.
   otpHelpWhatsApp: (process.env.OTP_HELP_WHATSAPP || '919353095481').replace(/\D/g, ''),
@@ -90,6 +94,7 @@ export function assertOtpConfig() {
   const p = config.otpProvider;
   if (!['fixed', 'console', 'email', 'sms', 'whatsapp', 'whatsapp_reply', 'msg91_whatsapp'].includes(p)) throw new Error(`Unknown OTP_PROVIDER "${p}"`);
   if (!['email', 'mobile'].includes(config.customerLogin)) throw new Error(`CUSTOMER_LOGIN must be "email" or "mobile", not "${config.customerLogin}"`);
+  if (!['email', 'mobile'].includes(config.ownerLogin)) throw new Error(`OWNER_LOGIN must be "email" or "mobile", not "${config.ownerLogin}"`);
   const wa = config.whatsapp;
   if (p === 'whatsapp' || p === 'whatsapp_reply') {
     const missing = [
@@ -111,7 +116,8 @@ export function assertOtpConfig() {
       .filter(([, v]) => !v).map(([k]) => k);
     if (missing.length) throw new Error(`OTP_PROVIDER=msg91_whatsapp needs ${missing.join(', ')} (MSG91 panel; Deployment.md §B20).`);
   }
-  if ((p === 'email' || (config.isProd && config.customerLogin === 'email')) && (!config.smtp.user || !config.smtp.pass)) {
-    throw new Error('SMTP_USER and SMTP_PASS (Gmail address + App Password) are required for OTP_PROVIDER=email and CUSTOMER_LOGIN=email.');
+  const emailLogins = config.customerLogin === 'email' || config.ownerLogin === 'email';
+  if ((p === 'email' || (config.isProd && emailLogins)) && (!config.smtp.user || !config.smtp.pass)) {
+    throw new Error('SMTP_USER and SMTP_PASS (Gmail address + App Password) are required for OTP_PROVIDER=email, CUSTOMER_LOGIN=email and OWNER_LOGIN=email.');
   }
 }

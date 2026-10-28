@@ -561,7 +561,7 @@ Run it every 5 minutes and log failures:
 
 ## B14. Login OTPs (email relay, WhatsApp, or SMS via Fast2SMS)
 
-Store owners log in **only** with a 10-digit mobile number and a 6-digit OTP; the same flow covers WhatsApp-number changes. Shoppers (optional accounts, for order history) use one flow for sign-in and sign-up: they enter their **email address** (`CUSTOMER_LOGIN=email`, the default) and always receive a 6-digit code, emailed directly through the Gmail SMTP settings below whatever `OTP_PROVIDER` is set to; once the code is verified an existing account is signed in, otherwise they're asked for a name and the account is created. Set `CUSTOMER_LOGIN=mobile` to have shoppers use a 10-digit mobile number instead, with codes delivered by `OTP_PROVIDER` exactly like owners' codes (do this once SMS is live). There are no passwords; only the platform admin has one.
+Store owners sign up and log in with their **email address** by default (`OWNER_LOGIN=email`): one screen for both, a 6-digit code is emailed to them, and a new email is asked for the store name. They give the WhatsApp number for orders when they **submit the store for approval**, and the app opens a pre-filled WhatsApp message to the platform number from that phone; approving the store marks that number verified (it also becomes the owner's verified mobile). Owners who registered by mobile earlier can be given an email with `npm run owner:set-email -- <store-link> <email>` (on the VM: `node src/cli/owner.js set-email …`). `OWNER_LOGIN=mobile` brings back mobile + OTP for owners, including OTP-verified WhatsApp-number changes. Shoppers (optional accounts, for order history) use one flow for sign-in and sign-up: they enter their **email address** (`CUSTOMER_LOGIN=email`, the default) and always receive a 6-digit code, emailed directly through the Gmail SMTP settings below whatever `OTP_PROVIDER` is set to; once the code is verified an existing account is signed in, otherwise they're asked for a name and the account is created. Set `CUSTOMER_LOGIN=mobile` to have shoppers use a 10-digit mobile number instead, with codes delivered by `OTP_PROVIDER` exactly like owners' codes (do this once SMS is live). There are no passwords; only the platform admin has one.
 
 If shopper emails don't arrive, send a test message from the VM with the same settings and read the SMTP reply:
 
@@ -901,3 +901,52 @@ Restart and check the log for `[otp] provider: msg91_whatsapp`. Failures are log
 
 **Rollback:** set `OTP_PROVIDER=email` and restart.
 
+
+---
+
+## B21. Seeding local merchants (street onboarding)
+
+Seeded listings let shoppers near a shop find it before the owner signs up, and give the field team a ready store to hand over on a visit: *"Your shop is already listed on Vocal For Local. Log in with your mobile and set your prices."*
+
+**What a seeded listing is**
+- `stores.origin = 'seed'` (owner sign-ups are `organic`). It stays `seed` after the hand-over; `claimed_at` records when.
+- Approved, with the category's **starter catalog** (indicative Bengaluru prices) and the category logo. No WhatsApp number, so **it cannot take orders** until claimed.
+- Shown to shoppers **only within `NEARBY_RADIUS_KM`** (5 km) of their location, after real stores, with a *"Not taking orders yet"* badge. Never in search results without a location, never indexed, not in the sitemap.
+- The store page explains it was listed from public information and offers *"Own this shop? Claim it free, or ask us to remove it"* (a WhatsApp message to the platform number).
+- The listing's phone from the source is kept for the field team only; it is never shown to shoppers.
+- Seeded: grocery/kirana, vegetables and fruits, bakery, sweets, milk and dairy, flowers, hardware and electricals, mobiles and electronics, stationery, restaurants. **Not seeded:** salons, clinics (appointments) and pharmacies.
+
+**Sources**
+- **OpenStreetMap** (free, no key): names and locations are good in Bengaluru; phones are rare. The data is © OpenStreetMap contributors (ODbL); OSM-sourced listings show that credit in their footer.
+- **Google Places API** (optional, paid): adds phone numbers. Needs a *server* key with "Places API (New)" enabled in `GOOGLE_PLACES_API_KEY` (the browser Maps key won't work). Requests with phones are billed as Nearby Search Enterprise; the tool caps spend with `--max-requests`, caches every response, and prints an estimate before spending. Google's terms limit how long Places content may be stored, so treat it as the field team's visit list and let the owner's own details replace it on hand-over.
+- **Your own rows**: any shop you add to the CSV by hand (`source` = `manual`). JustDial and Google Maps pages are not scraped: both forbid it and block automated access.
+
+**Build the list (on your laptop)**
+```bash
+npm run seed:merchants -- fetch-osm --city bengaluru --out ../data/seed/blr-osm.csv
+# optional, costs money: phones from Google Places for one area first, e.g. 3 km around Indiranagar
+GOOGLE_PLACES_API_KEY=... npm run seed:merchants -- fetch-places --near 12.9719,77.6412 --radius-km 3 --out ../data/seed/blr-places.csv --max-requests 150 --yes
+npm run seed:merchants -- merge --out ../data/seed/blr.csv ../data/seed/blr-osm.csv ../data/seed/blr-places.csv
+```
+Open `data/seed/blr.csv` in a spreadsheet: delete rows you don't want, fix names, add shops (keep the columns). `data/seed/` is git-ignored.
+
+**Import (on the VM)**
+```bash
+gcloud compute scp --zone=$ZONE data/seed/blr.csv vfl-vm:/tmp/blr.csv
+gcloud compute ssh --zone=$ZONE vfl-vm
+sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/seed-merchants.js import /tmp/blr.csv --dry-run'
+sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/seed-merchants.js import /tmp/blr.csv'
+```
+Re-importing is safe: the same source row updates its listing (until claimed), a shop already on the platform within 60 m under the same name is skipped, and listings removed on request never come back.
+
+**Field visits**
+1. Export a walking list for an area (sorted by locality, with directions and store links):
+   ```bash
+   sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/seed-merchants.js export --near 12.9719,77.6412 --radius-km 1.5 --out /tmp/field.csv'
+   ```
+2. At the shop, open the admin console on your phone → **Seeded (unclaimed)** → search the name → **Hand over to owner** with the owner's mobile.
+3. The owner opens sonsari.in/login, enters that mobile and the OTP, and lands in their dashboard with the catalog; they adjust prices and products. Orders now reach their WhatsApp.
+4. If the listing already has the owner's mobile, they can also just **register** with it: the OTP proves the number and the listing is handed over automatically, same link, no duplicate store.
+
+**Removal requests:** admin console → the listing → *Remove listing* (the remarks box is the reason), or `seed-merchants.js remove <store-link> --reason "…"`. **Progress:** `seed-merchants.js stats` (by category, claimed, top localities); the admin dashboard shows *Seeded, unclaimed* and *Seeds claimed*.
+**Start over:** `seed-merchants.js remove-all --yes` deletes every unclaimed listing (claimed ones stay).

@@ -9,7 +9,7 @@ import { query } from '../db.js';
 import { badRequest, conflict, parse } from '../errors.js';
 import { issueOtp } from '../otp/otp.js';
 import { startWhatsAppRequest, usesWhatsAppReply } from '../otp/whatsappReply.js';
-import { getProvider, isCustomerPurpose, providerFor } from '../otp/providers.js';
+import { getProvider, isCustomerPurpose, isOwnerPurpose, ownersUseEmail, providerFor } from '../otp/providers.js';
 import { customerIdentity } from './customer.js';
 import { DEMO_WHATSAPP_LOCKED } from './merchant.js';
 import * as S from '../schemas.js';
@@ -41,6 +41,14 @@ otpRouter.post('/request', otpLimiter, async (req, res, next) => {
     if (id.column === 'phone' && usesWhatsAppReply()) return res.json({ ok: true, ...(await startWhatsAppRequest({ phone, purpose: 'customer_login', meta, language })) });
     return res.json({ ok: true, delivery: providerFor(purpose).delivery, ...(await issueOtp({ phone: id.value, purpose: 'customer_login', meta })) });
   }
+
+  // Owners, OWNER_LOGIN=email: one flow for sign-in and sign-up, so the code is always emailed; /api/auth/email
+  // decides whether to log in or create the store once the code is verified.
+  if (isOwnerPurpose(purpose) && ownersUseEmail()) {
+    if (!email) throw badRequest('Enter a valid email address', { email: 'Enter a valid email address' });
+    return res.json({ ok: true, delivery: providerFor(purpose).delivery, ...(await issueOtp({ phone: email, purpose: 'owner_login', meta })) });
+  }
+  if (!phone) throw badRequest('Enter a valid 10-digit mobile number', { phone: 'Enter a valid 10-digit mobile number' });
 
   // Free WhatsApp mode: the user messages us first. Logins get a request even for unknown numbers, so the
   // response never reveals who is registered; the webhook tells the number's owner if there's no account.

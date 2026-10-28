@@ -104,15 +104,37 @@ merchantRouter.get('/store', async (req, res) => {
   res.json({ store: await storeWithReview(req.user.store_id) });
 });
 
-/** Submit (or resubmit after rejection/suspension) for platform review. */
+/**
+ * Sets the store's WhatsApp number for orders (unverified: the platform verifies it when approving the store).
+ * The number must not belong to another store or another owner's login.
+ */
+async function setWhatsApp(client, store, ownerId, phone) {
+  if (phone === store.whatsapp_number) return;
+  if (store.is_demo) throw badRequest(DEMO_WHATSAPP_LOCKED);
+  const taken = await client.query(
+    `SELECT 1 FROM stores WHERE whatsapp_number = $1 AND id <> $2 AND NOT is_demo
+     UNION ALL SELECT 1 FROM users WHERE phone = $1 AND id <> $3`,
+    [phone, store.id, ownerId],
+  );
+  if (taken.rowCount) throw conflict('This WhatsApp number is already used by another store', { whatsapp_number: 'This WhatsApp number is already used by another store' });
+  await client.query('UPDATE stores SET whatsapp_number = $2, whatsapp_verified = false, updated_at = now() WHERE id = $1', [store.id, phone]);
+  store.whatsapp_number = phone;
+}
+
+/**
+ * Submit (or resubmit after rejection/suspension) for platform review. The WhatsApp number for orders can be given
+ * here (OWNER_LOGIN=email stores don't have one yet); the client also opens a WhatsApp message to the platform from
+ * that number, and approval marks the number verified.
+ */
 merchantRouter.post('/store/submit', async (req, res) => {
-  const { note } = parse(S.submitForReview, req.body ?? {});
+  const { note, whatsapp_number } = parse(S.submitForReview, req.body ?? {});
   await tx(async (client) => {
     const { rows } = await client.query('SELECT * FROM stores WHERE id = $1 FOR UPDATE', [req.user.store_id]);
     const store = rows[0];
     if (!REVIEWABLE.includes(store.status)) {
       throw conflict(store.status === 'pending_review' ? 'Your store is already waiting for review' : 'Your store is already approved');
     }
+    if (whatsapp_number) await setWhatsApp(client, store, req.user.id, whatsapp_number);
     const missing = (await reviewChecklist(store)).filter((c) => !c.done);
     if (missing.length) throw badRequest(`Please complete: ${missing.map((m) => m.label).join(', ')}`);
     await client.query(`UPDATE stores SET status = 'pending_review', submitted_at = now(), updated_at = now() WHERE id = $1`, [store.id]);
@@ -121,6 +143,16 @@ merchantRouter.post('/store/submit', async (req, res) => {
       note || null,
       req.user.id,
     ]);
+  });
+  res.json({ store: await storeWithReview(req.user.store_id) });
+});
+
+/** OWNER_LOGIN=email: changes the WhatsApp number without an OTP; it's unverified until the platform approves it. */
+merchantRouter.put('/store/whatsapp', async (req, res) => {
+  const { phone } = parse(S.whatsappSet, req.body);
+  await tx(async (client) => {
+    const { rows } = await client.query('SELECT * FROM stores WHERE id = $1 FOR UPDATE', [req.user.store_id]);
+    await setWhatsApp(client, rows[0], req.user.id, phone);
   });
   res.json({ store: await storeWithReview(req.user.store_id) });
 });

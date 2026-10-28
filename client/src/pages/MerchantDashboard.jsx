@@ -360,7 +360,7 @@ export default function MerchantDashboard() {
             }}
           />
         )}
-        {tab === 'account' && <AccountPanel store={{ ...store, sku_used: stats?.sku_used ?? store.sku_used }} phone={owner.phone} />}
+        {tab === 'account' && <AccountPanel store={{ ...store, sku_used: stats?.sku_used ?? store.sku_used }} phone={owner.phone} email={owner.email} />}
       </main>
 
       {toast && (

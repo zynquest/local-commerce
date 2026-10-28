@@ -24,6 +24,8 @@ publicRouter.get('/config', (_req, res) => {
     otpHelpWhatsApp: config.otpHelpWhatsApp,
     // Shoppers sign in with 'email' (code emailed) or 'mobile' (code via otpDelivery). Owners always use mobile.
     customerLogin: config.customerLogin,
+    // Owners sign in with 'email' (WhatsApp number given on submission) or 'mobile'.
+    ownerLogin: config.ownerLogin,
     mapsKey: config.googleMapsKey,
     mapId: config.googleMapId,
     nearbyKm: config.nearbyRadiusKm,
@@ -52,21 +54,23 @@ publicRouter.get('/stores', async (req, res) => {
   let distance = 'NULL::float';
   let where = '';
   let order = 's.is_demo, s.verified DESC, s.created_at DESC';
+  // Unclaimed seeded listings appear only to shoppers near them (inside the radius below), after real stores.
   if (near) {
     params.push(lat, lng, radius, radius / 111, radius / (111 * Math.max(0.2, Math.cos((lat * Math.PI) / 180))));
     distance = DISTANCE_SQL('$3', '$4');
     // Bounding box first (uses the index), exact distance second. Demo stores are always included.
     where = `AND (s.is_demo OR (s.lat BETWEEN $3 - $6 AND $3 + $6 AND s.lng BETWEEN $4 - $7 AND $4 + $7 AND ${distance} <= $5))`;
-    order = `s.is_demo, ${distance} NULLS LAST, s.verified DESC`;
+    order = `s.is_demo, (s.origin = 'seed' AND s.claimed_at IS NULL), ${distance} NULLS LAST, s.verified DESC`;
   }
   const { rows } = await query(
-    `SELECT s.slug, s.name, s.logo_url, s.category, s.city, s.description, s.verified, s.is_demo, s.business_type,
+    `SELECT s.slug, s.name, s.logo_url, s.category, s.city, s.locality, s.description, s.verified, s.is_demo, s.business_type,
+            (s.origin = 'seed' AND s.claimed_at IS NULL) AS is_seed,
             round((${distance})::numeric, 1)::float AS distance_km,
             CASE WHEN s.business_type = 'appointments'
                  THEN (SELECT count(*)::int FROM services sv WHERE sv.store_id = s.id AND sv.active)
                  ELSE (SELECT count(*)::int FROM products p WHERE p.store_id = s.id AND p.status = 'active') END AS product_count
        FROM stores s
-      WHERE s.status = 'approved' AND s.whatsapp_number IS NOT NULL
+      WHERE s.status = 'approved' AND (s.whatsapp_number IS NOT NULL ${near ? "OR (s.origin = 'seed' AND s.claimed_at IS NULL)" : ''})
         AND ($1 = '' OR s.name ILIKE '%' || $1 || '%' OR s.city ILIKE '%' || $1 || '%' OR s.category ILIKE '%' || $1 || '%')
         AND ($2 = '' OR s.business_type = $2)
         ${where}
@@ -137,10 +141,11 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
   const o = parse(S.placeOrder, req.body);
   if (!o.items.length && !o.notes) throw badRequest('Add at least one item or a note');
 
-  const storeRes = await query(`SELECT id, delivery_fee, free_delivery_above, whatsapp_number, business_type FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
+  const storeRes = await query(`SELECT id, delivery_fee, free_delivery_above, whatsapp_number, business_type, is_demo FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
   const store = storeRes.rows[0];
   if (!store) throw notFound('Store not found');
   if (store.business_type === 'appointments') throw badRequest('This business takes appointments, not orders');
+  if (!store.whatsapp_number && !store.is_demo) throw badRequest("This store isn't taking online orders yet");
 
   const existing = await query('SELECT id, order_code, total, status FROM orders WHERE store_id = $1 AND order_code = $2', [
     store.id,

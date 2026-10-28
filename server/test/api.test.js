@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { after, before, describe, test } from 'node:test';
 import { createApp } from '../src/app.js';
+import { config as appConfig } from '../src/config.js';
 import { pool, query } from '../src/db.js';
 import { migrate } from '../src/migrate.js';
 import { adminPasswordProblems } from '../src/cli/admin.js';
@@ -51,7 +52,9 @@ let storeId;
 
 const product = (name, extra = {}) => ({ name, mrp: 100, list_price: 90, ...extra });
 
+const savedOwnerLogin = appConfig.ownerLogin;
 before(async () => {
+  appConfig.ownerLogin = 'mobile'; // these tests exercise the mobile-number owner flow (OWNER_LOGIN=mobile)
   await migrate({ log: () => {} });
   server = createApp().listen(0);
   await new Promise((r) => server.once('listening', r));
@@ -72,6 +75,7 @@ before(async () => {
 });
 
 after(async () => {
+  appConfig.ownerLogin = savedOwnerLogin;
   await query(`DELETE FROM users WHERE phone = ANY($1) AND role = 'owner'`, [[phoneA, phoneB, phoneC]]);
   await query(`DELETE FROM customers WHERE name = $1`, [`Tester ${run}`]);
   await query(`DELETE FROM otp_codes WHERE phone = ANY($1)`, [[phoneA, phoneB, phoneC, phoneShopper, emailShopper, '919000011111']]);

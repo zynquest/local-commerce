@@ -96,6 +96,7 @@ export function StoreList({ query = '', limit, type = '' }) {
                 <span className="truncate">{s.name}</span>
                 {s.verified && <BadgeCheck size={16} className="flex-none fill-sky-500 text-white" />}
                 {s.is_demo && <span className="flex-none rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">{t('store.demoBadge')}</span>}
+                {s.is_seed && <span className="flex-none rounded-full bg-lime-100 px-1.5 py-0.5 text-[10px] font-bold text-lime-800">{t('store.seedBadge')}</span>}
               </p>
               <p className="text-xs text-stone-500">
                 {[
@@ -109,7 +110,7 @@ export function StoreList({ query = '', limit, type = '' }) {
                     <Navigation size={11} /> <span dir="ltr">{s.distance_km < 0.1 ? `<${t('loc.km', { km: 0.1 })}` : t('loc.km', { km: s.distance_km })}</span>
                   </span>
                 )}
-                {s.city && <span className="flex items-center gap-1"><MapPin size={12} /> {s.city}</span>}
+                {(s.locality || s.city) && <span className="flex items-center gap-1"><MapPin size={12} /> {[s.locality, s.city].filter(Boolean).join(', ')}</span>}
                 {s.business_type === 'appointments' && (
                   <span className="flex items-center gap-1 rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-bold text-violet-700">
                     <CalendarClock size={11} /> {t('appt.badge')}

@@ -6,7 +6,7 @@ import { rich, useT } from '../i18n/index.jsx';
 
 const formatPhone = (p) => (p ? `+${p.slice(0, p.length - 10)} ${p.slice(-10, -5)} ${p.slice(-5)}` : '—');
 
-export default function AccountPanel({ store, phone }) {
+export default function AccountPanel({ store, phone, email }) {
   const t = useT();
   const contact = whatsappLink(
     PLATFORM.whatsappNumber,
@@ -50,7 +50,11 @@ export default function AccountPanel({ store, phone }) {
         <h2 className="flex items-center gap-2 font-bold">
           <Smartphone size={18} className="text-brand" /> {t('plan.loginTitle')}
         </h2>
-        <p className="text-sm text-stone-600">{rich(t('plan.loginInfo', { phone: formatPhone(phone) }), { b: (x) => <b dir="ltr">{x}</b> })}</p>
+        <p className="text-sm text-stone-600">
+          {email
+            ? rich(t('plan.loginInfoEmail', { email }), { b: (x) => <b dir="ltr">{x}</b> })
+            : rich(t('plan.loginInfo', { phone: formatPhone(phone) }), { b: (x) => <b dir="ltr">{x}</b> })}
+        </p>
       </div>
     </div>
   );

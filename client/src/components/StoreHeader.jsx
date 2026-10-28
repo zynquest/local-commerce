@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
-import { BadgeCheck, Clock, FlaskConical, Home, MapPin, Navigation, RefreshCw } from 'lucide-react';
+import { BadgeCheck, Clock, FlaskConical, Home, MapPin, Navigation, RefreshCw, Sprout } from 'lucide-react';
 import { PLATFORM } from '../config.js';
 import SmartImage from './SmartImage.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { getOpenStatus, mapsLink } from '../lib/format.js';
 import { useT } from '../i18n/index.jsx';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
+import { whatsappLink } from '../services/whatsappService.js';
 
 /** Store header: banner, logo, name, verified badge, open/closed status, address + Maps shortcut. */
 export default function StoreHeader() {
@@ -21,6 +22,21 @@ export default function StoreHeader() {
       <p className="flex items-center justify-center gap-1.5 bg-amber-100 px-4 py-2 text-center text-xs font-medium text-amber-900" role="note">
         <FlaskConical size={14} className="flex-none" /> {t('store.demoNotice')}
       </p>
+    )}
+    {config.is_seed && (
+      <div className="bg-lime-50 px-4 py-2 text-center text-xs text-lime-950" role="note">
+        <p className="flex items-center justify-center gap-1.5 font-medium">
+          <Sprout size={14} className="flex-none" /> {t('store.seedNotice', { brand: PLATFORM.name })}
+        </p>
+        <a
+          href={whatsappLink(PLATFORM.whatsappNumber, t('store.seedClaimMsg', { name: config.name, link: `${window.location.origin}${basePath}` }))}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-0.5 inline-block font-bold text-lime-800 underline"
+        >
+          {t('store.seedClaim')}
+        </a>
+      </div>
     )}
     <header className="relative bg-white">
       {/* Platform-hosted stores (/s/<slug>) link back to the marketplace; custom-domain stores are their own home. */}

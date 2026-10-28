@@ -6,6 +6,7 @@ import OtpField from '../components/OtpField.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import { post, put } from '../lib/api.js';
+import { useSession } from '../context/SessionContext.jsx';
 import { uploadImage } from '../services/imageService.js';
 import { useT } from '../i18n/index.jsx';
 import { LANGUAGES } from '../i18n/languages.js';
@@ -29,6 +30,9 @@ const formatPhone = (p) => (p ? `+${p.slice(0, p.length - 10)} ${p.slice(-10, -5
 /** WhatsApp number for orders. Changing it requires an OTP sent to the new number. */
 function WhatsAppNumber({ store, onSaved }) {
   const t = useT();
+  const { appConfig } = useSession();
+  // OWNER_LOGIN=email: no OTP to the new number; it's verified when the platform approves the store.
+  const plain = appConfig.ownerLogin !== 'mobile';
   const [editing, setEditing] = useState(false);
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -39,13 +43,15 @@ function WhatsAppNumber({ store, onSaved }) {
     setBusy(true);
     setError('');
     try {
-      const { store: updated } = await post('/merchant/store/whatsapp/verify', { phone, code });
+      const { store: updated } = plain
+        ? await put('/merchant/store/whatsapp', { phone })
+        : await post('/merchant/store/whatsapp/verify', { phone, code });
       onSaved(updated, t('settings.waUpdated'));
       setEditing(false);
       setPhone('');
       setCode('');
     } catch (err) {
-      setError(err.fields?.code || err.message);
+      setError(err.fields?.code || err.fields?.whatsapp_number || err.message);
     } finally {
       setBusy(false);
     }
@@ -65,7 +71,7 @@ function WhatsAppNumber({ store, onSaved }) {
                   <BadgeCheck size={12} /> {t('settings.verified')}
                 </span>
               ) : (
-                <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-semibold text-stone-600">{t('settings.registrationNumber')}</span>
+                <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-semibold text-stone-600">{plain ? t('settings.waPending') : t('settings.registrationNumber')}</span>
               ))}
           </p>
           <p className="text-[11px] text-stone-500">{t('settings.waHint')}</p>
@@ -83,10 +89,10 @@ function WhatsAppNumber({ store, onSaved }) {
             <button type="button" onClick={() => setEditing(false)} aria-label={t('common.cancel')} className="p-1 text-stone-400"><X size={16} /></button>
           </div>
           <MobileInput id="new-whatsapp" value={phone} onChange={setPhone} label={t('settings.newWa')} />
-          <OtpField phone={phone} purpose="whatsapp_change" code={code} onCode={setCode} />
+          {!plain && <OtpField phone={phone} purpose="whatsapp_change" code={code} onCode={setCode} />}
           {error && <p className="text-xs text-rose-600">{error}</p>}
-          <button type="button" onClick={verify} disabled={busy || code.length !== 6} className="btn-brand w-full">
-            {busy && <Loader2 size={16} className="animate-spin" />} {t('settings.verifyUpdate')}
+          <button type="button" onClick={verify} disabled={busy || (plain ? !/^[6-9]\d{9}$/.test(phone) : code.length !== 6)} className="btn-brand w-full">
+            {busy && <Loader2 size={16} className="animate-spin" />} {plain ? t('settings.waSave') : t('settings.verifyUpdate')}
           </button>
         </div>
       )}

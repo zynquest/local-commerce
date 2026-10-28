@@ -19,6 +19,7 @@ npm install
 npm run db:up            # Postgres in Docker on localhost:5433
 npm run db:seed          # optional: demo store (owner mobile 9000000001, OTP 898989)
 npm run demo:create      # optional: 8 demo businesses (6 shops incl. a restaurant + salon + clinic); demo:remove -- --yes
+npm run seed:merchants   # list local shops from OpenStreetMap / Google Places as claimable listings (Deployment.md §B21)
 npm run admin:create     # the single platform admin (CLI only, strong password enforced)
 npm run dev              # API :4000 + UI :5173
 ```

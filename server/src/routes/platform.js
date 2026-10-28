@@ -8,6 +8,7 @@ import { query, tx } from '../db.js';
 import { conflict, notFound, parse, unauthorized } from '../errors.js';
 import * as S from '../schemas.js';
 import { PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
+import { claimSeedStore, removeSeedStore } from '../seed/stores.js';
 
 export const platformRouter = Router();
 
@@ -41,28 +42,41 @@ platformRouter.get('/me', (req, res) => res.json({ admin: { username: req.admin.
 platformRouter.get('/stats', async (_req, res) => {
   const { rows } = await query(
     `SELECT
-       (SELECT json_object_agg(status, n) FROM (SELECT status, count(*)::int AS n FROM stores GROUP BY status) t) AS by_status,
+       (SELECT json_object_agg(status, n) FROM (SELECT status, count(*)::int AS n FROM stores
+          WHERE NOT (origin = 'seed' AND claimed_at IS NULL) GROUP BY status) t) AS by_status,
+       (SELECT count(*)::int FROM stores WHERE origin = 'seed' AND claimed_at IS NULL) AS seeds_unclaimed,
+       (SELECT count(*)::int FROM stores WHERE origin = 'seed' AND claimed_at IS NOT NULL) AS seeds_claimed,
        (SELECT count(*)::int FROM products WHERE status = 'active') AS products,
        (SELECT count(*)::int FROM orders WHERE created_at > now() - interval '7 days') AS orders_7d,
        (SELECT count(*)::int FROM customers) AS customers`,
   );
-  res.json({ ...rows[0], by_status: rows[0].by_status || {} });
+  const by = rows[0].by_status || {};
+  res.json({ ...rows[0], by_status: { ...by, seed: rows[0].seeds_unclaimed } });
 });
 
 const STORE_LIST_COLUMNS = `s.id, s.slug, s.name, s.status, s.plan, s.sku_limit, s.category, s.city, s.logo_url, s.business_type, s.lat,
   s.whatsapp_number, s.whatsapp_verified, s.submitted_at, s.reviewed_at, s.review_remarks, s.created_at,
-  u.username AS owner_username, u.phone AS owner_phone,
+  s.origin, s.claimed_at, s.locality, s.seed_phone,
+  u.username AS owner_username, u.phone AS owner_phone, u.email AS owner_email,
   (SELECT count(*)::int FROM products p WHERE p.store_id = s.id AND p.status = 'active') AS product_count`;
 
-/** Store list. status=pending_review gives the approval queue (oldest submission first). */
+/**
+ * Store list. status=pending_review gives the approval queue (oldest submission first); status=seed lists the
+ * unclaimed seeded listings (kept out of every other tab, "Live" included, since there can be thousands).
+ */
 platformRouter.get('/stores', async (req, res) => {
-  const status = typeof req.query.status === 'string' && req.query.status !== 'all' ? req.query.status : null;
+  const raw = typeof req.query.status === 'string' ? req.query.status : 'all';
+  const status = raw === 'all' || raw === 'seed' ? null : raw;
+  const unclaimedSeed = `(s.origin = 'seed' AND s.claimed_at IS NULL)`;
+  const seedFilter = raw === 'seed' ? `AND ${unclaimedSeed}` : raw === 'all' ? '' : `AND NOT ${unclaimedSeed}`;
   const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 60) : '';
   const { rows } = await query(
     `SELECT ${STORE_LIST_COLUMNS}
        FROM stores s JOIN users u ON u.id = s.owner_id
-      WHERE ($1::text IS NULL OR s.status = $1)
-        AND ($2 = '' OR s.name ILIKE '%' || $2 || '%' OR s.slug ILIKE '%' || $2 || '%' OR u.phone LIKE '%' || $2 || '%')
+      WHERE ($1::text IS NULL OR s.status = $1) ${seedFilter}
+        AND ($2 = '' OR s.name ILIKE '%' || $2 || '%' OR s.slug ILIKE '%' || $2 || '%' OR u.phone LIKE '%' || $2 || '%'
+             OR s.locality ILIKE '%' || $2 || '%' OR s.seed_phone LIKE '%' || $2 || '%' OR u.email ILIKE '%' || $2 || '%'
+             OR s.whatsapp_number LIKE '%' || $2 || '%')
       ORDER BY CASE WHEN s.status = 'pending_review' THEN s.submitted_at END ASC NULLS LAST, s.created_at DESC
       LIMIT 200`,
     [status, q],
@@ -72,7 +86,8 @@ platformRouter.get('/stores', async (req, res) => {
 
 platformRouter.get('/stores/:id', async (req, res) => {
   const { rows } = await query(
-    `SELECT s.*, u.username AS owner_username, u.phone AS owner_phone, u.created_at AS owner_since
+    `SELECT s.*, u.username AS owner_username, u.phone AS owner_phone, u.created_at AS owner_since,
+            u.email AS owner_email, u.email_verified_at AS owner_email_verified_at, u.phone_verified_at AS owner_phone_verified_at
        FROM stores s JOIN users u ON u.id = s.owner_id WHERE s.id = $1`,
     [req.params.id],
   );
@@ -94,6 +109,32 @@ platformRouter.get('/stores/:id', async (req, res) => {
   const { owner_id, sku_seq, ...store } = rows[0];
   res.json({ store, products: products.rows.map(serializeProduct), reviews: reviews.rows, counts: counts.rows[0] });
 });
+
+/** Hand a seeded listing to its owner: their mobile becomes the login + WhatsApp number; they log in with OTP. */
+platformRouter.post('/stores/:id/claim', async (req, res) => {
+  const { email, phone } = parse(S.seedClaim, req.body ?? {});
+  await claimSeedStore({ storeId: req.params.id, email, phone, actorId: req.admin.id });
+  res.json({ ok: true });
+});
+
+/** Remove an unclaimed seeded listing (e.g. the owner asked); re-imports skip it. */
+platformRouter.post('/stores/:id/remove-seed', async (req, res) => {
+  const { remarks } = parse(S.reviewDecision, req.body ?? {});
+  await removeSeedStore({ storeId: req.params.id, reason: remarks });
+  res.json({ ok: true });
+});
+
+async function verifyWhatsAppOnApproval(client, storeId) {
+  const { rows } = await client.query('SELECT owner_id, whatsapp_number, is_demo FROM stores WHERE id = $1', [storeId]);
+  const s = rows[0];
+  if (!s?.whatsapp_number || s.is_demo) return;
+  await client.query('UPDATE stores SET whatsapp_verified = true WHERE id = $1', [storeId]);
+  await client.query(
+    `UPDATE users SET phone = $2, phone_verified_at = now()
+      WHERE id = $1 AND (phone IS NULL OR phone = $2) AND NOT EXISTS (SELECT 1 FROM users WHERE phone = $2 AND id <> $1)`,
+    [s.owner_id, s.whatsapp_number],
+  );
+}
 
 /** State machine for review actions: allowed source statuses → resulting status. */
 const TRANSITIONS = {
@@ -121,6 +162,9 @@ for (const [action, t] of Object.entries(TRANSITIONS)) {
         remarks || null,
         req.admin.id,
       ]);
+      // Approving confirms the WhatsApp number the owner submitted (they messaged us from it): mark it verified, and
+      // make it the owner's verified mobile when no one else uses that number.
+      if (action === 'approve') await verifyWhatsAppOnApproval(client, req.params.id);
       return updated.rows[0];
     });
     res.json({ store });

@@ -23,7 +23,7 @@ export default function BookingStorefront() {
     description: config.description || t('book.seoDesc', { name: config.name }),
     path: basePath || '/',
     image: config.banner_url || config.logo_url,
-    noindex: Boolean(config.preview || config.is_demo),
+    noindex: Boolean(config.preview || config.is_demo || config.is_seed),
   });
 
   const groups = useMemo(() => {

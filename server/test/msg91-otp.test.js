@@ -17,7 +17,9 @@ const realFetch = globalThis.fetch;
 const api = (path, body) =>
   realFetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async (r) => ({ status: r.status, body: await r.json() }));
 
+const savedOwnerLogin = config.ownerLogin;
 before(async () => {
+  config.ownerLogin = 'mobile'; // these tests exercise the mobile-number owner flow (OWNER_LOGIN=mobile)
   await migrate({ log: () => {} });
   config.otpProvider = 'msg91_whatsapp';
   Object.assign(config.msg91, { authKey: 'test-authkey', whatsappNumber: '919353095481', template: 'login_code', templateLang: 'en', namespace: '' });
@@ -34,6 +36,7 @@ before(async () => {
 });
 
 after(async () => {
+  config.ownerLogin = savedOwnerLogin;
   config.otpProvider = saved.provider;
   Object.assign(config.msg91, saved.msg91);
   globalThis.fetch = realFetch;

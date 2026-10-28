@@ -8,42 +8,13 @@
 //
 // Demo owners have no mobile, so nobody can log in to them until you attach one:
 //   npm run owner:set-phone -- demo-bakery <10-digit mobile>
-import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { config } from '../config.js';
+import { art, banner, pruneFiles, writeFile } from './art.js';
 import { pool, query, tx } from '../db.js';
 import { migrate } from '../migrate.js';
 import { DEMO_STORES } from '../demo-stores-data.js';
-
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-
-const art = (emoji, [from, to]) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600"><defs><radialGradient id="g" cx="0.35" cy="0.3" r="0.9"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></radialGradient></defs><rect width="600" height="600" fill="url(#g)"/><circle cx="300" cy="320" r="190" fill="#ffffff" fill-opacity="0.35"/><text x="300" y="325" font-size="230" text-anchor="middle" dominant-baseline="central">${emoji}</text></svg>`;
-
-const banner = (emoji, name, color) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="#0f172a"/></linearGradient></defs><rect width="1200" height="400" fill="url(#g)"/><circle cx="1010" cy="200" r="250" fill="#ffffff" fill-opacity="0.08"/><circle cx="1010" cy="200" r="160" fill="#ffffff" fill-opacity="0.1"/><text x="1010" y="210" font-size="190" text-anchor="middle" dominant-baseline="central">${emoji}</text><text x="70" y="215" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="64" font-weight="800" fill="#ffffff">${esc(name)}</text></svg>`;
-
-// Image URLs carry a short hash of their content (`FOOD-009-1-a1b2c3.svg`): generated art is cached for 30 days by
-// the service worker and browsers, so a product that changes emoji, or moves to another sku_id, gets a new URL
-// instead of a stale picture. Re-runs delete the files that are no longer referenced.
-const sig = (content) => crypto.createHash('sha1').update(content).digest('hex').slice(0, 8);
-async function writeFile(storeId, stem, ext, content) {
-  const dir = path.join(config.uploadDir, storeId);
-  await fs.mkdir(dir, { recursive: true });
-  const name = `${stem}-${sig(content)}.${ext}`;
-  await fs.writeFile(path.join(dir, name), content);
-  return `/uploads/${storeId}/${name}`;
-}
-
-/** Removes generated files that this run did not write (their JPEG twins from images:share-jpegs too). */
-async function pruneFiles(storeId, keptUrls) {
-  const dir = path.join(config.uploadDir, storeId);
-  const keep = new Set(keptUrls.map((u) => path.basename(u).replace(/\.\w+$/, '')));
-  for (const f of await fs.readdir(dir)) {
-    if (!keep.has(f.replace(/\.\w+$/, ''))) await fs.unlink(path.join(dir, f));
-  }
-}
 
 /** Services + specialists (with weekly hours) for a demo appointment business. Matched by name, so re-runs update. */
 async function seedBooking(client, storeId, demo) {

@@ -163,11 +163,18 @@ export const isCustomerPurpose = (purpose) => purpose === 'customer_login' || pu
 /** Whether shoppers identify by email (CUSTOMER_LOGIN=email, the default) rather than a mobile number. */
 export const customersUseEmail = () => config.customerLogin === 'email';
 
+export const isOwnerPurpose = (purpose) => purpose === 'owner_login' || purpose === 'owner_register';
+
+/** Whether store owners identify by email (OWNER_LOGIN=email, the default) rather than a mobile number. */
+export const ownersUseEmail = () => config.ownerLogin === 'email';
+
 /**
- * Provider for a purpose: with CUSTOMER_LOGIN=email, shoppers' codes are emailed directly (except in the local dev
- * modes, which still show the fixed code); everything else, including CUSTOMER_LOGIN=mobile, follows OTP_PROVIDER.
+ * Provider for a purpose: codes for email logins (CUSTOMER_LOGIN=email / OWNER_LOGIN=email) are emailed directly
+ * (except in the local dev modes, which still show the fixed code); everything else follows OTP_PROVIDER.
  */
 export function providerFor(purpose) {
   const configured = getProvider();
-  return isCustomerPurpose(purpose) && customersUseEmail() && configured.delivery !== 'dev' ? customerEmail : configured;
+  if (configured.delivery === 'dev') return configured;
+  const byEmail = (isCustomerPurpose(purpose) && customersUseEmail()) || (isOwnerPurpose(purpose) && ownersUseEmail());
+  return byEmail ? customerEmail : configured;
 }

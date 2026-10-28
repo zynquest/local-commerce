@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
   BadgeCheck, Check, ExternalLink, Inbox, Loader2, LogOut, MapPin, Phone, RefreshCw, RotateCcw, Search, ShieldCheck,
-  ShieldOff, Store, X,
+  ShieldOff, Sprout, Store, Trash2, UserCheck, X,
 } from 'lucide-react';
+import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import { LoadingScreen } from '../components/StatusScreens.jsx';
@@ -21,8 +22,11 @@ const FILTERS = [
   ['rejected', 'Changes requested'],
   ['draft', 'Draft'],
   ['suspended', 'Suspended'],
+  ['seed', 'Seeded (unclaimed)'],
   ['all', 'All'],
 ];
+
+const SEED_SOURCE = { osm: 'OpenStreetMap', google_places: 'Google Places', manual: 'Field survey / manual' };
 
 const ACTION_LABEL = { submitted: 'Submitted by owner', approved: 'Approved', rejected: 'Rejected', suspended: 'Suspended', reinstated: 'Reinstated' };
 
@@ -41,6 +45,8 @@ function StoreDetail({ id, onClose, onChanged }) {
   const [remarks, setRemarks] = useState('');
   const [busy, setBusy] = useState('');
   const [plan, setPlan] = useState({ plan: 'free', sku_limit: 50 });
+  const [ownerMobile, setOwnerMobile] = useState('');
+  const [ownerEmail, setOwnerEmail] = useState('');
 
   const load = useCallback(async () => {
     try {
@@ -67,6 +73,41 @@ function StoreDetail({ id, onClose, onChanged }) {
     } catch (err) {
       setError(err.fields?.remarks || err.message);
     } finally {
+      setBusy('');
+    }
+  };
+
+  // Seeded listing → its owner: their mobile becomes the login + WhatsApp number; they log in with OTP and edit prices.
+  const handOver = async () => {
+    const email = ownerEmail.trim().toLowerCase();
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setError('Enter a valid email');
+    if (ownerMobile && !isMobile10(ownerMobile)) return setError('Enter a valid 10-digit mobile');
+    if (!email && !ownerMobile) return setError("Enter the owner's email (they log in with it) and/or mobile");
+    setBusy('claim');
+    setError('');
+    try {
+      await post(`/platform/stores/${id}/claim`, { email: email || undefined, phone: ownerMobile || undefined });
+      setOwnerMobile('');
+      setOwnerEmail('');
+      await load();
+      onChanged();
+    } catch (err) {
+      setError(err.fields?.email || err.fields?.phone || err.message);
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const removeSeed = async () => {
+    if (!window.confirm('Remove this listing? It is deleted and future imports skip it.')) return;
+    setBusy('remove');
+    setError('');
+    try {
+      await post(`/platform/stores/${id}/remove-seed`, { remarks: remarks || undefined });
+      onChanged();
+      onClose();
+    } catch (err) {
+      setError(err.message);
       setBusy('');
     }
   };
@@ -121,9 +162,52 @@ function StoreDetail({ id, onClose, onChanged }) {
               {s.description && <p className="border-t border-stone-100 px-4 py-3 text-sm text-stone-700">{s.description}</p>}
             </div>
 
+            {s.origin === 'seed' && (
+              <div className="card space-y-3 border-2 border-lime-300 p-4">
+                <p className="flex items-center gap-2 font-semibold">
+                  <Sprout size={18} className="text-lime-700" /> Seeded listing
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${s.claimed_at ? 'bg-emerald-100 text-emerald-800' : 'bg-lime-100 text-lime-800'}`}>
+                    {s.claimed_at ? `Claimed ${ago(s.claimed_at)}` : 'Not claimed yet'}
+                  </span>
+                </p>
+                <p className="text-xs text-stone-600">
+                  From {SEED_SOURCE[s.seed_source] || s.seed_source || '—'}
+                  {s.locality ? ` · ${s.locality}` : ''}
+                  {s.seed_phone ? ` · listed phone ${s.seed_phone}` : ' · no phone listed'}
+                </p>
+                {!s.claimed_at && (
+                  <>
+                    <p className="text-sm text-stone-700">
+                      At the shop: enter the owner's email (they log in at <b>/login</b> with it and an emailed code) and their WhatsApp mobile (orders go there; marked verified since you're with them). They adjust prices and the shop is live.
+                    </p>
+                    <div>
+                      <label className="label" htmlFor="seed-owner-email">Owner's email (login)</label>
+                      <input id="seed-owner-email" className="input" type="email" inputMode="email" placeholder="owner@example.com" value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} />
+                    </div>
+                    <div className="flex flex-wrap items-end gap-2">
+                      <div className="min-w-0 flex-1"><MobileInput id="seed-owner" value={ownerMobile} onChange={setOwnerMobile} label="Owner's WhatsApp mobile" /></div>
+                      <button onClick={handOver} disabled={!!busy} className="btn-brand">
+                        {busy === 'claim' ? <Loader2 size={16} className="animate-spin" /> : <UserCheck size={16} />} Hand over to owner
+                      </button>
+                    </div>
+                    <button onClick={removeSeed} disabled={!!busy} className="flex items-center gap-1 text-xs font-semibold text-rose-700 hover:underline">
+                      <Trash2 size={13} /> Remove listing (owner asked / closed down) — uses the remarks below as the reason
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
             <div className="card grid grid-cols-2 gap-3 p-4 text-sm sm:grid-cols-3">
               <div><p className="label">Owner</p><p className="font-semibold">{s.owner_username}</p></div>
-              <div><p className="label">Registered mobile</p><p className="flex items-center gap-1"><Phone size={12} /> {phoneText(s.owner_phone)}</p></div>
+              <div>
+                <p className="label">Login email</p>
+                <p className="flex items-center gap-1 break-all">{s.owner_email || '—'} {s.owner_email_verified_at && <BadgeCheck size={14} className="flex-none text-emerald-600" aria-label="Verified" />}</p>
+              </div>
+              <div>
+                <p className="label">Owner mobile</p>
+                <p className="flex items-center gap-1"><Phone size={12} /> {phoneText(s.owner_phone)} {s.owner_phone_verified_at && <BadgeCheck size={14} className="text-emerald-600" aria-label="Verified" />}</p>
+              </div>
               <div>
                 <p className="label">WhatsApp orders</p>
                 <p className="flex items-center gap-1">{phoneText(s.whatsapp_number)} {s.whatsapp_verified && <BadgeCheck size={14} className="text-emerald-600" aria-label="Verified" />}</p>
@@ -152,6 +236,11 @@ function StoreDetail({ id, onClose, onChanged }) {
               <div className="flex flex-wrap gap-2">
                 {s.status === 'pending_review' && (
                   <>
+                    <p className="w-full text-xs text-stone-600">
+                      {s.whatsapp_number
+                        ? <>Approve once their WhatsApp message arrives from <b>{phoneText(s.whatsapp_number)}</b>: approving marks that number verified.</>
+                        : 'No WhatsApp number yet.'}
+                    </p>
                     <button onClick={() => act('approve')} disabled={!!busy} className="btn-brand">
                       {busy === 'approve' ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Approve
                     </button>
@@ -294,10 +383,12 @@ export default function AdminConsole() {
 
       <main className="mx-auto max-w-6xl space-y-4 p-4">
         {stats && (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {[
               ['Waiting for approval', count('pending_review'), 'text-amber-600'],
               ['Live stores', count('approved'), 'text-emerald-700'],
+              ['Seeded, unclaimed', count('seed'), 'text-lime-700'],
+              ['Seeds claimed', stats.seeds_claimed, 'text-lime-700'],
               ['Active products', stats.products, ''],
               ['Orders (7 days)', stats.orders_7d, ''],
             ].map(([k, v, cls]) => (
@@ -341,7 +432,7 @@ export default function AdminConsole() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{s.name}</p>
                   <p className="truncate text-xs text-stone-500">
-                    {s.business_type === 'appointments' ? 'Appointments · ' : ''}{[s.category, s.city].filter(Boolean).join(' · ') || '—'} · {s.product_count} products · owner {s.owner_username} ({phoneText(s.owner_phone)})
+                    {s.business_type === 'appointments' ? 'Appointments · ' : ''}{[s.category, s.city].filter(Boolean).join(' · ') || '—'} · {s.product_count} products · owner {s.owner_email || s.owner_username} · WhatsApp {phoneText(s.whatsapp_number)}
                   </p>
                 </div>
                 <div className="flex flex-none flex-col items-end gap-1">

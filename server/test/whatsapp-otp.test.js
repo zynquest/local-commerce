@@ -26,7 +26,9 @@ const api = (path, body) =>
   realFetch(base + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async (r) => ({ status: r.status, body: await r.json() }));
 const settle = () => new Promise((r) => setTimeout(r, 150)); // webhook answers 200 first, then processes
 
+const savedOwnerLogin = config.ownerLogin;
 before(async () => {
+  config.ownerLogin = 'mobile'; // these tests exercise the mobile-number owner flow (OWNER_LOGIN=mobile)
   await migrate({ log: () => {} });
   Object.assign(config.whatsapp, { phoneNumberId: '1234567890', accessToken: 'test-token', appSecret: 'test-secret', verifyToken: 'verify-me', businessNumber: '919353095481', otpTemplate: 'login_code', otpTemplateLang: 'en' });
   globalThis.fetch = async (url, init) => {
@@ -42,6 +44,7 @@ before(async () => {
 });
 
 after(async () => {
+  config.ownerLogin = savedOwnerLogin;
   config.otpProvider = saved.provider;
   Object.assign(config.whatsapp, saved.wa);
   globalThis.fetch = realFetch;

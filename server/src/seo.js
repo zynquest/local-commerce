@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { config } from './config.js';
 import { query } from './db.js';
+import { isUnclaimedSeed } from './serialize.js';
 import { RTL, availableLanguages, makeServerT, pickLanguage } from './i18n.js';
 
 const BRAND = config.platformName;
@@ -285,7 +286,7 @@ ${store.address_text ? `<address>${esc(store.address_text)}</address>` : ''}
     description: trim(store.description || t('book.seoDesc', { name: store.name }), 160),
     canonical: url,
     image: shareImage(base, store.banner_url) || shareImage(base, store.logo_url) || `${base}/og-image.png`,
-    noindex: store.is_demo,
+    noindex: store.is_demo || isUnclaimedSeed(store),
     jsonLd: [ld, breadcrumbs(base, t, [[t('stores.title'), '/stores'], [store.name, `/s/${store.slug}`]])],
     body,
   };
@@ -348,7 +349,7 @@ ${store.address_text ? `<address>${esc(store.address_text)}</address>` : ''}
     description,
     canonical: `${url}`,
     image: shareImage(base, store.banner_url) || shareImage(base, store.logo_url) || `${base}/og-image.png`,
-    noindex: store.is_demo, // demo stores are for trying the app, not for search results
+    noindex: store.is_demo || isUnclaimedSeed(store), // demo stores are for trying the app; unclaimed seeds aren't the owner's yet
     jsonLd: [ld, breadcrumbs(base, t, [[t('stores.title'), '/stores'], [store.name, `/s/${store.slug}`]])],
     body,
   };
@@ -394,7 +395,7 @@ async function productPage(base, slug, sku, t) {
     canonical: url,
     image: shareImage(base, p.images[0]) || shareImage(base, store.logo_url) || `${base}/og-image.png`,
     type: 'product',
-    noindex: store.is_demo,
+    noindex: store.is_demo || isUnclaimedSeed(store),
     jsonLd: [
       ld,
       breadcrumbs(base, t, [[t('stores.title'), '/stores'], [store.name, `/s/${store.slug}`], [p.name, `/s/${store.slug}/p/${encodeURIComponent(p.sku_id)}`]]),
@@ -443,10 +444,11 @@ export async function seoHandler(req, res) {
 
 export async function sitemap(req, res) {
   const base = baseUrl(req);
-  const { rows: stores } = await query(`SELECT id, slug, updated_at FROM stores WHERE status = 'approved' AND NOT is_demo ORDER BY created_at`);
+  const { rows: stores } = await query(`SELECT id, slug, updated_at FROM stores WHERE status = 'approved' AND NOT is_demo AND NOT (origin = 'seed' AND claimed_at IS NULL) ORDER BY created_at`);
   const { rows: products } = await query(
     `SELECT s.slug, p.sku_id, p.updated_at FROM products p JOIN stores s ON s.id = p.store_id
-      WHERE s.status = 'approved' AND NOT s.is_demo AND p.status = 'active' ORDER BY s.created_at, p.position LIMIT 45000`,
+      WHERE s.status = 'approved' AND NOT s.is_demo AND NOT (s.origin = 'seed' AND s.claimed_at IS NULL) AND p.status = 'active'
+      ORDER BY s.created_at, p.position LIMIT 45000`,
   );
   const langs = availableLanguages();
   const url = (loc, lastmod, priority, alts = '') =>

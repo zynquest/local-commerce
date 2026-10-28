@@ -14,6 +14,7 @@ const defaultConfig = {
   otpDelivery: 'manual',
   otpHelpWhatsApp: PLATFORM.whatsappNumber,
   customerLogin: 'email', // 'email' | 'mobile' (server CUSTOMER_LOGIN)
+  ownerLogin: 'email', // 'email' | 'mobile' (server OWNER_LOGIN)
 };
 
 export function SessionProvider({ children }) {
@@ -61,6 +62,12 @@ export function SessionProvider({ children }) {
       // Owners: mobile + OTP — register { storeName, phone, code }, login { phone, code }. Customers: email + OTP.
       registerOwner: async (body) => setOwner((await post('/auth/register', body)).user),
       loginOwner: async (body) => setOwner((await post('/auth/login', body)).user),
+      /** OWNER_LOGIN=email, sign-in and sign-up: { email, code, storeName?, businessType? } → { user, created } or { needsStore }. */
+      authOwnerEmail: async (body) => {
+        const r = await post('/auth/email', body);
+        if (r.user) setOwner(r.user);
+        return r;
+      },
       logoutOwner: async () => {
         await post('/auth/logout').catch(() => {});
         setOwner(null);

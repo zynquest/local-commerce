@@ -29,7 +29,7 @@ export default function Storefront() {
     description: config.description || t('seo.storeDesc', { name: config.name }),
     path: basePath || '/',
     image: config.banner_url || config.logo_url,
-    noindex: Boolean(config.preview || config.is_demo),
+    noindex: Boolean(config.preview || config.is_demo || config.is_seed),
   });
   const cart = useCart();
   const [query, setQuery] = useState('');

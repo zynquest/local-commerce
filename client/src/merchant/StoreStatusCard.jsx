@@ -22,9 +22,9 @@ export function StatusPill({ status }) {
   const meta = STORE_STATUS[status] || STORE_STATUS.draft;
   const Icon = meta.icon;
   return (
-    <span className={`inline-flex max-w-full items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${meta.cls}`}>
+    <span className={`inline-flex max-w-full items-center gap-1 rounded-full px-2.5 py-0.5 text-xs leading-tight font-bold ${meta.cls}`}>
       <Icon size={12} className="flex-none" />
-      <span className="truncate">{t(`review.status.${STORE_STATUS[status] ? status : 'draft'}`)}</span>
+      <span>{t(`review.status.${STORE_STATUS[status] ? status : 'draft'}`)}</span>
     </span>
   );
 }

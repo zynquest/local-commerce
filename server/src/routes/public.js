@@ -26,6 +26,8 @@ publicRouter.get('/config', (_req, res) => {
     customerLogin: config.customerLogin,
     // Owners sign in with 'email' (WhatsApp number given on submission) or 'mobile'.
     ownerLogin: config.ownerLogin,
+    // Google Sign-In web client ID ('' = off).
+    googleClientId: config.googleClientId,
     mapsKey: config.googleMapsKey,
     mapId: config.googleMapId,
     nearbyKm: config.nearbyRadiusKm,

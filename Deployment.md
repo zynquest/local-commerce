@@ -950,3 +950,19 @@ Re-importing is safe: the same source row updates its listing (until claimed), a
 
 **Removal requests:** admin console → the listing → *Remove listing* (the remarks box is the reason), or `seed-merchants.js remove <store-link> --reason "…"`. **Progress:** `seed-merchants.js stats` (by category, claimed, top localities); the admin dashboard shows *Seeded, unclaimed* and *Seeds claimed*.
 **Start over:** `seed-merchants.js remove-all --yes` deletes every unclaimed listing (claimed ones stay).
+
+---
+
+## B22. Google Sign-In (owners and shoppers)
+
+Owners and shoppers see Google's icon button on the sign-in screens; *"I don't have a Google account"* opens the email + code form as before. The server verifies Google's ID token itself (signature, audience, issuer, expiry, verified email), so no Google secret is needed: only the public client ID, which defaults to the platform's (`GOOGLE_CLIENT_ID` in `/etc/vfl/env` overrides it; empty turns Google off).
+
+- **New owner** with Google: asked for the store name and type (on /register they're filled first), then the store is created with the Google email as the verified login.
+- **New shopper** with Google: the account is created straight away with the Google name.
+- Existing accounts with the same email simply sign in, whichever method they used before.
+
+**Google Cloud Console (one time)**, project that owns the client ID:
+1. **APIs & Services → OAuth consent screen**: app name (e.g. *Vocal For Local*), support email, app logo optional, authorised domain `sonsari.in`, privacy policy `https://sonsari.in/privacy`. Scopes: just the defaults (`openid`, `email`, `profile`), which need no Google review. Then **Publish app** (status *In production*); in *Testing* only listed test users can sign in.
+2. **APIs & Services → Credentials →** the OAuth 2.0 *Web application* client **→ Authorized JavaScript origins**: add `https://sonsari.in`, `https://www.sonsari.in`, and for local development `http://localhost` and `http://localhost:5173`. No redirect URIs are needed (the button uses Google's popup). Changes can take a few minutes to apply.
+
+If the button shows an error or nothing happens, open the browser console: *"The given origin is not allowed for the given client ID"* means step 2 is missing that origin.

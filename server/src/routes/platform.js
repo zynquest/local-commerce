@@ -46,7 +46,9 @@ platformRouter.get('/stats', async (_req, res) => {
           WHERE NOT (origin = 'seed' AND claimed_at IS NULL) GROUP BY status) t) AS by_status,
        (SELECT count(*)::int FROM stores WHERE origin = 'seed' AND claimed_at IS NULL) AS seeds_unclaimed,
        (SELECT count(*)::int FROM stores WHERE origin = 'seed' AND claimed_at IS NOT NULL) AS seeds_claimed,
-       (SELECT count(*)::int FROM products WHERE status = 'active') AS products,
+       -- Real stores' products (seeded listings' starter catalogs would swamp the number)
+       (SELECT count(*)::int FROM products p JOIN stores s ON s.id = p.store_id
+         WHERE p.status = 'active' AND NOT (s.origin = 'seed' AND s.claimed_at IS NULL)) AS products,
        (SELECT count(*)::int FROM orders WHERE created_at > now() - interval '7 days') AS orders_7d,
        (SELECT count(*)::int FROM customers) AS customers`,
   );
@@ -66,9 +68,14 @@ const STORE_LIST_COLUMNS = `s.id, s.slug, s.name, s.status, s.plan, s.sku_limit,
  */
 platformRouter.get('/stores', async (req, res) => {
   const raw = typeof req.query.status === 'string' ? req.query.status : 'all';
-  const status = raw === 'all' || raw === 'seed' ? null : raw;
+  const status = ['all', 'seed', 'seed_claimed'].includes(raw) ? null : raw;
   const unclaimedSeed = `(s.origin = 'seed' AND s.claimed_at IS NULL)`;
-  const seedFilter = raw === 'seed' ? `AND ${unclaimedSeed}` : raw === 'all' ? '' : `AND NOT ${unclaimedSeed}`;
+  const seedFilter =
+    raw === 'seed' ? `AND ${unclaimedSeed}`
+      : raw === 'seed_claimed' ? `AND s.origin = 'seed' AND s.claimed_at IS NOT NULL`
+        : raw === 'all' ? '' : `AND NOT ${unclaimedSeed}`;
+  // sort=products: stores with the most active products first (from the "Active products" tile).
+  const byProducts = req.query.sort === 'products';
   const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 60) : '';
   const { rows } = await query(
     `SELECT ${STORE_LIST_COLUMNS}
@@ -77,11 +84,27 @@ platformRouter.get('/stores', async (req, res) => {
         AND ($2 = '' OR s.name ILIKE '%' || $2 || '%' OR s.slug ILIKE '%' || $2 || '%' OR u.phone LIKE '%' || $2 || '%'
              OR s.locality ILIKE '%' || $2 || '%' OR s.seed_phone LIKE '%' || $2 || '%' OR u.email ILIKE '%' || $2 || '%'
              OR s.whatsapp_number LIKE '%' || $2 || '%')
-      ORDER BY CASE WHEN s.status = 'pending_review' THEN s.submitted_at END ASC NULLS LAST, s.created_at DESC
+      ORDER BY ${byProducts ? 'product_count DESC,' : ''} CASE WHEN s.status = 'pending_review' THEN s.submitted_at END ASC NULLS LAST, s.created_at DESC
       LIMIT 200`,
     [status, q],
   );
   res.json({ stores: rows });
+});
+
+/** Recent orders across all stores (the "Orders" tile). days: 1–90, default 7. */
+platformRouter.get('/orders', async (req, res) => {
+  const days = Math.min(90, Math.max(1, Number(req.query.days) || 7));
+  const { rows } = await query(
+    `SELECT o.id, o.order_code, o.status, o.total, o.created_at, o.customer_name, o.customer_phone, o.placed_offline,
+            s.id AS store_id, s.name AS store_name, s.slug AS store_slug, s.currency_symbol,
+            (SELECT count(*)::int FROM order_items i WHERE i.order_id = o.id) AS items
+       FROM orders o JOIN stores s ON s.id = o.store_id
+      WHERE o.created_at > now() - make_interval(days => $1)
+      ORDER BY o.created_at DESC
+      LIMIT 200`,
+    [days],
+  );
+  res.json({ orders: rows, days });
 });
 
 platformRouter.get('/stores/:id', async (req, res) => {

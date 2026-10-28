@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CalendarClock, Loader2, Mail, ShoppingBag, Store } from 'lucide-react';
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import OtpField from '../components/OtpField.jsx';
+import GoogleSignIn from '../components/GoogleSignIn.jsx';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 import { useSession } from '../context/SessionContext.jsx';
-import { rich, useT } from '../i18n/index.jsx';
+import { rich, useI18n, useT } from '../i18n/index.jsx';
 import { PLATFORM } from '../config.js';
 import { useSeo } from '../lib/seo.js';
 
@@ -93,19 +94,27 @@ function AuthShell({ isRegister, children, onSubmit }) {
   );
 }
 
-/** Email + code. Existing account → dashboard; new email → store name + type (up front on /register). */
+/**
+ * Google (icon button) or email + code. Existing account → dashboard; new account → store name + type (asked up front
+ * on /register, after sign-in on /login). "I don't have a Google account" opens the email + code form.
+ */
 function EmailOwnerAuth({ mode }) {
   const isRegister = mode === 'register';
-  const t = useT();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
-  const { owner, loadOwner, authOwnerEmail } = useSession();
+  const { owner, loadOwner, authOwnerEmail, authOwnerGoogle, appConfig } = useSession();
   const [form, setForm] = useState({ storeName: '', email: '', code: '', businessType: '' });
-  const [needsStore, setNeedsStore] = useState(false); // code verified, new email: ask for the store
+  const [needsStore, setNeedsStore] = useState(false); // signed in, new account: ask for the store
+  const [googleCredential, setGoogleCredential] = useState(''); // kept to finish a Google sign-up with the store
+  const [emailChosen, setEmailChosen] = useState(false); // "I don't have a Google account"
+  const [googleDown, setGoogleDown] = useState(false); // Google couldn't load (offline / blocked)
+  const emailForm = emailChosen || googleDown || !appConfig.googleClientId;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [fields, setFields] = useState({});
   const submitted = useRef(false);
   const askStore = isRegister || needsStore;
+  const showGoogleUnavailable = useCallback(() => setGoogleDown(true), []);
 
   useEffect(() => {
     if (owner === undefined) loadOwner();
@@ -113,24 +122,16 @@ function EmailOwnerAuth({ mode }) {
   }, [owner, loadOwner, navigate]);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: typeof e === 'string' ? e : e.target.value }));
+  const storeBody = () => (askStore && form.storeName.trim().length >= 2 && form.businessType ? { storeName: form.storeName.trim(), businessType: form.businessType } : {});
 
-  const submit = async (e) => {
-    e.preventDefault();
+  /** Runs a sign-in call; handles "new account, tell us the store" and errors. */
+  const run = async (call) => {
     setError('');
     setFields({});
-    if (!isEmail(form.email)) return setFields({ email: t('errors.validEmail') });
-    // On /register the store fields are filled first; they're only used if the email is new.
-    const withStore = askStore && form.storeName.trim().length >= 2 && form.businessType;
-    if (needsStore && !form.businessType) return setFields({ businessType: t('biz.pickType') });
-    if (needsStore && form.storeName.trim().length < 2) return setFields({ storeName: t('errors.storeNameShort') });
     setBusy(true);
     submitted.current = true;
     try {
-      const r = await authOwnerEmail({
-        email: form.email.trim().toLowerCase(),
-        code: form.code,
-        ...(withStore ? { storeName: form.storeName.trim(), businessType: form.businessType } : {}),
-      });
+      const r = await call();
       if (r.needsStore) {
         submitted.current = false;
         setNeedsStore(true);
@@ -147,6 +148,21 @@ function EmailOwnerAuth({ mode }) {
     }
   };
 
+  const onGoogle = (credential) => {
+    setGoogleCredential(credential);
+    run(() => authOwnerGoogle({ credential, ...storeBody() }));
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (needsStore && !form.businessType) return setFields({ businessType: t('biz.pickType') });
+    if (needsStore && form.storeName.trim().length < 2) return setFields({ storeName: t('errors.storeNameShort') });
+    if (googleCredential) return run(() => authOwnerGoogle({ credential: googleCredential, ...storeBody() }));
+    if (!isEmail(form.email)) return setFields({ email: t('errors.validEmail') });
+    // On /register the store fields are filled first; they're only used if the email is new.
+    return run(() => authOwnerEmail({ email: form.email.trim().toLowerCase(), code: form.code, ...storeBody() }));
+  };
+
   const fieldError = (k) => fields[k] && <p className="mt-1 text-xs text-rose-600">{fields[k]}</p>;
   const storeFields = (
     <>
@@ -158,12 +174,23 @@ function EmailOwnerAuth({ mode }) {
       </div>
     </>
   );
+  const showSubmit = needsStore || emailForm;
 
   return (
     <AuthShell isRegister={isRegister || needsStore} onSubmit={submit}>
       {needsStore && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{t('owner.newStoreBody')}</p>}
       {askStore && storeFields}
-      {!needsStore && (
+      {!needsStore && appConfig.googleClientId && (
+        <div className="space-y-2 text-center">
+          <GoogleSignIn clientId={appConfig.googleClientId} onCredential={onGoogle} onUnavailable={showGoogleUnavailable} lang={lang} />
+          {!emailForm && (
+            <button type="button" onClick={() => setEmailChosen(true)} className="text-sm font-semibold text-brand underline">
+              {t('auth.noGoogle')}
+            </button>
+          )}
+        </div>
+      )}
+      {!needsStore && emailForm && (
         <>
           <div>
             <label className="label" htmlFor="owner-email">{t('auth.email')}</label>
@@ -179,6 +206,7 @@ function EmailOwnerAuth({ mode }) {
                 value={form.email}
                 onChange={set('email')}
                 required
+                autoFocus={Boolean(appConfig.googleClientId)}
               />
             </div>
             <p className="mt-1 text-[11px] text-stone-400">{t('owner.emailHint')}</p>
@@ -188,11 +216,14 @@ function EmailOwnerAuth({ mode }) {
           {fieldError('code')}
         </>
       )}
+      {busy && !showSubmit && <Loader2 className="mx-auto animate-spin text-brand" />}
       {error && !Object.values(fields).some(Boolean) && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
-      <button disabled={busy || form.code.length !== 6} className="btn-brand w-full py-3">
-        {busy && <Loader2 size={16} className="animate-spin" />}
-        {needsStore || (isRegister && form.storeName) ? t('owner.createStore') : t('auth.continue')}
-      </button>
+      {showSubmit && (
+        <button disabled={busy || (!googleCredential && form.code.length !== 6)} className="btn-brand w-full py-3">
+          {busy && <Loader2 size={16} className="animate-spin" />}
+          {needsStore || (isRegister && form.storeName) ? t('owner.createStore') : t('auth.continue')}
+        </button>
+      )}
     </AuthShell>
   );
 }

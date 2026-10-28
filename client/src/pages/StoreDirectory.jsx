@@ -92,8 +92,8 @@ export function StoreList({ query = '', limit, type = '' }) {
           <Link key={s.slug} to={`/s/${s.slug}`} className="card flex min-w-0 gap-3 p-4 transition hover:shadow-md">
             <SmartImage src={s.logo_url} alt={s.name} width={120} className="h-16 w-16 flex-none rounded-xl object-cover" />
             <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1 font-bold">
-                <span className="truncate">{s.name}</span>
+              <p className="flex flex-wrap items-center gap-x-1 gap-y-0.5 leading-snug font-bold break-words">
+                <span>{s.name}</span>
                 {s.verified && <BadgeCheck size={16} className="flex-none fill-sky-500 text-white" />}
                 {s.is_demo && <span className="flex-none rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">{t('store.demoBadge')}</span>}
                 {s.is_seed && <span className="flex-none rounded-full bg-lime-100 px-1.5 py-0.5 text-[10px] font-bold text-lime-800">{t('store.seedBadge')}</span>}

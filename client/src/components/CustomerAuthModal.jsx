@@ -1,21 +1,27 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Loader2, Mail, UserRound, X } from 'lucide-react';
 import MobileInput, { isMobile10 } from './MobileInput.jsx';
 import OtpField from './OtpField.jsx';
+import GoogleSignIn from './GoogleSignIn.jsx';
 import { useSession } from '../context/SessionContext.jsx';
-import { rich, useT } from '../i18n/index.jsx';
+import { rich, useI18n } from '../i18n/index.jsx';
 
 const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v || '').trim());
 
 /**
- * Optional shopper sign-in, one flow for new and returning shoppers: email (or mobile, per the server's
- * CUSTOMER_LOGIN) → code → if the account exists they're in, otherwise we ask for a name and create it.
- * Guests can always skip it.
+ * Optional shopper sign-in, one flow for new and returning shoppers. Google (icon button) signs in or creates the
+ * account with the Google name in one step; "I don't have a Google account" opens email (or mobile, per the
+ * server's CUSTOMER_LOGIN) → code → sign in, or a name for a new account. Guests can always skip it.
  */
 export default function CustomerAuthModal({ onClose }) {
-  const t = useT();
-  const { authCustomer, appConfig } = useSession();
+  const { t, lang } = useI18n();
+  const { authCustomer, authCustomerGoogle, appConfig } = useSession();
   const byEmail = appConfig.customerLogin !== 'mobile';
+  const google = byEmail && Boolean(appConfig.googleClientId);
+  const [emailChosen, setEmailChosen] = useState(false);
+  const [googleDown, setGoogleDown] = useState(false);
+  const codeForm = !google || emailChosen || googleDown;
+  const onGoogleDown = useCallback(() => setGoogleDown(true), []);
   const [form, setForm] = useState({ name: '', email: '', phone: '', code: '' });
   const [needsName, setNeedsName] = useState(false); // code verified, no account yet
   const [busy, setBusy] = useState(false);
@@ -32,6 +38,19 @@ export default function CustomerAuthModal({ onClose }) {
       const r = await authCustomer({ ...identity, code: form.code, ...(needsName ? { name: form.name.trim() } : {}) });
       if (r.needsName) setNeedsName(true);
       else onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onGoogle = async (credential) => {
+    setError('');
+    setBusy(true);
+    try {
+      await authCustomerGoogle({ credential });
+      onClose();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -59,8 +78,18 @@ export default function CustomerAuthModal({ onClose }) {
           </>
         ) : (
           <>
-            {!byEmail && <MobileInput id="customer-phone" value={form.phone} onChange={(phone) => setForm({ ...form, phone })} label={t('auth.mobile10')} />}
-            {byEmail && (
+            {google && (
+              <div className="space-y-2 text-center">
+                <GoogleSignIn clientId={appConfig.googleClientId} onCredential={onGoogle} onUnavailable={onGoogleDown} lang={lang} />
+                {!codeForm && (
+                  <button type="button" onClick={() => setEmailChosen(true)} className="text-sm font-semibold text-brand underline">
+                    {t('auth.noGoogle')}
+                  </button>
+                )}
+              </div>
+            )}
+            {codeForm && !byEmail && <MobileInput id="customer-phone" value={form.phone} onChange={(phone) => setForm({ ...form, phone })} label={t('auth.mobile10')} />}
+            {codeForm && byEmail && (
               <div>
                 <label className="label" htmlFor="customer-email">{t('auth.email')}</label>
                 <div className="relative" dir="ltr">
@@ -75,11 +104,12 @@ export default function CustomerAuthModal({ onClose }) {
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     required
+                    autoFocus={google}
                   />
                 </div>
               </div>
             )}
-            <OtpField {...(byEmail ? { email: form.email } : { phone: form.phone })} purpose="customer_login" code={form.code} onCode={(code) => setForm((f) => ({ ...f, code }))} />
+            {codeForm && <OtpField {...(byEmail ? { email: form.email } : { phone: form.phone })} purpose="customer_login" code={form.code} onCode={(code) => setForm((f) => ({ ...f, code }))} />}
           </>
         )}
 
@@ -87,10 +117,13 @@ export default function CustomerAuthModal({ onClose }) {
         <p className="text-center text-[11px] text-stone-400">
           {rich(t('owner.consent'), { link: (x) => <a href="/privacy" target="_blank" rel="noopener" className="underline">{x}</a> })}
         </p>
-        <button disabled={busy || form.code.length !== 6 || (needsName && !form.name.trim())} className="btn-brand w-full">
-          {busy && <Loader2 size={16} className="animate-spin" />}
-          {needsName ? t('auth.createAccount') : t('auth.continue')}
-        </button>
+        {busy && !codeForm && !needsName && <Loader2 className="mx-auto animate-spin text-brand" />}
+        {(codeForm || needsName) && (
+          <button disabled={busy || form.code.length !== 6 || (needsName && !form.name.trim())} className="btn-brand w-full">
+            {busy && <Loader2 size={16} className="animate-spin" />}
+            {needsName ? t('auth.createAccount') : t('auth.continue')}
+          </button>
+        )}
       </form>
     </div>
   );

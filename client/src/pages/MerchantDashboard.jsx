@@ -172,7 +172,7 @@ export default function MerchantDashboard() {
           <div className="flex min-w-0 items-center gap-3">
             <SmartImage src={store.logo_url} alt="" width={80} className="h-10 w-10 flex-none rounded-xl object-cover" />
             <div className="min-w-0">
-              <p className="truncate font-bold">{store.name}</p>
+              <p className="leading-tight font-bold break-words">{store.name}</p>
               <div className="mt-0.5"><StatusPill status={store.status} /></div>
             </div>
           </div>

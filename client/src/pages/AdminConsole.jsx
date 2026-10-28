@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
   BadgeCheck, Check, ExternalLink, Inbox, Loader2, LogOut, MapPin, Phone, RefreshCw, RotateCcw, Search, ShieldCheck,
@@ -23,6 +23,7 @@ const FILTERS = [
   ['draft', 'Draft'],
   ['suspended', 'Suspended'],
   ['seed', 'Seeded (unclaimed)'],
+  ['seed_claimed', 'Seeds claimed'],
   ['all', 'All'],
 ];
 
@@ -131,8 +132,15 @@ function StoreDetail({ id, onClose, onChanged }) {
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40" role="dialog" aria-modal="true" aria-label="Store details">
       <div className="h-full w-full max-w-2xl animate-slide-in overflow-y-auto bg-stone-50">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3">
-          <h2 className="truncate font-bold">{s?.name || 'Loading…'}</h2>
-          <button onClick={onClose} aria-label="Close" className="rounded-full p-2 hover:bg-stone-100"><X size={20} /></button>
+          <h2 className="min-w-0 leading-tight font-bold break-words">{s?.name || 'Loading…'}</h2>
+          <div className="flex flex-none items-center gap-1">
+            {s && (
+              <a href={`/s/${s.slug}`} target="_blank" rel="noreferrer" className="btn-ghost py-1.5 text-xs">
+                <ExternalLink size={14} /> Preview
+              </a>
+            )}
+            <button onClick={onClose} aria-label="Close" className="rounded-full p-2 hover:bg-stone-100"><X size={20} /></button>
+          </div>
         </header>
         {!data && !error && <Loader2 className="mx-auto mt-10 animate-spin text-stone-400" />}
         {error && <p className="m-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
@@ -143,7 +151,7 @@ function StoreDetail({ id, onClose, onChanged }) {
                 {s.banner_url && <SmartImage src={s.banner_url} alt="" className="h-full w-full object-cover" />}
               </div>
               <div className="flex gap-3 p-4">
-                <SmartImage src={s.logo_url} alt="" width={120} className="-mt-10 h-16 w-16 rounded-xl border-4 border-white bg-white object-cover" />
+                <SmartImage src={s.logo_url} alt="" width={120} className="relative z-10 -mt-10 h-16 w-16 flex-none rounded-xl border-4 border-white bg-white object-cover shadow-sm" />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusPill status={s.status} />
@@ -153,11 +161,8 @@ function StoreDetail({ id, onClose, onChanged }) {
                     <b>{s.business_type === 'appointments' ? 'Appointments' : 'Store'}</b> · {[s.category, s.city].filter(Boolean).join(' · ') || 'No category/city'}
                     {s.lat == null && <span className="ms-1 text-rose-600">· no map location</span>}
                   </p>
-                  {s.address_text && <p className="flex gap-1 text-xs text-stone-500"><MapPin size={12} className="mt-0.5" /> {s.address_text}</p>}
+                  {s.address_text && <p className="flex gap-1 text-xs text-stone-500"><MapPin size={12} className="mt-0.5 flex-none" /> {s.address_text}</p>}
                 </div>
-                <a href={`/s/${s.slug}`} target="_blank" rel="noreferrer" className="btn-ghost h-fit py-1.5 text-xs">
-                  <ExternalLink size={14} /> Preview
-                </a>
               </div>
               {s.description && <p className="border-t border-stone-100 px-4 py-3 text-sm text-stone-700">{s.description}</p>}
             </div>
@@ -184,12 +189,10 @@ function StoreDetail({ id, onClose, onChanged }) {
                       <label className="label" htmlFor="seed-owner-email">Owner's email (login)</label>
                       <input id="seed-owner-email" className="input" type="email" inputMode="email" placeholder="owner@example.com" value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} />
                     </div>
-                    <div className="flex flex-wrap items-end gap-2">
-                      <div className="min-w-0 flex-1"><MobileInput id="seed-owner" value={ownerMobile} onChange={setOwnerMobile} label="Owner's WhatsApp mobile" /></div>
-                      <button onClick={handOver} disabled={!!busy} className="btn-brand">
-                        {busy === 'claim' ? <Loader2 size={16} className="animate-spin" /> : <UserCheck size={16} />} Hand over to owner
-                      </button>
-                    </div>
+                    <MobileInput id="seed-owner" value={ownerMobile} onChange={setOwnerMobile} label="Owner's WhatsApp mobile" />
+                    <button onClick={handOver} disabled={!!busy} className="btn-brand w-full">
+                      {busy === 'claim' ? <Loader2 size={16} className="animate-spin" /> : <UserCheck size={16} />} Hand over to owner
+                    </button>
                     <button onClick={removeSeed} disabled={!!busy} className="flex items-center gap-1 text-xs font-semibold text-rose-700 hover:underline">
                       <Trash2 size={13} /> Remove listing (owner asked / closed down) — uses the remarks below as the reason
                     </button>
@@ -335,9 +338,55 @@ function StoreDetail({ id, onClose, onChanged }) {
 }
 
 /** Platform admin console: approval queue, store moderation, plans. */
+/** Recent orders across all stores (from the "Orders (7 days)" tile). Tapping one opens its store. */
+function RecentOrders({ onClose, onOpenStore }) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    get('/platform/orders?days=7').then(setData, (err) => setError(err.message));
+  }, []);
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/40" role="dialog" aria-modal="true" aria-label="Recent orders">
+      <div className="h-full w-full max-w-2xl animate-slide-in overflow-y-auto bg-stone-50">
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3">
+          <h2 className="font-bold">Orders · last 7 days</h2>
+          <button onClick={onClose} aria-label="Close" className="rounded-full p-2 hover:bg-stone-100"><X size={20} /></button>
+        </header>
+        {!data && !error && <Loader2 className="mx-auto mt-10 animate-spin text-stone-400" />}
+        {error && <p className="m-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+        {data && (
+          <ul className="card m-4 divide-y divide-stone-100">
+            {data.orders.map((o) => (
+              <li key={o.id}>
+                <button onClick={() => onOpenStore(o.store_id)} className="flex w-full items-start gap-3 p-3 text-start hover:bg-stone-50">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold break-words">{o.store_name}</p>
+                    <p className="text-xs text-stone-500">
+                      #{o.order_code} · {ago(o.created_at)} · {o.items} item{o.items === 1 ? '' : 's'}
+                      {o.customer_name ? ` · ${o.customer_name}` : ''}{o.placed_offline ? ' · placed offline' : ''}
+                    </p>
+                  </div>
+                  <div className="flex flex-none flex-col items-end gap-1">
+                    <span className="font-bold">{formatMoney(o.total, o.currency_symbol)}</span>
+                    <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold capitalize">{o.status.replace(/_/g, ' ')}</span>
+                  </div>
+                </button>
+              </li>
+            ))}
+            {!data.orders.length && <li className="p-10 text-center text-sm text-stone-500">No orders in the last 7 days.</li>}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminConsole() {
   const { admin, loadAdmin, logoutAdmin } = useSession();
   const [filter, setFilter] = useState('pending_review');
+  const [sort, setSort] = useState(''); // 'products' from the Active products tile
+  const [ordersOpen, setOrdersOpen] = useState(false);
+  const listRef = useRef(null);
   const [query, setQuery] = useState('');
   const q = useDebounce(query.trim(), 250);
   const [list, setList] = useState({ loading: true, stores: [], error: '' });
@@ -352,13 +401,13 @@ export default function AdminConsole() {
   const load = useCallback(async () => {
     setList((l) => ({ ...l, loading: true }));
     try {
-      const [r, st] = await Promise.all([get(`/platform/stores?status=${filter}&q=${encodeURIComponent(q)}`), get('/platform/stats')]);
+      const [r, st] = await Promise.all([get(`/platform/stores?status=${filter}&q=${encodeURIComponent(q)}${sort ? `&sort=${sort}` : ''}`), get('/platform/stats')]);
       setList({ loading: false, stores: r.stores, error: '' });
       setStats(st);
     } catch (err) {
       setList({ loading: false, stores: [], error: err.message });
     }
-  }, [filter, q]);
+  }, [filter, q, sort]);
 
   useEffect(() => {
     if (admin) load();
@@ -367,7 +416,16 @@ export default function AdminConsole() {
   if (admin === undefined) return <LoadingScreen label="Loading…" />;
   if (!admin) return <Navigate to="/admin/login" replace />;
 
-  const count = (k) => (k === 'all' ? Object.values(stats?.by_status || {}).reduce((a, b) => a + b, 0) : stats?.by_status?.[k] || 0);
+  const count = (k) =>
+    k === 'all' ? Object.values(stats?.by_status || {}).reduce((a, b) => a + b, 0)
+      : k === 'seed_claimed' ? stats?.seeds_claimed || 0
+        : stats?.by_status?.[k] || 0;
+  // Stat tiles open the matching list (and scroll to it).
+  const show = (f, s = '') => {
+    setFilter(f);
+    setSort(s);
+    setTimeout(() => listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  };
 
   return (
     <div className="min-h-screen bg-stone-100">
@@ -385,17 +443,17 @@ export default function AdminConsole() {
         {stats && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {[
-              ['Waiting for approval', count('pending_review'), 'text-amber-600'],
-              ['Live stores', count('approved'), 'text-emerald-700'],
-              ['Seeded, unclaimed', count('seed'), 'text-lime-700'],
-              ['Seeds claimed', stats.seeds_claimed, 'text-lime-700'],
-              ['Active products', stats.products, ''],
-              ['Orders (7 days)', stats.orders_7d, ''],
-            ].map(([k, v, cls]) => (
-              <div key={k} className="card p-3">
+              ['Waiting for approval', count('pending_review'), 'text-amber-600', () => show('pending_review')],
+              ['Live stores', count('approved'), 'text-emerald-700', () => show('approved')],
+              ['Seeded, unclaimed', count('seed'), 'text-lime-700', () => show('seed')],
+              ['Seeds claimed', stats.seeds_claimed, 'text-lime-700', () => show('seed_claimed')],
+              ['Active products', stats.products, '', () => show('approved', 'products')],
+              ['Orders (7 days)', stats.orders_7d, '', () => setOrdersOpen(true)],
+            ].map(([k, v, cls, onClick]) => (
+              <button key={k} type="button" onClick={onClick} className="card p-3 text-start transition hover:border-stone-400 hover:shadow-sm">
                 <p className="text-[11px] font-semibold text-stone-500 uppercase">{k}</p>
-                <p className={`text-2xl font-bold ${cls}`}>{v}</p>
-              </div>
+                <p className={`text-2xl font-bold ${cls}`}>{Number(v || 0).toLocaleString('en-IN')}</p>
+              </button>
             ))}
           </div>
         )}
@@ -405,7 +463,10 @@ export default function AdminConsole() {
             {FILTERS.map(([k, label]) => (
               <button
                 key={k}
-                onClick={() => setFilter(k)}
+                onClick={() => {
+                  setFilter(k);
+                  setSort('');
+                }}
                 className={`flex flex-none items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold ${
                   filter === k ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-300 bg-white text-stone-700'
                 }`}
@@ -424,22 +485,36 @@ export default function AdminConsole() {
 
         {list.error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{list.error}</p>}
 
-        <ul className="card divide-y divide-stone-100">
+        {sort === 'products' && (
+          <p className="flex items-center justify-between text-xs text-stone-500">
+            Sorted by number of products.
+            <button onClick={() => setSort('')} className="font-semibold text-stone-700 underline">Clear</button>
+          </p>
+        )}
+        <ul ref={listRef} className="card scroll-mt-20 divide-y divide-stone-100">
           {list.stores.map((s) => (
             <li key={s.id}>
-              <button onClick={() => setOpenId(s.id)} className="flex w-full items-center gap-3 p-3 text-start hover:bg-stone-50">
+              <button onClick={() => setOpenId(s.id)} className="flex w-full items-start gap-3 p-3 text-start hover:bg-stone-50">
                 <SmartImage src={s.logo_url} alt="" width={96} className="h-12 w-12 flex-none rounded-xl object-cover" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{s.name}</p>
-                  <p className="truncate text-xs text-stone-500">
-                    {s.business_type === 'appointments' ? 'Appointments · ' : ''}{[s.category, s.city].filter(Boolean).join(' · ') || '—'} · {s.product_count} products · owner {s.owner_email || s.owner_username} · WhatsApp {phoneText(s.whatsapp_number)}
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="leading-snug font-semibold break-words">{s.name}</p>
+                  <p className="text-xs break-words text-stone-500">
+                    {s.origin === 'seed' && !s.claimed_at
+                      ? `${[s.category, s.locality || s.city].filter(Boolean).join(' · ') || '—'} · ${s.product_count} products${s.seed_phone ? ` · listed phone ${s.seed_phone}` : ''}`
+                      : `${s.business_type === 'appointments' ? 'Appointments · ' : ''}${[s.category, s.city].filter(Boolean).join(' · ') || '—'} · ${s.product_count} products · owner ${s.owner_email || s.owner_username} · WhatsApp ${phoneText(s.whatsapp_number)}`}
                   </p>
-                </div>
-                <div className="flex flex-none flex-col items-end gap-1">
-                  <StatusPill status={s.status} />
-                  <span className="text-[11px] text-stone-400">
-                    {s.status === 'pending_review' ? `submitted ${ago(s.submitted_at)}` : `joined ${ago(s.created_at)}`}
-                  </span>
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    {s.origin === 'seed' && !s.claimed_at ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-lime-100 px-2.5 py-0.5 text-xs font-bold text-lime-800">
+                        <Sprout size={12} /> Seeded · not claimed
+                      </span>
+                    ) : (
+                      <StatusPill status={s.status} />
+                    )}
+                    <span className="text-[11px] text-stone-400">
+                      {s.status === 'pending_review' ? `submitted ${ago(s.submitted_at)}` : s.claimed_at ? `claimed ${ago(s.claimed_at)}` : `added ${ago(s.created_at)}`}
+                    </span>
+                  </p>
                 </div>
               </button>
             </li>
@@ -454,6 +529,7 @@ export default function AdminConsole() {
       </main>
 
       {openId && <StoreDetail id={openId} onClose={() => setOpenId(null)} onChanged={load} />}
+      {ordersOpen && !openId && <RecentOrders onClose={() => setOrdersOpen(false)} onOpenStore={(id) => setOpenId(id)} />}
     </div>
   );
 }

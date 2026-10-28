@@ -73,8 +73,8 @@ export default function StoreHeader() {
             className="-mt-10 h-20 w-20 flex-none rounded-2xl border-4 border-white bg-white object-cover shadow-md"
           />
           <div className="min-w-0 pb-1">
-            <h1 className="flex items-center gap-1.5 text-xl font-extrabold sm:text-2xl">
-              <span className="truncate">{config.name}</span>
+            <h1 className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xl leading-tight font-extrabold break-words sm:text-2xl">
+              <span>{config.name}</span>
               {config.verified && <BadgeCheck size={22} className="flex-none fill-sky-500 text-white" aria-label={t('store.verified')} />}
               {config.is_demo && <span className="flex-none rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">{t('store.demoBadge')}</span>}
             </h1>

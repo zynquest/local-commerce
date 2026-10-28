@@ -5,6 +5,7 @@ import { verifyOtp } from '../otp/otp.js';
 import { query } from '../db.js';
 import { badRequest, parse, unauthorized } from '../errors.js';
 import { customersUseEmail } from '../otp/providers.js';
+import { verifyGoogleIdToken } from '../google.js';
 import * as S from '../schemas.js';
 
 export const customerRouter = Router();
@@ -59,6 +60,27 @@ async function customerAuth(req, res) {
 customerRouter.post('/auth', customerAuth);
 // Older app builds (precached by the service worker until their next load) still post here.
 customerRouter.post(['/login', '/register'], customerAuth);
+
+/** Google Sign-In for shoppers (CUSTOMER_LOGIN=email): signs in, or creates the account with the Google name. */
+customerRouter.post('/google', async (req, res) => {
+  if (!customersUseEmail()) throw badRequest('Sign in with your mobile number');
+  const { credential } = parse(S.googleCustomerAuth, req.body);
+  const { email, name } = await verifyGoogleIdToken(credential);
+  let { rows } = await query('SELECT id FROM customers WHERE email = $1', [email]);
+  let created = false;
+  if (rows[0]) {
+    await query('UPDATE customers SET last_login_at = now(), email_verified_at = coalesce(email_verified_at, now()) WHERE id = $1', [rows[0].id]);
+  } else {
+    ({ rows } = await query(
+      `INSERT INTO customers (name, email, email_verified_at, last_login_at) VALUES ($1, $2, now(), now())
+       ON CONFLICT (email) DO UPDATE SET last_login_at = now() RETURNING id`,
+      [name || email.split('@')[0].slice(0, 80), email],
+    ));
+    created = true;
+  }
+  await createSession(res, 'customer', rows[0].id);
+  res.status(created ? 201 : 200).json({ customer: await profile(rows[0].id) });
+});
 
 customerRouter.post('/logout', async (req, res) => {
   await destroySession(req, res, 'customer');

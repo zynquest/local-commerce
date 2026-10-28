@@ -12,7 +12,6 @@ import { PLATFORM } from '../config.js';
 import { formatMoney } from '../lib/format.js';
 import { buildOrderMessage, whatsappLink } from '../services/whatsappService.js';
 import { rich, useI18n, useT } from '../i18n/index.jsx';
-import { LANGUAGES } from '../i18n/languages.js';
 
 const DEMO_SLUG = 'demo';
 
@@ -481,13 +480,6 @@ export default function Landing() {
             <p className="mt-4 text-stone-600">{t('landing.story.p1')}</p>
             <p className="mt-3 text-stone-600">{t('landing.story.p2')}</p>
             <p className="mt-3 text-stone-600">{t('landing.story.p3')}</p>
-            <div className="mt-6 flex flex-wrap gap-2">
-              {['s1', 's2', 's3'].map((k) => (
-                <span key={k} className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-stone-700 ring-1 ring-stone-200">
-                  {t(`landing.story.${k}`, { n: LANGUAGES.length })}
-                </span>
-              ))}
-            </div>
           </div>
           <figure className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
             <iframe

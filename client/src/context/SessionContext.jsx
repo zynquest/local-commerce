@@ -15,6 +15,7 @@ const defaultConfig = {
   otpHelpWhatsApp: PLATFORM.whatsappNumber,
   customerLogin: 'email', // 'email' | 'mobile' (server CUSTOMER_LOGIN)
   ownerLogin: 'email', // 'email' | 'mobile' (server OWNER_LOGIN)
+  googleClientId: '', // Google Sign-In web client ID from the server ('' = off)
 };
 
 export function SessionProvider({ children }) {
@@ -68,6 +69,12 @@ export function SessionProvider({ children }) {
         if (r.user) setOwner(r.user);
         return r;
       },
+      /** Google Sign-In for owners: { credential, storeName?, businessType? } → { user, created } or { needsStore }. */
+      authOwnerGoogle: async (body) => {
+        const r = await post('/auth/google', body);
+        if (r.user) setOwner(r.user);
+        return r;
+      },
       logoutOwner: async () => {
         await post('/auth/logout').catch(() => {});
         setOwner(null);
@@ -80,6 +87,8 @@ export function SessionProvider({ children }) {
         if (r.customer) setCustomer(r.customer);
         return r;
       },
+      /** Google Sign-In for shoppers: { credential } → { customer } (the account is created on first use). */
+      authCustomerGoogle: async (body) => setCustomer((await post('/customer/google', body)).customer),
       updateCustomer: async (body) => setCustomer((await put('/customer/me', body)).customer),
       logoutCustomer: async () => {
         await post('/customer/logout').catch(() => {});

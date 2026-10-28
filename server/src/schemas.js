@@ -59,6 +59,14 @@ export const otpRequest = z
     if (v.purpose === 'whatsapp_change' && !v.phone) ctx.addIssue({ code: 'custom', path: ['phone'], message: 'Enter a valid 10-digit mobile number' });
     if (!v.phone && !v.email) ctx.addIssue({ code: 'custom', path: ['email'], message: 'Enter a valid email address' });
   });
+// Google Sign-In: the ID token from Google Identity Services ("credential"); owners add the store when it's new.
+const googleCredential = z.string().trim().min(20, 'Google sign-in failed. Please try again.').max(5000);
+export const googleOwnerAuth = z.object({
+  credential: googleCredential,
+  storeName: z.preprocess((v) => (v == null || v === '' ? undefined : v), storeName.optional()),
+  businessType: z.enum(BUSINESS_TYPES).default('shop'),
+});
+export const googleCustomerAuth = z.object({ credential: googleCredential });
 // Owners, OWNER_LOGIN=email: one call for sign-in and sign-up. storeName (+ businessType) only when creating the store.
 export const ownerEmailAuth = z.object({
   email,

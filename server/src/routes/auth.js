@@ -6,6 +6,7 @@ import { config } from '../config.js';
 import { query, tx } from '../db.js';
 import { badRequest, conflict, parse, unauthorized } from '../errors.js';
 import { ownersUseEmail } from '../otp/providers.js';
+import { verifyGoogleIdToken } from '../google.js';
 import { verifyOtp } from '../otp/otp.js';
 import * as S from '../schemas.js';
 import { claimSeedStore, seedForMobile } from '../seed/stores.js';
@@ -90,6 +91,24 @@ authRouter.post('/email', async (req, res) => {
     return res.json({ needsStore: true });
   }
   await verifyOtp({ phone: email, purpose: 'owner_login', code });
+  let userId = rows[0]?.id;
+  if (userId) await query('UPDATE users SET last_login_at = now(), email_verified_at = coalesce(email_verified_at, now()) WHERE id = $1', [userId]);
+  else userId = await createOwnerByEmail({ storeName, email, businessType });
+  await createSession(res, 'user', userId);
+  res.status(rows[0] ? 200 : 201).json({ user: await ownerProfile(userId), created: !rows[0] });
+});
+
+/**
+ * Google Sign-In for owners (OWNER_LOGIN=email): the verified Google email is the login, no code needed.
+ * Same outcomes as /email: existing → { user }; new without storeName → { needsStore, email }; new with → 201.
+ * The client keeps the Google credential (valid ~1 hour) to resend with the store name.
+ */
+authRouter.post('/google', async (req, res) => {
+  if (!ownersUseEmail()) throw badRequest('Log in with your mobile number');
+  const { credential, storeName, businessType } = parse(S.googleOwnerAuth, req.body);
+  const { email } = await verifyGoogleIdToken(credential);
+  const { rows } = await query(`SELECT id FROM users WHERE email = $1 AND role = 'owner'`, [email]);
+  if (!rows[0] && !storeName) return res.json({ needsStore: true, email });
   let userId = rows[0]?.id;
   if (userId) await query('UPDATE users SET last_login_at = now(), email_verified_at = coalesce(email_verified_at, now()) WHERE id = $1', [userId]);
   else userId = await createOwnerByEmail({ storeName, email, businessType });

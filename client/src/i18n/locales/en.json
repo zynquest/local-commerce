@@ -293,7 +293,8 @@
     "mobile10": "10-digit mobile number",
     "email": "Email address",
     "continue": "Continue",
-    "newAccountName": "You're new here. Tell us your name to create your account."
+    "newAccountName": "You're new here. Tell us your name to create your account.",
+    "noGoogle": "I don't have a Google account"
   },
   "otp": {
     "send": "Send verification code",

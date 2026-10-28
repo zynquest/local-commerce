@@ -45,16 +45,19 @@ export function createApp() {
         directives: {
           defaultSrc: ["'self'"],
           imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
-          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://accounts.google.com'],
           workerSrc: ["'self'", 'blob:'],
           // Google Maps JS API (address search, map pin) loads its scripts and calls these hosts.
-          scriptSrc: ["'self'", 'https://maps.googleapis.com', 'https://maps.gstatic.com'],
-          connectSrc: ["'self'", 'https://maps.googleapis.com', 'https://places.googleapis.com', 'https://*.googleapis.com', 'https://maps.gstatic.com'],
+          // Google Identity Services (Sign in with Google) loads from accounts.google.com.
+          scriptSrc: ["'self'", 'https://maps.googleapis.com', 'https://maps.gstatic.com', 'https://accounts.google.com'],
+          connectSrc: ["'self'", 'https://maps.googleapis.com', 'https://places.googleapis.com', 'https://*.googleapis.com', 'https://maps.gstatic.com', 'https://accounts.google.com'],
           fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
           // Home page embeds a Google Map of Sonsari (keyless maps.google.com/maps?output=embed iframe).
-          frameSrc: ["'self'", 'https://maps.google.com', 'https://www.google.com'],
+          frameSrc: ["'self'", 'https://maps.google.com', 'https://www.google.com', 'https://accounts.google.com'],
         },
       },
+      // The Google sign-in popup must be able to report back to this page.
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
       crossOriginResourcePolicy: { policy: 'same-site' },
     }),
   );
@@ -73,7 +76,7 @@ export function createApp() {
   });
   app.use('/api', originGuard);
   app.use(
-    ['/api/auth/login', '/api/auth/register', '/api/customer/auth', '/api/customer/login', '/api/customer/register'],
+    ['/api/auth/login', '/api/auth/register', '/api/auth/email', '/api/auth/google', '/api/customer/auth', '/api/customer/login', '/api/customer/register', '/api/customer/google'],
     authLimiter,
   );
   app.use('/api/auth', authRouter);

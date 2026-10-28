@@ -58,6 +58,10 @@ export function createApp() {
       },
       // The Google sign-in popup must be able to report back to this page.
       crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+      // Sign in with Google's button frame identifies the embedding site from the referrer origin; helmet's default
+      // "no-referrer" leaves it blank (it can't match the authorized origin and never draws). This still sends only
+      // the origin, never the path, to other sites.
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
       crossOriginResourcePolicy: { policy: 'same-site' },
     }),
   );

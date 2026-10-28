@@ -69,6 +69,16 @@ describe('Google Sign-In', () => {
     assert.equal((await client()('GET', '/api/config')).body.googleClientId, CLIENT_ID);
   });
 
+  test("headers let Google's button frame and popup work", async () => {
+    const res = await fetch(`${base}/login`);
+    assert.equal(res.headers.get('referrer-policy'), 'strict-origin-when-cross-origin', 'no-referrer hides the Google button');
+    assert.equal(res.headers.get('cross-origin-opener-policy'), 'same-origin-allow-popups');
+    const csp = res.headers.get('content-security-policy');
+    for (const dir of ['script-src', 'frame-src', 'connect-src', 'style-src']) {
+      assert.match(csp, new RegExp(`${dir}[^;]*https://accounts\\.google\\.com`), dir);
+    }
+  });
+
   test('owner: new Google account is asked for the store, then created with a verified email; next time it logs straight in', async () => {
     const c = client();
     const credential = token({ email: ownerEmail.toUpperCase(), name: 'Ravi Kumar' });

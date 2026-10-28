@@ -84,6 +84,9 @@ export const customerAuth = z.object({
   name: z.preprocess((v) => (v == null || v === '' ? undefined : cleanText(v)), z.string().min(1, 'Enter your name').max(80).optional()),
 });
 // The WhatsApp number for orders is given (or confirmed) when submitting; it's verified when the store is approved.
+// Printed QR codes (admin): how many to generate, and the store to link one to ("/s/<link>", the link or a URL).
+export const qrGenerate = z.object({ count: z.coerce.number().int().min(1, 'At least 1').max(500, 'At most 500 at a time') });
+export const qrAssign = z.object({ store: z.string().trim().min(1, 'Enter the store link').max(300) });
 export const submitForReview = z.object({ note: optText(500).optional(), whatsapp_number: mobile10.optional() });
 export const whatsappSet = z.object({ phone: mobile10 });
 // Seeded listing → owner: their login email (OWNER_LOGIN=email) and/or mobile; the mobile also becomes the WhatsApp number.

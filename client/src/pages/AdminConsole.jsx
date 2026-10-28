@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
   BadgeCheck, Check, ExternalLink, Inbox, Loader2, LogOut, MapPin, Phone, RefreshCw, RotateCcw, Search, ShieldCheck,
-  ShieldOff, Sprout, Store, Trash2, UserCheck, X,
+  QrCode, ShieldOff, Sprout, Store, Trash2, UserCheck, X,
 } from 'lucide-react';
+
+const AdminQrCodes = lazy(() => import('./AdminQrCodes.jsx'));
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
@@ -383,6 +385,7 @@ function RecentOrders({ onClose, onOpenStore }) {
 
 export default function AdminConsole() {
   const { admin, loadAdmin, logoutAdmin } = useSession();
+  const [section, setSection] = useState('stores'); // 'stores' | 'qr'
   const [filter, setFilter] = useState('pending_review');
   const [sort, setSort] = useState(''); // 'products' from the Active products tile
   const [ordersOpen, setOrdersOpen] = useState(false);
@@ -440,6 +443,30 @@ export default function AdminConsole() {
       </header>
 
       <main className="mx-auto max-w-6xl space-y-4 p-4">
+        {/* Stores (approval, seeded listings, …) and printed QR codes */}
+        <div className="flex gap-1 rounded-full bg-white p-1 shadow-sm ring-1 ring-stone-200 sm:w-fit" role="tablist">
+          {[
+            ['stores', 'Stores', Store],
+            ['qr', 'QR codes', QrCode],
+          ].map(([k, label, Icon]) => (
+            <button
+              key={k}
+              role="tab"
+              aria-selected={section === k}
+              onClick={() => setSection(k)}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold sm:flex-none ${section === k ? 'bg-stone-900 text-white' : 'text-stone-700 hover:bg-stone-100'}`}
+            >
+              <Icon size={15} /> {label}
+            </button>
+          ))}
+        </div>
+
+        {section === 'qr' ? (
+          <Suspense fallback={<Loader2 className="mx-auto mt-10 animate-spin text-stone-400" />}>
+            <AdminQrCodes />
+          </Suspense>
+        ) : (
+          <>
         {stats && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {[
@@ -526,6 +553,8 @@ export default function AdminConsole() {
             </li>
           )}
         </ul>
+          </>
+        )}
       </main>
 
       {openId && <StoreDetail id={openId} onClose={() => setOpenId(null)} onChanged={load} />}

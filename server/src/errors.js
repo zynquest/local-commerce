@@ -9,7 +9,7 @@ export class HttpError extends Error {
 export const badRequest = (msg, details) => new HttpError(400, msg, details);
 export const unauthorized = (msg = 'Please log in') => new HttpError(401, msg);
 export const forbidden = (msg = 'Not allowed') => new HttpError(403, msg);
-export const notFound = (msg = 'Not found') => new HttpError(404, msg);
+export const notFound = (msg = 'Not found', details) => new HttpError(404, msg, details);
 export const conflict = (msg, details) => new HttpError(409, msg, details);
 
 /** Parses input with a zod schema or throws a 400 with field errors. */

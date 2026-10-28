@@ -1,5 +1,6 @@
 // Public storefront API: store directory, catalog, guest/customer order placement.
 import { Router } from 'express';
+import { scanQrCode } from '../qr.js';
 import rateLimit from 'express-rate-limit';
 import { optionalCustomer, viewer } from '../auth.js';
 import { config } from '../config.js';
@@ -12,6 +13,16 @@ import { PRODUCT_COLUMNS, PUBLIC_STORE_COLUMNS, deliveryFeeFor, product as seria
 import { publicBookingCatalog } from './appointments.js';
 
 export const publicRouter = Router();
+
+/**
+ * In-app fallback for printed QR codes: an installed app may open /q/<code> itself (its offline shell); it asks
+ * here where the code points. Counts the scan like the server redirect does.
+ */
+publicRouter.get('/qr/:code', async (req, res) => {
+  const slug = await scanQrCode(req.params.code);
+  if (slug === undefined) throw notFound('QR code not found');
+  res.set('Cache-Control', 'no-store').json({ slug });
+});
 
 /** Feature flags and plan limits the UI needs. */
 publicRouter.get('/config', (_req, res) => {

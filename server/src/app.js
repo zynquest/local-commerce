@@ -18,6 +18,8 @@ import { authRouter } from './routes/auth.js';
 import { customerRouter } from './routes/customer.js';
 import { publicRouter } from './routes/public.js';
 import { loadTemplate, robots, seoHandler, sitemap } from './seo.js';
+import { scanQrCode } from './qr.js';
+import { qrNotLinkedPage } from './pages/qrNotLinked.js';
 
 /** Blocks cross-site state-changing requests (defence in depth on top of SameSite=Lax cookies). */
 function originGuard(req, _res, next) {
@@ -94,6 +96,15 @@ export function createApp() {
   app.use('/api', (_req, _res, next) => next(notFound('Unknown API route. If the app was just updated, reload the page.')));
 
   app.use('/uploads', express.static(config.uploadDir, { maxAge: '365d', immutable: true, fallthrough: false }));
+
+  // Printed QR codes: https://sonsari.in/q/<code> → counts the scan → the linked store's page. A code that isn't
+  // linked yet (or no longer) gets a small page instead of an error.
+  app.get('/q/:code', async (req, res) => {
+    const slug = await scanQrCode(req.params.code);
+    res.set('Cache-Control', 'no-store');
+    if (slug) return res.redirect(302, `/s/${encodeURIComponent(slug)}`);
+    res.status(slug === null ? 200 : 404).type('html').send(qrNotLinkedPage(slug === null));
+  });
 
   // Static legal page (plain HTML so crawlers such as Meta's app review can read it without JavaScript).
   const privacyFile = path.join(path.dirname(fileURLToPath(import.meta.url)), 'pages', 'privacy.html');

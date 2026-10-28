@@ -17,6 +17,7 @@ const MerchantDashboard = lazy(() => import('./pages/MerchantDashboard.jsx'));
 const AdminLogin = lazy(() => import('./pages/AdminLogin.jsx'));
 const AdminConsole = lazy(() => import('./pages/AdminConsole.jsx'));
 const CustomerAccount = lazy(() => import('./pages/CustomerAccount.jsx'));
+const QrRedirect = lazy(() => import('./pages/QrRedirect.jsx'));
 
 const isPlatformHost = (host) =>
   PLATFORM.hosts.includes(host) || PLATFORM.hostSuffixes.some((s) => host.endsWith(s)) || /^\d+\.\d+\.\d+\.\d+$/.test(host);
@@ -92,6 +93,7 @@ export default function App() {
           <Route path="/admin" element={<AdminConsole />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/account" element={<CustomerAccount />} />
+          <Route path="/q/:code" element={<QrRedirect />} />
           <Route path="/s/:storeSlug" element={<PathStoreLayout />}>
             {storeRoutes}
           </Route>

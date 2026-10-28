@@ -30,7 +30,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         // API responses are never cached by the service worker: the 30-minute catalog cache lives in
         // IndexedDB so it can hard-expire. The app shell is precached, so the PWA opens offline.
-        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
+        // /q/<code> (printed QR codes) must reach the server, which redirects to the linked store.
+        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//, /^\/q\//, /^\/privacy/],
         runtimeCaching: [
           {
             urlPattern: ({ url, request }) => request.destination === 'image' || url.pathname.startsWith('/uploads/'),

@@ -966,3 +966,16 @@ Owners and shoppers see Google's icon button on the sign-in screens; *"I don't h
 2. **APIs & Services → Credentials →** the OAuth 2.0 *Web application* client **→ Authorized JavaScript origins**: add `https://sonsari.in`, `https://www.sonsari.in`, and for local development `http://localhost` and `http://localhost:5173`. No redirect URIs are needed (the button uses Google's popup). Changes can take a few minutes to apply.
 
 If the button shows an error or nothing happens, open the browser console: *"The given origin is not allowed for the given client ID"* means step 2 is missing that origin.
+
+## B23. Printed QR codes (stickers for shops)
+
+**Admin → QR codes** keeps a pool of random 8-digit codes that aren't tied to any shop until you link them, so you can print a stack in advance and hand them out on the street.
+
+1. **Generate**: enter how many (1–500 per batch) and press *Generate*. The new codes come up selected.
+2. **Print**: press *Print selected*. The sheet is A4, 3 × 4 stickers per page, each with *Vocal For Local*, the QR, "Scan to order from this shop", `sonsari.in` and the code printed under it, with dashed cut lines. In the print dialog, keep scale at 100% and turn off headers and footers.
+3. **Link**: when a sticker goes up, find its code (search box) and type the shop's link, such as `/s/annapoorna`, the full `https://sonsari.in/s/annapoorna`, or just `annapoorna`, then press *Assign*. A shop can have several codes. A code that's already linked must be removed before it can go to another shop.
+4. **Remove** frees the code again. Deleting a store frees its codes too.
+
+Each code encodes `https://sonsari.in/q/<code>` (from `PUBLIC_URL`). The server counts the scan and redirects to `/s/<store>`. A code that isn't linked yet shows a friendly "not linked to a shop yet" page with *Shop local stores*, *Register your store* and a WhatsApp link to you; an unknown code returns 404. Scans are counted even while a code is free.
+
+Migration `012_qr_codes.sql` creates the table and applies on the next deploy. Nothing else to configure.

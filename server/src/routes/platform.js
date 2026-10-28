@@ -9,6 +9,7 @@ import { conflict, notFound, parse, unauthorized } from '../errors.js';
 import * as S from '../schemas.js';
 import { PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
 import { claimSeedStore, removeSeedStore } from '../seed/stores.js';
+import { assignQrCode, generateQrCodes, isQrCode, qrBase, unassignQrCode } from '../qr.js';
 
 export const platformRouter = Router();
 
@@ -89,6 +90,49 @@ platformRouter.get('/stores', async (req, res) => {
     [status, q],
   );
   res.json({ stores: rows });
+});
+
+// ---------------------------------------------------------------------------
+// Printed QR codes: a pool of random codes, each linked to a store (or free)
+// ---------------------------------------------------------------------------
+
+/** List. filter: all | free | assigned; q matches the code, store name or store link. */
+platformRouter.get('/qr', async (req, res) => {
+  const filter = ['free', 'assigned'].includes(req.query.filter) ? req.query.filter : 'all';
+  const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 60) : '';
+  const { rows } = await query(
+    `SELECT q.code, q.batch, q.scans, q.last_scanned_at, q.created_at,
+            CASE WHEN s.id IS NULL THEN NULL ELSE q.assigned_at END AS assigned_at,
+            s.id AS store_id, s.name AS store_name, s.slug AS store_slug, s.status AS store_status
+       FROM qr_codes q LEFT JOIN stores s ON s.id = q.store_id
+      WHERE ($1 = 'all' OR ($1 = 'free') = (s.id IS NULL))
+        AND ($2 = '' OR q.code LIKE '%' || $2 || '%' OR s.name ILIKE '%' || $2 || '%' OR s.slug ILIKE '%' || $2 || '%')
+      ORDER BY q.created_at DESC, q.code
+      LIMIT 500`,
+    [filter, q],
+  );
+  const { rows: counts } = await query(
+    `SELECT count(*)::int AS total, count(s.id)::int AS assigned FROM qr_codes q LEFT JOIN stores s ON s.id = q.store_id`,
+  );
+  res.json({ codes: rows, base: qrBase(), counts: { ...counts[0], free: counts[0].total - counts[0].assigned } });
+});
+
+/** Generate `count` new codes (1–500), never issued before. */
+platformRouter.post('/qr', async (req, res) => {
+  const { count } = parse(S.qrGenerate, req.body ?? {});
+  res.status(201).json({ ...(await generateQrCodes(count)), base: qrBase() });
+});
+
+platformRouter.post('/qr/:code/assign', async (req, res) => {
+  if (!isQrCode(req.params.code)) throw notFound('QR code not found');
+  const { store } = parse(S.qrAssign, req.body ?? {});
+  res.json({ store: await assignQrCode(req.params.code, store) });
+});
+
+platformRouter.post('/qr/:code/unassign', async (req, res) => {
+  if (!isQrCode(req.params.code)) throw notFound('QR code not found');
+  await unassignQrCode(req.params.code);
+  res.json({ ok: true });
 });
 
 /** Recent orders across all stores (the "Orders" tile). days: 1–90, default 7. */

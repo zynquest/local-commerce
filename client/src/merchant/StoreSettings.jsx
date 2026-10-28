@@ -1,136 +1,50 @@
-import { useEffect, useRef, useState } from 'react';
-import { BadgeCheck, Camera, Check, Loader2, Pencil, Save, X } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { BadgeCheck, Camera, Check, Loader2, Save } from 'lucide-react';
 import AddressPicker from '../components/AddressPicker.jsx';
-import MobileInput from '../components/MobileInput.jsx';
-import OtpField from '../components/OtpField.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import SmartImage from '../components/SmartImage.jsx';
-import { post, put } from '../lib/api.js';
-import { useSession } from '../context/SessionContext.jsx';
+import { put } from '../lib/api.js';
 import { uploadImage } from '../services/imageService.js';
 import { useT } from '../i18n/index.jsx';
 import { LANGUAGES } from '../i18n/languages.js';
+import { SupportNote } from './OnboardingWizard.jsx';
 
-const FIELDS = [
-// Labels: settings.f.<field>; hints: settings.h.<field>; translatable placeholders: settings.p.<field>.
-  ['name', { required: true, maxLength: 60 }],
-  ['slug', { prefix: '/s/', hint: true }],
-  ['category', { required: true, tPlaceholder: true }],
-  ['city', { required: true, tPlaceholder: true }],
-  ['description', { textarea: true, maxLength: 500 }],
-  ['opening_hours', { placeholder: '09:00-21:00', hint: true }],
-  ['closed_days', { placeholder: 'Sun' }],
-  ['minimum_order', { type: 'number', min: 0, shopOnly: true }],
-  ['instagram_handle', { placeholder: 'yourstore' }],
-  ['theme_color', { type: 'color' }],
+// Optional settings, filled with these until the owner changes them.
+const DEFAULTS = { opening_hours: '09:00-21:00', closed_days: 'Sun', minimum_order: 0, theme_color: '#15803d', delivery_fee: 0 };
+const APPT_DEFAULTS = { slot_minutes: 30, booking_days: 14, min_notice_minutes: 60 };
+const EDITABLE = [
+  'address_text', 'city', 'lat', 'lng', 'maps_url', 'place_id', 'order_language',
+  'delivery_fee', 'free_delivery_above', 'logo_url', 'banner_url', 'opening_hours', 'closed_days', 'minimum_order',
+  'instagram_handle', 'theme_color', 'description',
 ];
 
-const formatPhone = (p) => (p ? `+${p.slice(0, p.length - 10)} ${p.slice(-10, -5)} ${p.slice(-5)}` : '—');
+const pretty = (p) => (p ? `+91 ${p.slice(-10, -5)} ${p.slice(-5)}` : '—');
 
-/** WhatsApp number for orders. Changing it requires an OTP sent to the new number. */
-function WhatsAppNumber({ store, onSaved }) {
-  const t = useT();
-  const { appConfig } = useSession();
-  // OWNER_LOGIN=email: no OTP to the new number; it's verified when the platform approves the store.
-  const plain = appConfig.ownerLogin !== 'mobile';
-  const [editing, setEditing] = useState(false);
-  const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
-  const verify = async () => {
-    setBusy(true);
-    setError('');
-    try {
-      const { store: updated } = plain
-        ? await put('/merchant/store/whatsapp', { phone })
-        : await post('/merchant/store/whatsapp/verify', { phone, code });
-      onSaved(updated, t('settings.waUpdated'));
-      setEditing(false);
-      setPhone('');
-      setCode('');
-    } catch (err) {
-      setError(err.fields?.code || err.fields?.whatsapp_number || err.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
+function Section({ title, children }) {
   return (
-    <div className="rounded-2xl border-2 border-brand/30 bg-emerald-50/50 p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="label">{t('settings.waLabel')} <span className="text-rose-500">*</span></p>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-lg font-bold">
-            <WhatsAppIcon size={18} className="text-whatsapp" />
-            <span className="whitespace-nowrap">{formatPhone(store.whatsapp_number)}</span>
-            {store.whatsapp_number &&
-              (store.whatsapp_verified ? (
-                <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
-                  <BadgeCheck size={12} /> {t('settings.verified')}
-                </span>
-              ) : (
-                <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[11px] font-semibold text-stone-600">{plain ? t('settings.waPending') : t('settings.registrationNumber')}</span>
-              ))}
-          </p>
-          <p className="text-[11px] text-stone-500">{t('settings.waHint')}</p>
-        </div>
-        {!editing && !plain && (
-          <button type="button" onClick={() => setEditing(true)} className="btn-ghost py-1.5 text-xs">
-            <Pencil size={14} /> {t('settings.change')}
-          </button>
-        )}
-      </div>
-      {editing && (
-        <div className="mt-3 space-y-2 rounded-xl bg-white p-3">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">{t('settings.change')}</p>
-            <button type="button" onClick={() => setEditing(false)} aria-label={t('common.cancel')} className="p-1 text-stone-400"><X size={16} /></button>
-          </div>
-          <MobileInput id="new-whatsapp" value={phone} onChange={setPhone} label={t('settings.newWa')} />
-          {!plain && <OtpField phone={phone} purpose="whatsapp_change" code={code} onCode={setCode} />}
-          {error && <p className="text-xs text-rose-600">{error}</p>}
-          <button type="button" onClick={verify} disabled={busy || (plain ? !/^[6-9]\d{9}$/.test(phone) : code.length !== 6)} className="btn-brand w-full">
-            {busy && <Loader2 size={16} className="animate-spin" />} {plain ? t('settings.waSave') : t('settings.verifyUpdate')}
-          </button>
-        </div>
-      )}
-    </div>
+    <section className="card space-y-4 p-4 sm:p-6">
+      <h2 className="font-bold">{title}</h2>
+      {children}
+    </section>
   );
 }
 
-const APPT_DEFAULTS = { slot_minutes: 30, booking_days: 14, min_notice_minutes: 60 };
+const Detail = ({ label, children }) => (
+  <div className="min-w-0">
+    <dt className="text-[11px] font-semibold tracking-wide text-stone-500 uppercase">{label}</dt>
+    <dd className="mt-0.5 text-sm font-semibold break-words">{children || '—'}</dd>
+  </div>
+);
 
-// Checklist "Add" link → the element to bring into view in Settings.
-const FOCUS_TARGET = { name: 'st-name', category: 'st-category', location: 'settings-location' };
-
-export default function StoreSettings({ store, onSaved, focus }) {
+/**
+ * Settings of an approved store: the fixed details (support corrects those), location and order language, then the
+ * optional extras (delivery, logo, hours, weekly off, minimum order, Instagram, colour).
+ */
+export default function StoreSettings({ store, onSaved }) {
   const t = useT();
-  const { appConfig } = useSession();
-
-  // Arriving from a checklist "Add" link: scroll the field into view, highlight it briefly, focus its input.
-  useEffect(() => {
-    const el = focus && document.getElementById(FOCUS_TARGET[focus.split('.')[0]]);
-    if (!el) return;
-    const timer = setTimeout(() => {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      (el.matches('input, textarea, select') ? el : el.querySelector('input, textarea, select'))?.focus({ preventScroll: true });
-      el.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2');
-      setTimeout(() => el.classList.remove('ring-2', 'ring-amber-400', 'ring-offset-2'), 2500);
-    }, 50);
-    return () => clearTimeout(timer);
-  }, [focus]);
   const appointments = store.business_type === 'appointments';
   const [form, setForm] = useState(() => ({
-    ...Object.fromEntries(
-      [...FIELDS.map(([k]) => k), 'delivery_fee', 'free_delivery_above', 'logo_url', 'banner_url', 'order_language', 'address_text', 'maps_url', 'place_id'].map((k) => [
-        k,
-        store[k] ?? (k === 'theme_color' ? '#15803d' : k === 'order_language' ? 'auto' : ''),
-      ]),
-    ),
-    lat: store.lat ?? null,
-    lng: store.lng ?? null,
+    ...Object.fromEntries(EDITABLE.map((k) => [k, store[k] ?? DEFAULTS[k] ?? (k === 'order_language' ? 'auto' : k === 'lat' || k === 'lng' ? null : '')])),
     ...Object.fromEntries(Object.entries(APPT_DEFAULTS).map(([k, d]) => [k, store[k] ?? d])),
   }));
   // Delivery: free by default (fee 0). Unticking reveals the fee and the optional "free above ₹X" rule.
@@ -161,8 +75,10 @@ export default function StoreSettings({ store, onSaved, focus }) {
     setStatus({ busy: true, error: '', saved: false });
     setFields({});
     try {
-      const payload = appointments ? form : Object.fromEntries(Object.entries(form).filter(([k]) => !(k in APPT_DEFAULTS)));
-      if (!appointments && freeDelivery) Object.assign(payload, { delivery_fee: 0, free_delivery_above: null });
+      const payload = { ...form };
+      if (!appointments) for (const k of Object.keys(APPT_DEFAULTS)) delete payload[k];
+      if (appointments) delete payload.minimum_order;
+      if (appointments || freeDelivery) Object.assign(payload, { delivery_fee: 0, free_delivery_above: null });
       const { store: saved } = await put('/merchant/store', payload);
       setStatus({ busy: false, error: '', saved: true });
       onSaved(saved, t('settings.saved'));
@@ -192,125 +108,133 @@ export default function StoreSettings({ store, onSaved, focus }) {
     </div>
   );
 
-  return (
-    <form onSubmit={submit} className="card space-y-5 p-4 sm:p-6">
-      <div className="flex gap-4">
-        {imagePicker('logo_url', t('settings.logo'), logoRef, 'h-24 w-24 rounded-2xl')}
-        <div className="flex-1">{imagePicker('banner_url', t('settings.banner'), bannerRef, 'h-24 w-full rounded-2xl')}</div>
-      </div>
-
-      {/* With email login the number is given when submitting for approval, and can't be changed here for now. */}
-      {(appConfig.ownerLogin === 'mobile' || store.whatsapp_number) && <WhatsAppNumber store={store} onSaved={onSaved} />}
-
-      <div id="settings-location" className="scroll-mt-24 rounded-2xl">
-        <AddressPicker
-          value={form}
-          onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
-          error={fields.lat || fields.address_text}
+  const input = (key, opts = {}) => (
+    <div className={opts.wide ? 'sm:col-span-2' : ''}>
+      <label className="label" htmlFor={`st-${key}`}>{t(`settings.f.${key}`)}</label>
+      {opts.textarea ? (
+        <textarea id={`st-${key}`} rows={3} className="input" value={form[key] ?? ''} onChange={set(key)} maxLength={opts.maxLength} />
+      ) : (
+        <input
+          id={`st-${key}`}
+          className={opts.type === 'color' ? 'h-10 w-16 cursor-pointer rounded-lg border border-stone-200' : 'input'}
+          type={opts.type || 'text'}
+          value={form[key] ?? ''}
+          onChange={set(key)}
+          placeholder={opts.placeholder}
+          min={opts.min}
+          inputMode={opts.inputMode}
         />
-      </div>
-
-      {appointments && (
-        <div className="grid gap-4 rounded-2xl border border-stone-200 p-4 sm:grid-cols-3">
-          <p className="label mb-0 sm:col-span-3">{t('appt.settingsTitle')}</p>
-          <div>
-            <label className="label" htmlFor="st-slot_minutes">{t('appt.slotMinutes')}</label>
-            <select id="st-slot_minutes" className="input" value={form.slot_minutes} onChange={set('slot_minutes')}>
-              {[10, 15, 20, 30, 45, 60].map((m) => <option key={m} value={m}>{t('appt.minutes', { count: m })}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="label" htmlFor="st-booking_days">{t('appt.bookingDays')}</label>
-            <select id="st-booking_days" className="input" value={form.booking_days} onChange={set('booking_days')}>
-              {[3, 7, 14, 21, 30, 60].map((d) => <option key={d} value={d}>{t('appt.days', { count: d })}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="label" htmlFor="st-min_notice_minutes">{t('appt.minNotice')}</label>
-            <select id="st-min_notice_minutes" className="input" value={form.min_notice_minutes} onChange={set('min_notice_minutes')}>
-              {[0, 30, 60, 120, 240, 720, 1440].map((m) => (
-                <option key={m} value={m}>{m === 0 ? t('appt.noNotice') : m < 60 ? t('appt.minutes', { count: m }) : t('appt.hours', { count: m / 60 })}</option>
-              ))}
-            </select>
-          </div>
-          <p className="text-[11px] text-stone-400 sm:col-span-3">{t('appt.settingsHint')}</p>
-        </div>
       )}
-
-      <div>
-        <label className="label" htmlFor="st-order_language">{t('settings.orderLanguage')}</label>
-        <select id="st-order_language" className="input" value={form.order_language} onChange={set('order_language')}>
-          <option value="auto">{t('settings.orderLanguageAuto')}</option>
-          {LANGUAGES.map((l) => (
-            <option key={l.code} value={l.code}>
-              {l.name} — {l.english}
-            </option>
-          ))}
-        </select>
-        <p className="mt-1 text-[11px] text-stone-400">{t('settings.orderLanguageHint')}</p>
-      </div>
-
-      {!appointments && (
-        <div className="space-y-3 rounded-2xl border border-stone-200 p-4">
-          <p className="label mb-0">{t('settings.deliveryTitle')}</p>
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input type="checkbox" className="h-4 w-4 accent-brand" checked={freeDelivery} onChange={(e) => setFreeDelivery(e.target.checked)} />
-            {t('settings.freeDelivery')}
-          </label>
-          {!freeDelivery && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="label" htmlFor="st-delivery_fee">{t('settings.f.delivery_fee')} <span className="text-rose-500">*</span></label>
-                <input id="st-delivery_fee" className="input" type="number" min={1} step="1" inputMode="numeric" value={form.delivery_fee} onChange={set('delivery_fee')} required />
-                {fields.delivery_fee && <p className="mt-1 text-xs text-rose-600">{fields.delivery_fee}</p>}
-              </div>
-              <div>
-                <label className="label" htmlFor="st-free_delivery_above">{t('settings.f.free_delivery_above')}</label>
-                <input id="st-free_delivery_above" className="input" type="number" min={0} step="1" inputMode="numeric" value={form.free_delivery_above ?? ''} onChange={set('free_delivery_above')} />
-                {fields.free_delivery_above ? (
-                  <p className="mt-1 text-xs text-rose-600">{fields.free_delivery_above}</p>
-                ) : (
-                  <p className="mt-1 text-[11px] text-stone-400">{t('settings.h.free_delivery_above')}</p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+      {fields[key] ? (
+        <p className="mt-1 text-xs text-rose-600">{fields[key]}</p>
+      ) : (
+        opts.hint && <p className="mt-1 text-[11px] text-stone-400">{opts.hint}</p>
       )}
+    </div>
+  );
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {FIELDS.filter(([, opts]) => !(appointments && opts.shopOnly)).map(([key, opts]) => (
-          <div key={key} className={opts.textarea || key === 'slug' ? 'sm:col-span-2' : ''}>
-            <label className="label" htmlFor={`st-${key}`}>
-              {t(`settings.f.${key}`)}
-              {opts.required && <span className="text-rose-500"> *</span>}
+  return (
+    <form onSubmit={submit} className="space-y-4" noValidate>
+      <Section title={t('setup.detailsTitle')}>
+        <dl className="grid gap-4 sm:grid-cols-2">
+          <Detail label={t('biz.question')}>{t(appointments ? 'biz.appointments' : 'biz.shop')}</Detail>
+          <Detail label={t('settings.f.category')}>{store.category}</Detail>
+          <Detail label={appointments ? t('biz.businessName') : t('owner.storeName')}>{store.name}</Detail>
+          <Detail label={t('settings.f.slug')}>
+            <a href={`/s/${store.slug}`} target="_blank" rel="noreferrer" className="text-brand underline" dir="ltr">{window.location.host}/s/{store.slug}</a>
+          </Detail>
+          <Detail label={t('settings.waLabel')}>
+            <span className="inline-flex flex-wrap items-center gap-2">
+              <WhatsAppIcon size={16} className="text-whatsapp" />
+              <span className="whitespace-nowrap">{pretty(store.whatsapp_number)}</span>
+              {store.whatsapp_verified && (
+                <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                  <BadgeCheck size={12} /> {t('settings.verified')}
+                </span>
+              )}
+            </span>
+          </Detail>
+        </dl>
+        <SupportNote store={store} />
+      </Section>
+
+      <Section title={t('loc.title')}>
+        <AddressPicker value={form} onChange={(patch) => setForm((f) => ({ ...f, ...patch }))} error={fields.lat || fields.address_text} />
+        {input('city', { placeholder: t('settings.p.city') })}
+        <div>
+          <label className="label" htmlFor="st-order_language">{t('settings.orderLanguage')}</label>
+          <select id="st-order_language" className="input" value={form.order_language} onChange={set('order_language')}>
+            <option value="auto">{t('settings.orderLanguageAuto')}</option>
+            {LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code}>{l.name} — {l.english}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-[11px] text-stone-400">{t('settings.orderLanguageHint')}</p>
+        </div>
+      </Section>
+
+      <Section title={t('setup.moreTitle')}>
+        {!appointments && (
+          <div className="space-y-3 rounded-2xl border border-stone-200 p-4">
+            <p className="label mb-0">{t('settings.deliveryTitle')}</p>
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <input type="checkbox" className="h-4 w-4 accent-brand" checked={freeDelivery} onChange={(e) => setFreeDelivery(e.target.checked)} />
+              {t('settings.freeDelivery')}
             </label>
-            {opts.textarea ? (
-              <textarea id={`st-${key}`} rows={3} className="input" value={form[key]} onChange={set(key)} maxLength={opts.maxLength} />
-            ) : (
-              <div className="flex items-center gap-2">
-                {opts.prefix && <span className="text-sm text-stone-500">{opts.prefix}</span>}
-                <input
-                  id={`st-${key}`}
-                  className={opts.type === 'color' ? 'h-10 w-16 cursor-pointer rounded-lg border border-stone-200' : 'input'}
-                  type={opts.type || 'text'}
-                  value={form[key]}
-                  onChange={set(key)}
-                  inputMode={opts.inputMode}
-                  placeholder={opts.tPlaceholder ? t(appointments && key === 'category' ? 'appt.categoryPlaceholder' : `settings.p.${key}`) : opts.placeholder}
-                  min={opts.min}
-                  maxLength={opts.maxLength}
-                />
+            {!freeDelivery && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="label" htmlFor="st-delivery_fee">{t('settings.f.delivery_fee')} <span className="text-rose-500">*</span></label>
+                  <input id="st-delivery_fee" className="input" type="number" min={1} step="1" inputMode="numeric" value={form.delivery_fee} onChange={set('delivery_fee')} required />
+                  {fields.delivery_fee && <p className="mt-1 text-xs text-rose-600">{fields.delivery_fee}</p>}
+                </div>
+                {input('free_delivery_above', { type: 'number', min: 0, inputMode: 'numeric', hint: t('settings.h.free_delivery_above') })}
               </div>
             )}
-            {fields[key] ? (
-              <p className="mt-1 text-xs text-rose-600">{fields[key]}</p>
-            ) : (
-              opts.hint && <p className="mt-1 text-[11px] text-stone-400">{t(`settings.h.${key}`)}</p>
-            )}
           </div>
-        ))}
-      </div>
+        )}
+
+        <div className="flex gap-4">
+          {imagePicker('logo_url', t('settings.logo'), logoRef, 'h-24 w-24 rounded-2xl')}
+          <div className="flex-1">{imagePicker('banner_url', t('settings.banner'), bannerRef, 'h-24 w-full rounded-2xl')}</div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {input('opening_hours', { placeholder: '09:00-21:00', hint: t('settings.h.opening_hours') })}
+          {input('closed_days', { placeholder: 'Sun' })}
+          {!appointments && input('minimum_order', { type: 'number', min: 0, inputMode: 'numeric' })}
+          {input('instagram_handle', { placeholder: 'yourstore' })}
+          {input('theme_color', { type: 'color' })}
+          {input('description', { textarea: true, maxLength: 500, wide: true })}
+        </div>
+
+        {appointments && (
+          <div className="grid gap-4 rounded-2xl border border-stone-200 p-4 sm:grid-cols-3">
+            <p className="label mb-0 sm:col-span-3">{t('appt.settingsTitle')}</p>
+            <div>
+              <label className="label" htmlFor="st-slot_minutes">{t('appt.slotMinutes')}</label>
+              <select id="st-slot_minutes" className="input" value={form.slot_minutes} onChange={set('slot_minutes')}>
+                {[10, 15, 20, 30, 45, 60].map((m) => <option key={m} value={m}>{t('appt.minutes', { count: m })}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="st-booking_days">{t('appt.bookingDays')}</label>
+              <select id="st-booking_days" className="input" value={form.booking_days} onChange={set('booking_days')}>
+                {[3, 7, 14, 21, 30, 60].map((d) => <option key={d} value={d}>{t('appt.days', { count: d })}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="st-min_notice_minutes">{t('appt.minNotice')}</label>
+              <select id="st-min_notice_minutes" className="input" value={form.min_notice_minutes} onChange={set('min_notice_minutes')}>
+                {[0, 30, 60, 120, 240, 720, 1440].map((m) => (
+                  <option key={m} value={m}>{m === 0 ? t('appt.noNotice') : m < 60 ? t('appt.minutes', { count: m }) : t('appt.hours', { count: m / 60 })}</option>
+                ))}
+              </select>
+            </div>
+            <p className="text-[11px] text-stone-400 sm:col-span-3">{t('appt.settingsHint')}</p>
+          </div>
+        )}
+      </Section>
 
       {status.error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{status.error}</p>}
       <button disabled={status.busy || !!uploading} className="btn-brand w-full">

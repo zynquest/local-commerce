@@ -18,6 +18,7 @@ const PATTERNS = [
   P(/^Please complete: (.+)$/, 'errors.pleaseComplete', ['items']),
   P(/^Cannot (\w+) a store that is (.+)$/, 'errors.cannotTransition', ['action', 'status']),
   P(/^Request failed \((\d+)\)$/, 'errors.requestFailed', ['status']),
+  P(/^Business type, store type, store name, store link and WhatsApp number can't be changed after approval\. Message support on WhatsApp (.+) to correct them\.$/, 'setup.lockedNote', ['phone']),
   P(/^Too many products in one message \(max (\d+)\)\..*$/, 'msgimp.tooManyItems', ['max']),
 ];
 

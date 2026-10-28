@@ -1,0 +1,107 @@
+// Store types offered in the "Store type" picker, by business type. Stored on the store as typed here (English),
+// the same way merchants' own names and categories are. Add new local business kinds to these lists; an owner can
+// still type a type that isn't listed.
+
+export const SHOP_CATEGORIES = [
+  'Grocery / Kirana',
+  'Supermarket',
+  'Fruits & Vegetables',
+  'Dairy & Milk',
+  'Bakery',
+  'Sweets & Mithai',
+  'Home-made Food (Pickles, Papad)',
+  'Restaurant',
+  'Tiffin & Meals',
+  'Cafe & Snacks',
+  'Juice & Ice Cream',
+  'Meat & Fish',
+  'Dry Fruits & Spices',
+  'Organic & Natural',
+  'Flour & Rice Mill',
+  'Water Cans',
+  'Flowers',
+  'Pooja Items',
+  'Medical Store',
+  'Hardware',
+  'Electricals',
+  'Paints',
+  'Plumbing & Sanitary',
+  'Building Materials',
+  'Electronics',
+  'Mobile Phones & Accessories',
+  'Computers & Printing',
+  'Stationery & Books',
+  'Gifts & Toys',
+  'Clothing & Garments',
+  'Sarees & Ethnic Wear',
+  'Kids Wear',
+  'Footwear',
+  'Bags & Luggage',
+  'Jewellery',
+  'Imitation Jewellery & Bangles',
+  'Cosmetics & Beauty Products',
+  'Watches & Opticals',
+  'Furniture',
+  'Home Decor & Furnishing',
+  'Kitchenware & Utensils',
+  'Plastic & Household',
+  'Sports & Fitness',
+  'Pet Supplies',
+  'Seeds, Fertilisers & Agri',
+  'Cattle Feed',
+  'Auto Parts & Accessories',
+  'Cycle Store',
+  'Handicrafts',
+  'Tailoring & Boutique',
+  'Laundry & Dry Cleaning',
+  'Other',
+];
+
+export const APPOINTMENT_CATEGORIES = [
+  'Hair Salon',
+  'Barber Shop',
+  'Unisex Salon',
+  'Beauty Parlour',
+  'Spa & Massage',
+  'Nail Studio',
+  'Bridal Makeup',
+  'Mehendi Artist',
+  'Tattoo Studio',
+  'Doctor’s Clinic',
+  'Dental Clinic',
+  'Eye Clinic',
+  'Skin & Hair Clinic',
+  'Physiotherapy',
+  'Ayurveda & Homeopathy',
+  'Diagnostic Lab',
+  'Veterinary Clinic',
+  'Pet Grooming',
+  'Yoga Studio',
+  'Gym & Fitness',
+  'Dance Classes',
+  'Music Classes',
+  'Tuition & Coaching',
+  'Driving School',
+  'Photography Studio',
+  'Tailoring & Alterations',
+  'Mobile & Laptop Repair',
+  'AC & Appliance Repair',
+  'Car Wash & Service',
+  'Bike Service',
+  'Counselling',
+  'Lawyer & Notary',
+  'CA & Tax Consultant',
+  'Other',
+];
+
+export const categoriesFor = (businessType) => (businessType === 'appointments' ? APPOINTMENT_CATEGORIES : SHOP_CATEGORIES);
+
+/** Same rules as the server's slugify (server/src/serialize.js): the store link suggested from the name. */
+export const slugify = (s) =>
+  String(s || '')
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50);

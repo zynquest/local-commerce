@@ -89,6 +89,16 @@ export const qrGenerate = z.object({ count: z.coerce.number().int().min(1, 'At l
 export const qrAssign = z.object({ store: z.string().trim().min(1, 'Enter the store name').max(300) });
 export const submitForReview = z.object({ note: optText(500).optional(), whatsapp_number: mobile10.optional() });
 export const whatsappSet = z.object({ phone: mobile10 });
+// Admin correction of the details owners can't change after approval (name, link, type, store type, WhatsApp).
+export const storeDetailsFix = z
+  .object({
+    name: z.preprocess(cleanText, z.string().min(2, 'Store name is too short').max(60)),
+    slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Lowercase letters, numbers and single hyphens only').max(60),
+    category: z.preprocess(cleanText, z.string().min(1, 'Store type is required').max(40)),
+    business_type: z.enum(BUSINESS_TYPES),
+    whatsapp_number: mobile10,
+  })
+  .partial();
 // Seeded listing → owner: their login email (OWNER_LOGIN=email) and/or mobile; the mobile also becomes the WhatsApp number.
 export const seedClaim = z
   .object({ email: email.optional(), phone: mobile10.optional() })
@@ -143,6 +153,7 @@ export const storeSettings = z
     closed_days: optText(40),
     theme_color: z.preprocess((v) => (v ? v : null), z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable()),
     order_language: z.enum(['auto', ...LANGUAGE_CODES]), // auto = the customer's language
+    business_type: z.enum(BUSINESS_TYPES), // only until the store is approved (see LOCKED_AFTER_APPROVAL)
     // Map pin (from Google Maps search, the phone's GPS or dragging the pin). Both or neither.
     lat: z.preprocess((v) => (v === '' || v == null ? null : v), z.coerce.number().min(-90).max(90).nullable()),
     lng: z.preprocess((v) => (v === '' || v == null ? null : v), z.coerce.number().min(-180).max(180).nullable()),

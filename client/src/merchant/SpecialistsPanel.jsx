@@ -5,12 +5,12 @@ import { del, get, post, put } from '../lib/api.js';
 import { uploadImage } from '../services/imageService.js';
 import { useI18n } from '../i18n/index.jsx';
 
-const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-const DEFAULT_SCHEDULE = Object.fromEntries(DAYS.map((d) => [d, d === 'sun' ? [] : [['10:00', '19:00']]]));
+export const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+export const DEFAULT_SCHEDULE = Object.fromEntries(DAYS.map((d) => [d, d === 'sun' ? [] : [['10:00', '19:00']]]));
 const EMPTY = { name: '', title: '', photo_url: null, schedule: DEFAULT_SCHEDULE, service_ids: [], active: true };
 
 /** Weekly working hours: each day off or up to two time ranges (e.g. 10:00–13:00 and 14:00–19:00). */
-function ScheduleEditor({ value, onChange }) {
+export function ScheduleEditor({ value, onChange }) {
   const { t, dayName } = useI18n();
   const setDay = (day, ranges) => onChange({ ...value, [day]: ranges });
   return (

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CalendarClock, Loader2, Mail, ShoppingBag, Store } from 'lucide-react';
+import { Loader2, Mail, Store } from 'lucide-react';
+import BusinessTypePicker from '../components/BusinessTypePicker.jsx';
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import OtpField from '../components/OtpField.jsx';
 import GoogleSignIn from '../components/GoogleSignIn.jsx';
@@ -21,32 +22,6 @@ const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v || '').trim())
 export default function OwnerAuth({ mode }) {
   const { appConfig } = useSession();
   return appConfig.ownerLogin === 'mobile' ? <MobileOwnerAuth mode={mode} /> : <EmailOwnerAuth mode={mode} />;
-}
-
-function BusinessTypePicker({ value, onChange, error }) {
-  const t = useT();
-  return (
-    <fieldset>
-      <legend className="label">{t('biz.question')}</legend>
-      <div className="grid grid-cols-2 gap-2">
-        {[
-          ['shop', ShoppingBag, 'biz.shop', 'biz.shopHint'],
-          ['appointments', CalendarClock, 'biz.appointments', 'biz.appointmentsHint'],
-        ].map(([v, Icon, title, hint]) => (
-          <label
-            key={v}
-            className={`flex cursor-pointer flex-col gap-1 rounded-2xl border-2 p-3 text-sm ${value === v ? 'border-brand bg-emerald-50' : 'border-stone-200 hover:border-stone-300'}`}
-          >
-            <input type="radio" name="businessType" value={v} checked={value === v} onChange={() => onChange(v)} className="sr-only" />
-            <Icon size={20} className={value === v ? 'text-brand' : 'text-stone-500'} />
-            <span className="font-bold">{t(title)}</span>
-            <span className="text-[11px] leading-snug text-stone-500">{t(hint)}</span>
-          </label>
-        ))}
-      </div>
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
-    </fieldset>
-  );
 }
 
 function AuthShell({ isRegister, children, onSubmit, extra }) {
@@ -116,7 +91,7 @@ function EmailOwnerAuth({ mode }) {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
   const { owner, loadOwner, authOwnerEmail, authOwnerGoogle, appConfig } = useSession();
-  const [form, setForm] = useState({ storeName: '', email: '', code: '', businessType: '' });
+  const [form, setForm] = useState({ storeName: '', email: '', code: '', businessType: 'shop' });
   const [needsStore, setNeedsStore] = useState(false); // signed in, new account: ask for the store
   const [googleCredential, setGoogleCredential] = useState(''); // kept to finish a Google sign-up with the store
   const [emailChosen, setEmailChosen] = useState(false); // "I don't have a Google account"
@@ -250,7 +225,7 @@ function MobileOwnerAuth({ mode }) {
   const t = useT();
   const navigate = useNavigate();
   const { owner, loadOwner, appConfig, registerOwner, loginOwner } = useSession();
-  const [form, setForm] = useState({ storeName: '', phone: '', code: '', businessType: '' });
+  const [form, setForm] = useState({ storeName: '', phone: '', code: '', businessType: 'shop' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [fields, setFields] = useState({});
@@ -315,26 +290,7 @@ function MobileOwnerAuth({ mode }) {
         </div>
 
         {isRegister && (
-          <fieldset>
-            <legend className="label">{t('biz.question')}</legend>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                ['shop', ShoppingBag, 'biz.shop', 'biz.shopHint'],
-                ['appointments', CalendarClock, 'biz.appointments', 'biz.appointmentsHint'],
-              ].map(([value, Icon, title, hint]) => (
-                <label
-                  key={value}
-                  className={`flex cursor-pointer flex-col gap-1 rounded-2xl border-2 p-3 text-sm ${form.businessType === value ? 'border-brand bg-emerald-50' : 'border-stone-200 hover:border-stone-300'}`}
-                >
-                  <input type="radio" name="businessType" value={value} checked={form.businessType === value} onChange={() => setForm((f) => ({ ...f, businessType: value }))} className="sr-only" />
-                  <Icon size={20} className={form.businessType === value ? 'text-brand' : 'text-stone-500'} />
-                  <span className="font-bold">{t(title)}</span>
-                  <span className="text-[11px] leading-snug text-stone-500">{t(hint)}</span>
-                </label>
-              ))}
-            </div>
-            {fieldError('businessType')}
-          </fieldset>
+          <BusinessTypePicker value={form.businessType} onChange={(v) => setForm((f) => ({ ...f, businessType: v }))} error={fields.businessType} />
         )}
 
         {isRegister && (

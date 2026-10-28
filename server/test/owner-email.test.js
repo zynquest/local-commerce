@@ -150,10 +150,10 @@ describe('owners: WhatsApp number on submission, verified on approval', () => {
     assert.equal(pub.body.store.status, 'approved');
   });
 
-  test('changing the number later is allowed but unverified again', async () => {
+  test('after approval the owner cannot change the number (support corrects it)', async () => {
     const r = await ownerA('PUT', '/api/merchant/store/whatsapp', { phone: `7${digits}6`.slice(0, 10) });
-    assert.equal(r.status, 200, JSON.stringify(r.body));
-    assert.equal(r.body.store.whatsapp_verified, false);
+    assert.equal(r.status, 409, JSON.stringify(r.body));
+    assert.match(r.body.error, /can't be changed after approval/);
   });
 });
 

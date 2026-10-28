@@ -36,6 +36,13 @@ async function nextSku(client, storeId) {
 }
 
 const REVIEWABLE = ['draft', 'rejected', 'suspended'];
+// Once a store has been approved, these identify it to customers (links, QR codes, WhatsApp) and only the platform
+// team can change them (PATCH /api/platform/stores/:id/details).
+export const LOCKED_AFTER_APPROVAL = ['business_type', 'category', 'name', 'slug'];
+export const detailsLocked = (store) => ['approved', 'suspended'].includes(store.status);
+export const SUPPORT_WHATSAPP = '+91 93530 95481';
+const lockedError = () =>
+  conflict(`Business type, store type, store name, store link and WhatsApp number can't be changed after approval. Message support on WhatsApp ${SUPPORT_WHATSAPP} to correct them.`);
 export const DEMO_WHATSAPP_LOCKED = 'Demo stores always take orders on the Vocal For Local WhatsApp number';
 
 /** What must be in place before a store can be submitted for review. */
@@ -82,7 +89,14 @@ async function storeWithReview(storeId) {
     reviewChecklist(store),
   ]);
   const { owner_id, sku_seq, ...rest } = store;
-  return { ...rest, sku_used: usage.rows[0].used, reviews: reviews.rows, checklist, can_submit: REVIEWABLE.includes(store.status) };
+  return {
+    ...rest,
+    sku_used: usage.rows[0].used,
+    reviews: reviews.rows,
+    checklist,
+    can_submit: REVIEWABLE.includes(store.status),
+    details_locked: detailsLocked(store),
+  };
 }
 
 /** Locks the store row so concurrent creates can't exceed the SKU limit. Returns { limit, used }. */
@@ -111,6 +125,7 @@ merchantRouter.get('/store', async (req, res) => {
 async function setWhatsApp(client, store, ownerId, phone) {
   if (phone === store.whatsapp_number) return;
   if (store.is_demo) throw badRequest(DEMO_WHATSAPP_LOCKED);
+  if (detailsLocked(store)) throw lockedError();
   const taken = await client.query(
     `SELECT 1 FROM stores WHERE whatsapp_number = $1 AND id <> $2 AND NOT is_demo
      UNION ALL SELECT 1 FROM users WHERE phone = $1 AND id <> $3`,
@@ -160,8 +175,9 @@ merchantRouter.put('/store/whatsapp', async (req, res) => {
 /** Confirms a WhatsApp number change with the OTP sent to the new number (see POST /api/otp/request). */
 merchantRouter.post('/store/whatsapp/verify', async (req, res) => {
   const { phone, code } = parse(S.whatsappVerify, req.body);
-  const { rows: demo } = await query('SELECT is_demo FROM stores WHERE id = $1', [req.user.store_id]);
+  const { rows: demo } = await query('SELECT is_demo, status FROM stores WHERE id = $1', [req.user.store_id]);
   if (demo[0]?.is_demo) throw badRequest(DEMO_WHATSAPP_LOCKED);
+  if (detailsLocked(demo[0])) throw lockedError();
   const context = await verifyOtp({ phone, purpose: 'whatsapp_change', code });
   if (context.store_id !== req.user.store_id) throw badRequest('This code was issued for a different store');
   await query('UPDATE stores SET whatsapp_number = $2, whatsapp_verified = true, updated_at = now() WHERE id = $1', [
@@ -174,11 +190,18 @@ merchantRouter.post('/store/whatsapp/verify', async (req, res) => {
 merchantRouter.put('/store', async (req, res) => {
   const data = parse(S.storeSettings, req.body);
   if (data.delivery_fee !== undefined && !(Number(data.delivery_fee) > 0)) data.free_delivery_above = null; // free delivery: no threshold
+  const { rows: current } = await query('SELECT status, business_type, category, name, slug FROM stores WHERE id = $1', [req.user.store_id]);
+  if (detailsLocked(current[0])) {
+    // The settings form sends these back unchanged; only an actual change is refused.
+    const changed = LOCKED_AFTER_APPROVAL.filter((k) => data[k] !== undefined && String(data[k] ?? '') !== String(current[0][k] ?? ''));
+    if (changed.length) throw lockedError();
+    for (const k of LOCKED_AFTER_APPROVAL) delete data[k];
+  }
   const entries = Object.entries(data).filter(([, v]) => v !== undefined);
   if (!entries.length) throw badRequest('Nothing to update');
   if (data.slug) {
     const taken = await query('SELECT 1 FROM stores WHERE slug = $1 AND id <> $2', [data.slug, req.user.store_id]);
-    if (taken.rowCount) throw conflict('That store link is already taken');
+    if (taken.rowCount) throw conflict('That store link is already taken', { slug: 'That store link is already taken' });
   }
   const sets = entries.map(([k], i) => `${k} = $${i + 2}`).join(', ');
   await query(`UPDATE stores SET ${sets}, updated_at = now() WHERE id = $1`, [req.user.store_id, ...entries.map(([, v]) => v)]);

@@ -14,6 +14,7 @@ import OrdersPanel from '../merchant/OrdersPanel.jsx';
 import StoreSettings from '../merchant/StoreSettings.jsx';
 import AccountPanel from '../merchant/AccountPanel.jsx';
 import StoreStatusCard, { StatusPill } from '../merchant/StoreStatusCard.jsx';
+import OnboardingWizard from '../merchant/OnboardingWizard.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import { LoadingScreen } from '../components/StatusScreens.jsx';
 import { useSession } from '../context/SessionContext.jsx';
@@ -47,8 +48,6 @@ export default function MerchantDashboard() {
   const [params, setParams] = useSearchParams();
   const tabParam = params.get('tab');
   const setTab = (t) => setParams({ tab: t }, { replace: true });
-  // Checklist "Add" links: open Settings and bring that field into view (key: name | category | location).
-  const goToSetting = (key) => setParams({ tab: 'settings', ...(key ? { focus: `${key}.${Date.now().toString(36)}` } : {}) }, { replace: true }); // unique, so a second click scrolls again
 
   const [store, setStore] = useState(null);
   const [stats, setStats] = useState(null);
@@ -161,22 +160,22 @@ export default function MerchantDashboard() {
 
   const cur = store.currency_symbol;
   const isAppt = store.business_type === 'appointments';
-  const tabs = isAppt ? TABS_APPOINTMENTS : TABS;
+  // New stores (and stores the team sent back) go through the setup steps; the console tabs come after submitting.
+  const inSetup = store.status === 'draft' || store.status === 'rejected';
+  // Store Settings (delivery, hours, logo…) open once the store is approved.
+  const settingsOpen = store.status === 'approved' || store.status === 'suspended';
+  const tabs = (isAppt ? TABS_APPOINTMENTS : TABS).filter((x) => x.id !== 'settings' || settingsOpen);
   const tab = tabs.some((x) => x.id === tabParam) ? tabParam : tabs[0].id;
   const atLimit = stats && stats.sku_used >= stats.sku_limit;
 
   return (
     <div className="min-h-screen pb-16">
       <header className="sticky top-0 z-20 border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <SmartImage src={store.logo_url} alt="" width={80} className="h-10 w-10 flex-none rounded-xl object-cover" />
-            <div className="min-w-0">
-              <p className="leading-tight font-bold break-words">{store.name}</p>
-              <div className="mt-0.5"><StatusPill status={store.status} /></div>
-            </div>
-          </div>
-          <div className="flex flex-none items-center gap-1">
+        {/* Logo · name (full, wraps) · actions on one row; the status pill under the name never squeezes either. */}
+        <div className="mx-auto grid max-w-5xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 pt-3 pb-2">
+          <SmartImage src={store.logo_url} alt="" width={80} className="row-span-2 h-11 w-11 rounded-xl object-cover" />
+          <p className="self-end text-base leading-tight font-bold break-words">{store.name}</p>
+          <div className="row-span-2 flex items-center gap-0.5">
             {/* Phones: icon-only, so the store name and status keep their room. */}
             <LanguageSwitcher variant="compact" className="sm:hidden" />
             <LanguageSwitcher className="me-1 hidden sm:block" />
@@ -190,8 +189,9 @@ export default function MerchantDashboard() {
               <LogOut size={18} />
             </button>
           </div>
+          <div className="self-start"><StatusPill status={store.status} /></div>
         </div>
-        <nav className="no-scrollbar mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4">
+        {!inSetup && <nav className="no-scrollbar mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4">
           {tabs.map(({ id, icon: Icon }) => (
             <button
               key={id}
@@ -212,19 +212,16 @@ export default function MerchantDashboard() {
               )}
             </button>
           ))}
-        </nav>
+        </nav>}
       </header>
 
+      {inSetup ? (
+        <main className="mx-auto max-w-2xl space-y-4 p-4">
+          <OnboardingWizard store={store} onStoreChange={setStore} onCatalogChange={loadAll} />
+        </main>
+      ) : (
       <main className="mx-auto max-w-5xl space-y-4 p-4">
-        {params.get('welcome') && (
-          <div className="card border-emerald-200 bg-emerald-50 p-4 text-sm">
-            <p className="font-bold text-emerald-900">{t('merchant.welcome', { link: `/s/${store.slug}` })}</p>
-            <p className="mt-1 text-emerald-800">
-              {isAppt ? t('appt.welcomeBody') : t('merchant.welcomeBody')}
-            </p>
-          </div>
-        )}
-        <StoreStatusCard store={store} onChange={(s) => setStore(s)} onGoToSettings={goToSetting} />
+        <StoreStatusCard store={store} onChange={(s) => setStore(s)} />
 
         {stats && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -356,7 +353,6 @@ export default function MerchantDashboard() {
         {tab === 'settings' && (
           <StoreSettings
             store={store}
-            focus={params.get('focus')}
             onSaved={(s, message) => {
               setStore((prev) => ({ ...prev, ...s }));
               flash(message || t('common.saved'));
@@ -365,6 +361,7 @@ export default function MerchantDashboard() {
         )}
         {tab === 'account' && <AccountPanel store={{ ...store, sku_used: stats?.sku_used ?? store.sku_used }} phone={owner.phone} email={owner.email} />}
       </main>
+      )}
 
       {toast && (
         <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">

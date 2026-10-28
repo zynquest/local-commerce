@@ -247,3 +247,34 @@ platformRouter.patch('/stores/:id/plan', async (req, res) => {
   if (!rows[0]) throw notFound('Store not found');
   res.json({ store: rows[0] });
 });
+
+/**
+ * Corrects the details an owner can't change after approval (name, store link, business type, store type, WhatsApp
+ * number), when they ask support. A new WhatsApp number counts as verified: support confirmed it with the owner.
+ */
+platformRouter.patch('/stores/:id/details', async (req, res) => {
+  const data = parse(S.storeDetailsFix, req.body ?? {});
+  const entries = Object.entries(data).filter(([, v]) => v !== undefined);
+  if (!entries.length) throw conflict('Nothing to change');
+  const store = await tx(async (client) => {
+    const { rows } = await client.query('SELECT id, is_demo FROM stores WHERE id = $1 FOR UPDATE', [req.params.id]);
+    if (!rows[0]) throw notFound('Store not found');
+    if (data.slug) {
+      const taken = await client.query('SELECT 1 FROM stores WHERE slug = $1 AND id <> $2', [data.slug, req.params.id]);
+      if (taken.rowCount) throw conflict('That store link is already taken', { slug: 'That store link is already taken' });
+    }
+    if (data.whatsapp_number) {
+      const taken = await client.query('SELECT 1 FROM stores WHERE whatsapp_number = $1 AND id <> $2 AND NOT is_demo', [data.whatsapp_number, req.params.id]);
+      if (taken.rowCount) throw conflict('This WhatsApp number is already used by another store', { whatsapp_number: 'Already used by another store' });
+    }
+    const sets = entries.map(([k], i) => `${k} = $${i + 2}`);
+    if (data.whatsapp_number) sets.push('whatsapp_verified = true');
+    const updated = await client.query(
+      `UPDATE stores SET ${sets.join(', ')}, updated_at = now() WHERE id = $1
+       RETURNING id, name, slug, category, business_type, whatsapp_number, whatsapp_verified`,
+      [req.params.id, ...entries.map(([, v]) => v)],
+    );
+    return updated.rows[0];
+  });
+  res.json({ store });
+});

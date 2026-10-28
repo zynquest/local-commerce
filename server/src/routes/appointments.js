@@ -142,11 +142,17 @@ publicAppointmentsRouter.post('/stores/:slug/appointments', bookingLimiter, opti
   const store = await bookingStore(req, req.params.slug);
   if (store.preview) throw badRequest('This business is not taking bookings yet');
   bookingWindow(store, b.date);
-  const busyLimit = await query(
-    `SELECT count(*)::int AS n FROM appointments WHERE store_id = $1 AND customer_phone = $2 AND status = 'requested' AND ends_at > now()`,
-    [store.id, b.phone],
-  );
-  if (busyLimit.rows[0].n >= 3) throw conflict('You already have 3 pending requests here. Please wait for the business to confirm them.');
+  // At most 3 pending requests per customer at one business, recognised by their number or their account.
+  // (Anonymous requests have no number to count by; the per-device booking rate limit above covers them.)
+  if (b.phone || req.customer?.id) {
+    const busyLimit = await query(
+      `SELECT count(*)::int AS n FROM appointments
+        WHERE store_id = $1 AND status = 'requested' AND ends_at > now()
+          AND (($2::text IS NOT NULL AND customer_phone = $2) OR ($3::uuid IS NOT NULL AND customer_id = $3))`,
+      [store.id, b.phone || null, req.customer?.id || null],
+    );
+    if (busyLimit.rows[0].n >= 3) throw conflict('You already have 3 pending requests here. Please wait for the business to confirm them.');
+  }
 
   const appointment = await tx(async (client) => {
     const { service, specialists, booked } = await slotInputs(client, store, b.service_id, b.date, b.specialist_id);
@@ -166,7 +172,7 @@ publicAppointmentsRouter.post('/stores/:slug/appointments', bookingLimiter, opti
                                      starts_at, ends_at, customer_name, customer_phone, customer_id, notes, language)
            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
           [store.id, specialist.id, service.id, appointmentCode(), service.name, specialist.name, service.price,
-            startsAt, endsAt, b.name, b.phone, req.customer?.id || null, b.notes, b.language],
+            startsAt, endsAt, b.name, b.phone || null, req.customer?.id || null, b.notes, b.language],
         );
         return rows[0];
       } catch (err) {

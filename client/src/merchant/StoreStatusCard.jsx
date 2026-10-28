@@ -68,7 +68,7 @@ export default function StoreStatusCard({ store, onChange }) {
   const approvalLink = (s) =>
     whatsappLink(
       PLATFORM.whatsappNumber,
-      t('review.waApprovalMsg', { brand: PLATFORM.name, name: s.name, link: `${window.location.origin}/s/${s.slug}`, phone: `+91 ${national(s.whatsapp_number)}`, email: owner?.email || '—' }),
+      t(s.business_type === 'appointments' ? 'review.waApprovalMsgAppt' : 'review.waApprovalMsg', { brand: PLATFORM.name, name: s.name, link: `${window.location.origin}/s/${s.slug}`, phone: `+91 ${national(s.whatsapp_number)}`, email: owner?.email || '—' }),
     );
 
   if (store.status === 'pending_review') {

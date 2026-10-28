@@ -561,6 +561,16 @@ describe('appointments: services, specialists, slots, WhatsApp bookings', () => 
     assert.equal((await shopper('POST', `/api/stores/${apSlug}/orders`, { order_code: 'ORD-APPT01', items: [], notes: 'x' })).status, 400);
   });
 
+  test('booking needs no phone number (the request goes out on WhatsApp); a bad number is still refused', async () => {
+    const body = { service_id: spa.id, date: tomorrow(), time: '16:00', name: `No Phone ${run}`, language: 'en' };
+    const r = await shopper('POST', `/api/stores/${apSlug}/appointments`, body);
+    assert.equal(r.status, 201, JSON.stringify(r.body));
+    assert.equal(r.body.appointment.customer_phone, null);
+    assert.equal((await shopper('POST', `/api/stores/${apSlug}/appointments`, { ...body, time: '17:00', phone: '12345' })).status, 400);
+    const list = await pro('GET', `/api/merchant/appointments?from=${tomorrow()}&to=${tomorrow()}`);
+    assert.ok(list.body.appointments.some((a) => a.customer_name === `No Phone ${run}` && a.customer_phone === null));
+  });
+
   test('directory: only businesses within 5 km of the shopper (plus demo stores)', async () => {
     const near = await shopper('GET', '/api/stores?lat=12.9716&lng=77.5946');
     const hit = near.body.stores.find((s) => s.slug === apSlug);

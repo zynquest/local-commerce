@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, CalendarCheck, Check, Clock, Loader2, UserRound, Users, X } from 'lucide-react';
-import MobileInput, { isMobile10 } from './MobileInput.jsx';
 import SmartImage from './SmartImage.jsx';
 import WhatsAppIcon from './WhatsAppIcon.jsx';
 import { useSession } from '../context/SessionContext.jsx';
@@ -27,7 +26,7 @@ export default function BookingSheet({ initialServiceId, onClose }) {
   const [time, setTime] = useState(null);
   const [days, setDays] = useState({ loading: false, list: [] });
   const [slots, setSlots] = useState({ loading: false, list: [] });
-  const [details, setDetails] = useState({ name: customer?.name || '', phone: customer?.phone ? customer.phone.slice(-10) : '', notes: '' });
+  const [details, setDetails] = useState({ name: customer?.name || '', notes: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [booked, setBooked] = useState(null);
@@ -91,7 +90,6 @@ export default function BookingSheet({ initialServiceId, onClose }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!details.name.trim()) return setError(t('book.enterName'));
-    if (!isMobile10(details.phone)) return setError(t('errors.validMobile10'));
     setBusy(true);
     setError('');
     try {
@@ -101,7 +99,8 @@ export default function BookingSheet({ initialServiceId, onClose }) {
         date,
         time,
         name: details.name,
-        phone: details.phone,
+        // No number asked: the request is sent on WhatsApp. A signed-in customer's number is passed along.
+        ...(customer?.phone ? { phone: customer.phone.slice(-10) } : {}),
         notes: details.notes,
         language: lang,
       });
@@ -255,7 +254,6 @@ export default function BookingSheet({ initialServiceId, onClose }) {
                 <label className="label" htmlFor="bk-name">{t('book.yourName')}</label>
                 <input id="bk-name" className="input" value={details.name} onChange={(e) => setDetails({ ...details, name: e.target.value })} autoComplete="name" maxLength={60} />
               </div>
-              <MobileInput id="bk-phone" value={details.phone} onChange={(phone) => setDetails({ ...details, phone })} label={t('auth.mobile10')} hint={t('book.mobileHint')} />
               <div>
                 <label className="label" htmlFor="bk-notes">{t('book.notes')}</label>
                 <textarea id="bk-notes" className="input" rows={2} value={details.notes} onChange={(e) => setDetails({ ...details, notes: e.target.value })} maxLength={500} placeholder={t('book.notesPlaceholder')} />

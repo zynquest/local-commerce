@@ -220,6 +220,7 @@
     "waHint": "ग्राहकक ऑर्डर एतहि अबैत अछि। दोकान मंजूर करबाक समय हम एकरा सत्यापित करैत छी।",
     "sendOnWhatsApp": "अहाँक मंजूरी अनुरोधक संग WhatsApp खुजत। बस पठाउ दबाउ।",
     "waApprovalMsg": "नमस्कार {brand} टीम, कृपया हमर दोकान \"{name}\" ({link}) मंजूर करू। ऑर्डरक लेल WhatsApp: {phone}। लॉगिन ईमेल: {email}।",
+    "waApprovalMsgAppt": "नमस्कार {brand} टीम, कृपया हमर व्यवसाय \"{name}\" ({link}) मंजूर करू। अपॉइंटमेंटक लेल WhatsApp: {phone}। लॉगिन ईमेल: {email}।",
     "sendAgain": "WhatsApp पर मंजूरीक अनुरोध पठाउ"
   },
   "nav": {

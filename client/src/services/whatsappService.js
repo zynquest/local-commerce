@@ -118,7 +118,7 @@ export function buildBookingMessage(storeConfig, appt, { t = makeT('en'), format
   m += `⏰ *${t('wa.apptTime')}:* ${clock(appt.time)} – ${clock(appt.end_time)}\n`;
   m += `${DIVIDER}\n`;
   m += `🙋 *${t('wa.name')}:* ${sanitizeText(appt.customer_name)}\n`;
-  m += `📞 *${t('wa.phone')}:* +${appt.customer_phone}\n`;
+  if (appt.customer_phone) m += `📞 *${t('wa.phone')}:* +${appt.customer_phone}\n`;
   if (appt.notes) m += `📝 *${t('wa.notes')}:* ${sanitizeText(appt.notes)}\n`;
   m += `\n${t('wa.apptPleaseConfirm')}`;
   return m;

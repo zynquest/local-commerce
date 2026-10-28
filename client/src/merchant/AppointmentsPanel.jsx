@@ -73,7 +73,8 @@ export default function AppointmentsPanel({ store, currency, onChange }) {
       store: store.name,
       link: `${window.location.origin}/s/${store.slug}`,
     };
-    return whatsappLink(a.customer_phone, tt(kind === 'cancel' ? 'appt.msg.cancelled' : 'appt.msg.confirmed', vars));
+    // No number (it came in on WhatsApp): the link opens WhatsApp with the message ready, to send in that chat.
+    return whatsappLink(a.customer_phone || '', tt(kind === 'cancel' ? 'appt.msg.cancelled' : 'appt.msg.confirmed', vars));
   };
 
   return (
@@ -115,7 +116,9 @@ export default function AppointmentsPanel({ store, currency, onChange }) {
               </div>
               <div className="rounded-xl bg-stone-50 p-2 text-sm">
                 <p className="font-semibold">{a.customer_name} <span className="font-mono text-xs font-normal text-stone-500">{a.code}</span></p>
-                <a href={`tel:+${a.customer_phone}`} className="flex items-center gap-1 text-xs text-brand" dir="ltr"><Phone size={12} /> +{a.customer_phone.slice(0, 2)} {a.customer_phone.slice(2, 7)} {a.customer_phone.slice(7)}</a>
+                {a.customer_phone && (
+                  <a href={`tel:+${a.customer_phone}`} className="flex items-center gap-1 text-xs text-brand" dir="ltr"><Phone size={12} /> +{a.customer_phone.slice(0, 2)} {a.customer_phone.slice(2, 7)} {a.customer_phone.slice(7)}</a>
+                )}
                 {a.notes && <p className="mt-1 text-xs text-stone-600">“{a.notes}”</p>}
               </div>
               <div className="flex flex-wrap gap-2">

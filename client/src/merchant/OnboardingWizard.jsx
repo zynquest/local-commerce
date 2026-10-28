@@ -273,7 +273,7 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
   const approvalLink = (s) =>
     whatsappLink(
       PLATFORM.whatsappNumber,
-      t('review.waApprovalMsg', { brand: PLATFORM.name, name: s.name, link: `${window.location.origin}/s/${s.slug}`, phone: pretty(s.whatsapp_number), email: owner?.email || '—' }),
+      t(s.business_type === 'appointments' ? 'review.waApprovalMsgAppt' : 'review.waApprovalMsg', { brand: PLATFORM.name, name: s.name, link: `${window.location.origin}/s/${s.slug}`, phone: pretty(s.whatsapp_number), email: owner?.email || '—' }),
     );
 
   const submit = async () => {

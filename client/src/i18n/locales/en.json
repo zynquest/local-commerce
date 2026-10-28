@@ -220,6 +220,7 @@
     "waHint": "Customer orders arrive here. We verify it when we approve your store.",
     "sendOnWhatsApp": "WhatsApp opens with your approval request ready. Just tap send.",
     "waApprovalMsg": "Hi {brand} team, please approve my store \"{name}\" ({link}). WhatsApp for orders: {phone}. Login email: {email}.",
+    "waApprovalMsgAppt": "Hi {brand} team, please approve my business \"{name}\" ({link}). WhatsApp for appointments: {phone}. Login email: {email}.",
     "sendAgain": "Send approval request on WhatsApp"
   },
   "nav": {

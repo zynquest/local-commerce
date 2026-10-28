@@ -325,7 +325,8 @@ export const bookAppointment = z.object({
   date: isoDate,
   time: hhmm,
   name: z.preprocess(cleanText, z.string().min(1, 'Enter your name').max(60)),
-  phone: mobile10,
+  // Optional: the request goes out on WhatsApp from the customer's own number.
+  phone: z.preprocess((v) => (v === '' || v == null ? undefined : v), mobile10.optional()),
   notes: text(500).default(''),
   language: z.enum(LANGUAGE_CODES).default('en'),
 });

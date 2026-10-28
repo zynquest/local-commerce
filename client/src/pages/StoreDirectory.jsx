@@ -12,7 +12,7 @@ import SiteHeader from '../components/SiteHeader.jsx';
 import { useSeo } from '../lib/seo.js';
 import { useT } from '../i18n/index.jsx';
 
-/** "Near Indiranagar · within 5 km · Change" — opens the location picker. */
+/** "Near Indiranagar · within 10 km · Change" — opens the location picker. */
 export function NearbyBar({ className = '' }) {
   const t = useT();
   const { appConfig } = useSession();

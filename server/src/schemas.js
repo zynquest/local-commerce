@@ -252,6 +252,9 @@ export const placeOrder = z.object({
     )
     .max(200),
   notes: optText(1000),
+  // Name and delivery address are required in the cart (CartDrawer) before WhatsApp opens. They stay optional
+  // here on purpose: this call only records an order whose WhatsApp message is already sent, and the offline
+  // outbox drops orders the server rejects, so older app versions' queued orders would be lost.
   customer_name: optText(80),
   customer_phone: z.preprocess((v) => (v ? normalizePhone(v) : null), z.string().max(15).nullable()),
   delivery_address: optText(300),

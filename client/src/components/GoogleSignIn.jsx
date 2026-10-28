@@ -19,7 +19,8 @@ function loadGis() {
 }
 
 /**
- * Google's own icon-only "Sign in with Google" button. onCredential(idToken) runs after the user picks an account;
+ * Google's own "Continue with Google" button (logo on the left, full width of its container, up to Google's 400 px).
+ * onCredential(idToken) runs after the user picks an account;
  * the server verifies the token. onUnavailable() runs when Google can't load (offline, blocked), so the caller can
  * fall back to the email code.
  */
@@ -41,7 +42,17 @@ export default function GoogleSignIn({ clientId, onCredential, onUnavailable, la
           auto_select: false,
           cancel_on_tap_outside: true,
         });
-        window.google.accounts.id.renderButton(ref.current, { type: 'icon', shape: 'circle', theme: 'outline', size: 'large', locale: lang });
+        const width = Math.round(Math.min(400, Math.max(200, ref.current.getBoundingClientRect().width || 320)));
+        window.google.accounts.id.renderButton(ref.current, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'continue_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width,
+          locale: lang,
+        });
         setReady(true);
       })
       .catch(() => !cancelled && onUnavailable?.());
@@ -50,5 +61,5 @@ export default function GoogleSignIn({ clientId, onCredential, onUnavailable, la
     };
   }, [clientId, lang, onUnavailable]);
 
-  return <div ref={ref} className={`flex h-11 justify-center ${ready ? '' : 'animate-pulse'}`} data-testid="google-signin" />;
+  return <div ref={ref} className={`flex min-h-11 w-full justify-center ${ready ? '' : 'animate-pulse rounded bg-stone-100'}`} data-testid="google-signin" />;
 }

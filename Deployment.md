@@ -769,7 +769,7 @@ Pricing references:
 
 ## B19. Google Maps: address search and "near me"
 
-Merchants pick their shop address from **Google Maps search** (India only), or use **"Use my current location"** and drag a pin. Shoppers see only businesses within **5 km** of their location, from GPS or an area search. Without a key, everything still works: merchants type the address and set the pin with their phone's GPS, and shoppers use GPS.
+Merchants pick their shop address from **Google Maps search** (India only), or use **"Use my current location"** and drag a pin. Shoppers see only businesses within **10 km** (`NEARBY_RADIUS_KM`) of their location, from GPS or an area search. Without a key, everything still works: merchants type the address and set the pin with their phone's GPS, and shoppers use GPS.
 
 **1. Enable the APIs.** In Cloud Console (same project), go to **APIs & Services → Library** and enable:
 - **Maps JavaScript API**
@@ -793,7 +793,7 @@ The key is visible in the browser by design; these restrictions are what protect
 sudo nano /etc/vfl/env
 # GOOGLE_MAPS_API_KEY=AIza…
 # GOOGLE_MAPS_MAP_ID=<your map id>      # optional
-# NEARBY_RADIUS_KM=5                    # shoppers see businesses within this distance
+# NEARBY_RADIUS_KM=10                   # shoppers see businesses within this distance
 sudo systemctl restart vfl-api
 ```
 Check: `curl -s https://sonsari.in/api/config` should show `"mapsKey":"AIza…"` and `"nearbyKm":5`.
@@ -911,7 +911,7 @@ Seeded listings let shoppers near a shop find it before the owner signs up, and 
 **What a seeded listing is**
 - `stores.origin = 'seed'` (owner sign-ups are `organic`). It stays `seed` after the hand-over; `claimed_at` records when.
 - Approved, with the category's **starter catalog** (indicative Bengaluru prices) and the category logo. No WhatsApp number, so **it cannot take orders** until claimed.
-- Shown to shoppers **only within `NEARBY_RADIUS_KM`** (5 km) of their location, after real stores, with a *"Not taking orders yet"* badge. Never in search results without a location, never indexed, not in the sitemap.
+- Shown to shoppers **only within `NEARBY_RADIUS_KM`** (10 km) of their location, after real stores, with a *"Not taking orders yet"* badge. Never in search results without a location, never indexed, not in the sitemap.
 - The store page explains it was listed from public information and offers *"Own this shop? Claim it free, or ask us to remove it"* (a WhatsApp message to the platform number).
 - The listing's phone from the source is kept for the field team only; it is never shown to shoppers.
 - Seeded: grocery/kirana, vegetables and fruits, bakery, sweets, milk and dairy, flowers, hardware and electricals, mobiles and electronics, stationery, restaurants. **Not seeded:** salons, clinics (appointments) and pharmacies.

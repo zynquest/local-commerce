@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, CheckCircle2, CloudOff, ShoppingBag, Trash2, UserRound, X } from 'lucide-react';
 import QuantityStepper from './QuantityStepper.jsx';
 import SmartImage from './SmartImage.jsx';
@@ -21,6 +21,9 @@ export default function CartDrawer() {
   const { customer } = useSession();
   const [placed, setPlaced] = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [missing, setMissing] = useState({}); // { name?: true, address?: true } after a tap on Place order
+  const nameRef = useRef(null);
+  const addressRef = useRef(null);
   const cur = config?.currency_symbol || '₹';
   const money = (n) => formatMoney(n, cur);
   const { subtotal, savings, deliveryFee, freeDelivery, freeDeliveryGap, total } = cart.totals;
@@ -59,6 +62,16 @@ export default function CartDrawer() {
   const canOrder = (hasItems || hasNotes) && !belowMin && !!config.whatsapp_number;
 
   const placeOrder = () => {
+    // Name and delivery address are required: point at the first one that's empty instead of opening WhatsApp.
+    const need = { name: !cart.customer.name.trim(), address: !cart.customer.address.trim() };
+    if (need.name || need.address) {
+      setMissing(need);
+      const el = need.name ? nameRef.current : addressRef.current;
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el?.focus({ preventScroll: true });
+      return;
+    }
+    setMissing({});
     // Customer's language by default; a store can fix one language in Settings (preloaded by StoreProvider).
     const msgLang = orderMessageLanguage(config, lang);
     const order = compileWhatsAppOrder({ ...config, order_language: msgLang }, cart.items, cart.notes, cart.customer, makeT(msgLang));
@@ -199,13 +212,23 @@ export default function CartDrawer() {
                     </button>
                   )}
                 </div>
-                <input
-                  className="input"
-                  placeholder={t('cart.yourName')}
-                  value={cart.customer.name}
-                  autoComplete="name"
-                  onChange={(e) => cart.setCustomer({ ...cart.customer, name: e.target.value.slice(0, 80) })}
-                />
+                <div>
+                  <input
+                    ref={nameRef}
+                    className={`input ${missing.name ? 'border-rose-400 ring-1 ring-rose-300' : ''}`}
+                    placeholder={`${t('cart.yourName')} *`}
+                    value={cart.customer.name}
+                    autoComplete="name"
+                    required
+                    aria-required="true"
+                    aria-invalid={missing.name || undefined}
+                    onChange={(e) => {
+                      cart.setCustomer({ ...cart.customer, name: e.target.value.slice(0, 80) });
+                      if (missing.name) setMissing((m) => ({ ...m, name: false }));
+                    }}
+                  />
+                  {missing.name && <p className="mt-1 text-xs text-rose-600">{t('errors.enterName')}</p>}
+                </div>
                 <input
                   className="input"
                   placeholder={t('cart.phone')}
@@ -214,14 +237,24 @@ export default function CartDrawer() {
                   autoComplete="tel"
                   onChange={(e) => cart.setCustomer({ ...cart.customer, phone: e.target.value.slice(0, 20) })}
                 />
-                <textarea
-                  className="input resize-none"
-                  rows={2}
-                  placeholder={t('cart.address')}
-                  value={cart.customer.address}
-                  autoComplete="street-address"
-                  onChange={(e) => cart.setCustomer({ ...cart.customer, address: e.target.value.slice(0, 300) })}
-                />
+                <div>
+                  <textarea
+                    ref={addressRef}
+                    className={`input resize-none ${missing.address ? 'border-rose-400 ring-1 ring-rose-300' : ''}`}
+                    rows={2}
+                    placeholder={`${t('cart.address')} *`}
+                    value={cart.customer.address}
+                    autoComplete="street-address"
+                    required
+                    aria-required="true"
+                    aria-invalid={missing.address || undefined}
+                    onChange={(e) => {
+                      cart.setCustomer({ ...cart.customer, address: e.target.value.slice(0, 300) });
+                      if (missing.address) setMissing((m) => ({ ...m, address: false }));
+                    }}
+                  />
+                  {missing.address && <p className="mt-1 text-xs text-rose-600">{t('cart.addressRequired')}</p>}
+                </div>
               </div>
             </div>
 

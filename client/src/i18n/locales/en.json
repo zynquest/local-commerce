@@ -102,7 +102,7 @@
     "storeClosed": "The store is currently closed ({status}). You can still send your order — it will be confirmed when they open.",
     "removeItem": "Remove {name}",
     "empty": "Your bag is empty. Add products, or just type your shopping list below.",
-    "delivery": "Delivery details (optional)",
+    "delivery": "Delivery details",
     "loginToSave": "Log in to save details",
     "yourName": "Your name",
     "phone": "Phone (if different from WhatsApp)",
@@ -116,7 +116,8 @@
     "placeOrder": "Place Order via WhatsApp",
     "payInfo": "Pay on delivery · Cash / UPI · No platform fees",
     "freeDelivery": "Free delivery",
-    "freeDeliveryAbove": "Add {more} more for free delivery."
+    "freeDeliveryAbove": "Add {more} more for free delivery.",
+    "addressRequired": "Enter your delivery address"
   },
   "offline": {
     "syncing_one": "Saving {count} order to the store…",

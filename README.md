@@ -74,7 +74,7 @@ npm run admin:reset-password
   - The slot is held as a `requested` booking. A Postgres exclusion constraint makes overlapping bookings for one specialist impossible, even under concurrent requests.
   - The business confirms, cancels, or marks done / no-show, and replies on WhatsApp with a pre-filled message in the customer's language.
   - Code: `server/src/routes/appointments.js`, slot maths in `server/src/appointments/slots.js` (IST).
-- **Location / near me:** merchants set the shop location with Google Maps search, GPS and a draggable pin (`client/src/components/AddressPicker.jsx`). Shoppers see only businesses within `NEARBY_RADIUS_KM` (default 5) of their location (`GET /api/stores?lat=&lng=`); demo stores are always listed. A Google Maps key is optional (Deployment.md §B19).
+- **Location / near me:** merchants set the shop location with Google Maps search, GPS and a draggable pin (`client/src/components/AddressPicker.jsx`). Shoppers see only businesses within `NEARBY_RADIUS_KM` (default 10) of their location (`GET /api/stores?lat=&lng=`); demo stores are always listed. A Google Maps key is optional (Deployment.md §B19).
 - **Products from a WhatsApp message** (Products tab, `POST /api/merchant/products/from-message`, parser in `server/src/catalog/messageParser.js`):
   - Format 1 is three lines per product (`Name` / `MRP` / `List price`). Format 2 is `Name,MRP,List price|Name,MRP,List price`. The two can be mixed.
   - WhatsApp timestamps and sender names, `*bold*`, bullets, `₹`/`Rs`/`MRP:` labels, `/-` and `1,250` are tolerated.

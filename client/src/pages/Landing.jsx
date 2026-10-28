@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, BadgeIndianRupee, Check, Clock, Globe, ImageUp, LayoutDashboard, Minus, Plus, QrCode, ShieldCheck,
-  Languages, MapPin, Smartphone, Store, UserRound, Users, WifiOff, X,
+  Languages, MapPin, ShoppingBasket as StoreIcon, Smartphone, Store, UserRound, Users, WifiOff, X,
 } from 'lucide-react';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import SiteHeader from '../components/SiteHeader.jsx';
@@ -268,9 +268,13 @@ export default function Landing() {
             <p className="mt-5 max-w-lg text-lg text-stone-600">
               {t('landing.hero.body')}
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:whitespace-nowrap">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:flex-nowrap lg:whitespace-nowrap">
               <Link to="/register" className="btn-brand px-6 py-3.5 text-base">
                 <Store size={20} /> {t('nav.register')}
+              </Link>
+              {/* Shoppers' way in on phones and tablets, where the header keeps it in the menu (desktop header shows it). */}
+              <Link to="/stores" className="btn border-2 border-brand bg-white px-6 py-3.5 text-base text-brand hover:bg-emerald-50 lg:hidden">
+                <StoreIcon size={20} /> {t('nav.shopStores')}
               </Link>
               <Link to={`/s/${DEMO_SLUG}`} className="btn-ghost px-6 py-3.5 text-base">
                 {t('landing.hero.demo')} <ArrowRight size={18} className="rtl:rotate-180" />

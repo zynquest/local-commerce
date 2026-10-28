@@ -34,7 +34,7 @@ export const config = {
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? '754008456964-dqo6ro2fn6hqcejvtoa7djpe1i8sq5ev.apps.googleusercontent.com',
   googleMapId: process.env.GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
   // Shoppers see businesses within this distance of their location.
-  nearbyRadiusKm: Math.min(50, Math.max(1, Number(process.env.NEARBY_RADIUS_KM) || 5)),
+  nearbyRadiusKm: Math.min(50, Math.max(1, Number(process.env.NEARBY_RADIUS_KM) || 10)),
   // Optional search-engine ownership tokens (the content="" value of the verification meta tag).
   googleSiteVerification: process.env.GOOGLE_SITE_VERIFICATION || '',
   bingSiteVerification: process.env.BING_SITE_VERIFICATION || '',

@@ -21,7 +21,7 @@ export function StatusPill({ status }) {
   const meta = STORE_STATUS[status] || STORE_STATUS.draft;
   const Icon = meta.icon;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs leading-tight font-bold whitespace-nowrap ${meta.cls}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs leading-tight font-bold max-w-full ${meta.cls}`}>
       <Icon size={12} className="flex-none" />
       <span>{t(`review.status.${STORE_STATUS[status] ? status : 'draft'}`)}</span>
     </span>

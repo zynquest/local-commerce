@@ -171,11 +171,11 @@ export default function MerchantDashboard() {
   return (
     <div className="min-h-screen pb-16">
       <header className="sticky top-0 z-20 border-b border-stone-200 bg-white">
-        {/* Logo · name (full, wraps) · actions on one row; the status pill under the name never squeezes either. */}
+        {/* Row 1: logo · name (full, wraps) · actions. Row 2: the status pill, which may run under the actions. */}
         <div className="mx-auto grid max-w-5xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 pt-3 pb-2">
           <SmartImage src={store.logo_url} alt="" width={80} className="row-span-2 h-11 w-11 rounded-xl object-cover" />
           <p className="self-end text-base leading-tight font-bold break-words">{store.name}</p>
-          <div className="row-span-2 flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 self-center">
             {/* Phones: icon-only, so the store name and status keep their room. */}
             <LanguageSwitcher variant="compact" className="sm:hidden" />
             <LanguageSwitcher className="me-1 hidden sm:block" />
@@ -189,7 +189,7 @@ export default function MerchantDashboard() {
               <LogOut size={18} />
             </button>
           </div>
-          <div className="self-start"><StatusPill status={store.status} /></div>
+          <div className="col-span-2 min-w-0"><StatusPill status={store.status} /></div>
         </div>
         {!inSetup && <nav className="no-scrollbar mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4">
           {tabs.map(({ id, icon: Icon }) => (

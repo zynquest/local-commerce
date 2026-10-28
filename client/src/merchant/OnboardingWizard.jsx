@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Lock, Pencil, Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Lock, Pencil, Plus, Trash2, X } from 'lucide-react';
 import AddressPicker from '../components/AddressPicker.jsx';
 import BusinessTypePicker from '../components/BusinessTypePicker.jsx';
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
@@ -10,14 +10,19 @@ import { categoriesFor, slugify } from '../businessCategories.js';
 import { PLATFORM } from '../config.js';
 import { LANGUAGES } from '../i18n/languages.js';
 import { useI18n } from '../i18n/index.jsx';
-import { get, post, put } from '../lib/api.js';
+import { del, get, post, put } from '../lib/api.js';
+import { formatMoney } from '../lib/format.js';
 import { whatsappLink } from '../services/whatsappService.js';
-import { DEFAULT_SCHEDULE, ScheduleEditor } from './SpecialistsPanel.jsx';
+import { DAYS, DEFAULT_SCHEDULE, ScheduleEditor } from './SpecialistsPanel.jsx';
 
 const national = (n) => (n ? String(n).replace(/^91(?=\d{10}$)/, '') : '');
 const pretty = (n) => (n ? `+91 ${national(n).slice(0, 5)} ${national(n).slice(5)}` : '—');
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const DURATIONS = [10, 15, 20, 30, 45, 60, 75, 90, 120];
+// The pages that add catalog items, and the API list each one edits.
+const ITEM_API = { product: 'products', services: 'services', team: 'specialists' };
+const EMPTY_ITEM = { name: '', mrp: '', offer_price: '', duration_min: 30, price: '' };
+const EMPTY_MEMBER = { name: '', title: '', schedule: DEFAULT_SCHEDULE };
 
 /** Support contact shown wherever locked details are mentioned. */
 export function SupportNote({ store }) {
@@ -62,7 +67,7 @@ const ReadOnly = ({ label, value }) => (
  * the team asked for changes. Each Next saves that page, so the owner can leave and come back where they stopped.
  */
 export default function OnboardingWizard({ store, onStoreChange, onCatalogChange }) {
-  const { t, formatDate } = useI18n();
+  const { t, formatDate, dayName } = useI18n();
   const { owner, appConfig } = useSession();
   const locked = store.details_locked;
   const appt = store.business_type === 'appointments';
@@ -84,9 +89,10 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
     place_id: store.place_id || '',
     note: '',
   }));
-  const [item, setItem] = useState({ name: '', mrp: '', offer_price: '', duration_min: 30, price: '' });
-  const [member, setMember] = useState({ name: '', title: '', schedule: DEFAULT_SCHEDULE });
-  const [adding, setAdding] = useState(false); // "Add another" on the product / service / team pages
+  const [item, setItem] = useState(EMPTY_ITEM);
+  const [member, setMember] = useState(EMPTY_MEMBER);
+  const [list, setList] = useState({ items: [], loading: false }); // what the product / service / team page has added
+  const [editing, setEditing] = useState(null); // null | 'new' | the product, service or team member being edited
   const [slugTouched, setSlugTouched] = useState(false);
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
@@ -111,7 +117,6 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
 
   const go = (i) => {
     setErrors({});
-    setAdding(false);
     // Coming to the link page with an untouched link that doesn't follow the (possibly edited) name: suggest one.
     if (steps[i] === 'contact' && !locked && !slugTouched) {
       const s = slugify(form.name);
@@ -134,6 +139,84 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
     } finally {
       setBusy(false);
     }
+  };
+
+  const loadList = useCallback(async (k) => {
+    const r = await get(`/merchant/${ITEM_API[k]}`);
+    const items = (r.products || r.services || r.specialists || []).filter((x) => k !== 'product' || x.status === 'active');
+    setList({ items, loading: false });
+    return items;
+  }, []);
+
+  // Entering a product / service / team page: show what's there; with nothing yet, open the form straight away.
+  useEffect(() => {
+    if (!ITEM_API[key]) return;
+    let live = true;
+    setList({ items: [], loading: true });
+    setEditing(null);
+    loadList(key)
+      .then((items) => live && setEditing(items.length ? null : 'new'))
+      .catch(() => live && (setList({ items: [], loading: false }), setEditing('new')));
+    return () => {
+      live = false;
+    };
+  }, [key, loadList]);
+
+  const startNew = () => {
+    setItem(EMPTY_ITEM);
+    setMember(EMPTY_MEMBER);
+    setErrors({});
+    setEditing('new');
+  };
+  const startEdit = (x) => {
+    setErrors({});
+    if (key === 'product') setItem({ ...EMPTY_ITEM, name: x.name, mrp: String(x.mrp), offer_price: String(x.offer_price) });
+    if (key === 'services') setItem({ ...EMPTY_ITEM, name: x.name, duration_min: x.duration_min, price: String(x.price) });
+    if (key === 'team') setMember({ name: x.name, title: x.title || '', schedule: x.schedule });
+    setEditing(x);
+  };
+  const formFilled = () =>
+    key === 'team' ? Boolean(member.name.trim()) : Boolean(item.name.trim() || item.price !== '' || (key === 'product' && (item.mrp !== '' || item.offer_price !== '')));
+
+  /** Adds the new item or saves the one being edited. Returns true when saved. */
+  const saveItem = async () => {
+    if (key === 'product' && (!item.name.trim() || item.mrp === '' || item.offer_price === '')) return setErrors({ _: t('setup.needProduct') }), false;
+    if (key === 'services' && (!item.name.trim() || item.price === '')) return setErrors({ _: t('setup.needService') }), false;
+    if (key === 'team' && (!member.name.trim() || !Object.values(member.schedule).some((r) => r.length))) return setErrors({ _: t('setup.needTeam') }), false;
+    const isNew = editing === 'new';
+    return save(async () => {
+      if (key === 'product') {
+        // An edit sends the whole product back (photos, description…), with the new name and prices.
+        const body = { ...(isNew ? {} : editing), name: item.name.trim(), mrp: Number(item.mrp), offer_price: Number(item.offer_price) };
+        if (isNew) await post('/merchant/products', body);
+        else await put(`/merchant/products/${editing.id}`, body);
+      } else if (key === 'services') {
+        const body = { category: '', description: '', active: true, ...(isNew ? {} : editing), name: item.name.trim(), duration_min: Number(item.duration_min), price: Number(item.price) };
+        if (isNew) await post('/merchant/services', body);
+        else await put(`/merchant/services/${editing.id}`, body);
+      } else {
+        const serviceIds = isNew ? (await get('/merchant/services')).services.filter((sv) => sv.active).map((sv) => sv.id) : editing.service_ids;
+        const body = { name: member.name.trim(), title: member.title.trim(), schedule: member.schedule, service_ids: serviceIds, active: isNew ? true : editing.active, ...(isNew || !editing.photo_url ? {} : { photo_url: editing.photo_url }) };
+        if (isNew) await post('/merchant/specialists', body);
+        else await put(`/merchant/specialists/${editing.id}`, body);
+      }
+      await loadList(key);
+      await onCatalogChange();
+      setItem(EMPTY_ITEM);
+      setMember(EMPTY_MEMBER);
+      setEditing(null);
+    });
+  };
+
+  const removeItem = async (x) => {
+    if (!window.confirm(t('setup.confirmRemove', { name: x.name }))) return;
+    await save(async () => {
+      await del(`/merchant/${ITEM_API[key]}/${x.id}`);
+      const items = await loadList(key);
+      await onCatalogChange();
+      if (editing && editing !== 'new' && editing.id === x.id) setEditing(null);
+      if (!items.length) startNew();
+    });
   };
 
   const saveStore = async (body) => {
@@ -176,48 +259,14 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
       if (ok) go(step + 1);
       return;
     }
-    if (key === 'product') {
-      const filled = item.name.trim() || item.mrp !== '' || item.offer_price !== '';
-      if (!filled && done.products) return go(step + 1);
-      if (!item.name.trim() || item.mrp === '' || item.offer_price === '') return setErrors({ _: t('setup.needProduct') });
-      const ok = await save(async () => {
-        await post('/merchant/products', { name: item.name.trim(), mrp: Number(item.mrp), offer_price: Number(item.offer_price) });
-        setItem((x) => ({ ...x, name: '', mrp: '', offer_price: '' }));
-        await onCatalogChange();
-      });
-      if (ok) go(step + 1);
-      return;
-    }
-    if (key === 'services') {
-      const filled = item.name.trim() || item.price !== '';
-      if (!filled && done.services) return go(step + 1);
-      if (!item.name.trim() || item.price === '') return setErrors({ _: t('setup.needService') });
-      const ok = await save(async () => {
-        await post('/merchant/services', { name: item.name.trim(), duration_min: Number(item.duration_min), price: Number(item.price), category: '', description: '', active: true });
-        setItem((x) => ({ ...x, name: '', price: '' }));
-        await onCatalogChange();
-      });
-      if (ok) go(step + 1);
-      return;
-    }
-    if (key === 'team') {
-      const filled = member.name.trim();
-      if (!filled && done.specialists) return go(step + 1);
-      const working = Object.values(member.schedule).some((r) => r.length);
-      if (!member.name.trim() || !working) return setErrors({ _: t('setup.needTeam') });
-      const ok = await save(async () => {
-        const { services } = await get('/merchant/services');
-        await post('/merchant/specialists', {
-          name: member.name.trim(),
-          title: member.title.trim(),
-          schedule: member.schedule,
-          service_ids: services.filter((s) => s.active).map((s) => s.id),
-          active: true,
-        });
-        setMember({ name: '', title: '', schedule: DEFAULT_SCHEDULE });
-        await onCatalogChange();
-      });
-      if (ok) go(step + 1);
+    if (ITEM_API[key]) {
+      // An open form with something typed in is saved first; an empty one is just left behind.
+      if (editing && formFilled()) {
+        if (await saveItem()) go(step + 1);
+        return;
+      }
+      if (list.items.length) return go(step + 1);
+      return setErrors({ _: t(key === 'product' ? 'setup.needProduct' : key === 'services' ? 'setup.needService' : 'setup.needTeam') });
     }
   };
 
@@ -243,7 +292,6 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
   };
 
   const host = window.location.host;
-  const counts = { product: store.sku_used };
 
   const title = t(`setup.steps.${key}`);
   const isResubmit = store.status === 'rejected' || store.status === 'suspended';
@@ -361,91 +409,111 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
             </div>
           )}
 
-          {key === 'product' && (
+          {ITEM_API[key] && (
             <>
-              <p className="text-sm text-stone-600">{t('setup.productHint')}</p>
-              {counts.product > 0 && (
-                <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
-                  <CheckCircle2 size={16} /> {t('setup.productsAdded', { count: counts.product })}
+              <p className="text-sm text-stone-600">{t(key === 'product' ? 'setup.productHint' : key === 'services' ? 'setup.serviceHint' : 'setup.teamHint')}</p>
+              {key === 'product' && list.items.length > 0 && (
+                <p className="flex items-center gap-2 text-sm font-semibold text-emerald-800">
+                  <CheckCircle2 size={16} /> {t('setup.productsAdded', { count: list.items.length })}
                 </p>
               )}
-              {counts.product > 0 && !adding ? (
-                <button type="button" onClick={() => setAdding(true)} className="btn-ghost text-sm"><Plus size={16} /> {t('setup.addAnother')}</button>
-              ) : (
-                <div className="space-y-3 rounded-2xl border border-stone-200 p-3 sm:p-4">
-                  <Field id="wz-pname" label={t('pf.name')} required>
-                    <input id="wz-pname" className="input" value={item.name} onChange={(e) => setItem({ ...item, name: e.target.value })} placeholder={t('pf.namePlaceholder')} maxLength={100} />
-                  </Field>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field id="wz-mrp" label={t('pf.mrp')} required error={errors.mrp}>
-                      <input id="wz-mrp" className="input" type="number" min="0" inputMode="decimal" value={item.mrp} onChange={(e) => setItem({ ...item, mrp: e.target.value })} />
-                    </Field>
-                    <Field id="wz-price" label={t('setup.listPrice')} required error={errors.offer_price}>
-                      <input id="wz-price" className="input" type="number" min="0" inputMode="decimal" value={item.offer_price} onChange={(e) => setItem({ ...item, offer_price: e.target.value })} />
-                    </Field>
-                  </div>
-                </div>
+              {list.loading && <Loader2 className="mx-auto animate-spin text-stone-400" />}
+              {list.items.length > 0 && (
+                <ul className="divide-y divide-stone-100 rounded-2xl border border-stone-200">
+                  {list.items.map((x) => (
+                    <li key={x.id} className={`flex items-center gap-2 px-3 py-2.5 ${editing?.id === x.id ? 'bg-emerald-50' : ''}`}>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold break-words">{x.name}</p>
+                        <p className="text-xs text-stone-500">
+                          {key === 'product' && (
+                            <>
+                              {formatMoney(x.offer_price, store.currency_symbol)}
+                              {x.mrp > x.offer_price && <span className="ms-1 line-through">{formatMoney(x.mrp, store.currency_symbol)}</span>}
+                            </>
+                          )}
+                          {key === 'services' && `${t('appt.minutes', { count: x.duration_min })} · ${formatMoney(x.price, store.currency_symbol)}`}
+                          {key === 'team' && [x.title, DAYS.filter((d) => x.schedule?.[d]?.length).map((d) => dayName(d, 'short')).join(' ')].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
+                      <button type="button" onClick={() => startEdit(x)} disabled={busy} className="rounded-lg p-2 text-stone-500 hover:bg-stone-100" aria-label={`${t('common.edit')}: ${x.name}`}>
+                        <Pencil size={16} />
+                      </button>
+                      <button type="button" onClick={() => removeItem(x)} disabled={busy} className="rounded-lg p-2 text-stone-400 hover:bg-rose-50 hover:text-rose-600" aria-label={`${t('common.remove')}: ${x.name}`}>
+                        <Trash2 size={16} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
-            </>
-          )}
 
-          {key === 'services' && (
-            <>
-              <p className="text-sm text-stone-600">{t('setup.serviceHint')}</p>
-              {done.services && (
-                <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
-                  <CheckCircle2 size={16} /> {t('setup.servicesDone')}
-                </p>
+              {!editing && !list.loading && (
+                <button type="button" onClick={startNew} className="btn-ghost text-sm"><Plus size={16} /> {t('setup.addAnother')}</button>
               )}
-              {done.services && !adding ? (
-                <button type="button" onClick={() => setAdding(true)} className="btn-ghost text-sm"><Plus size={16} /> {t('setup.addAnother')}</button>
-              ) : (
-                <div className="space-y-3 rounded-2xl border border-stone-200 p-3 sm:p-4">
-                  <Field id="wz-sname" label={t('appt.serviceName')} required>
-                    <input id="wz-sname" className="input" value={item.name} onChange={(e) => setItem({ ...item, name: e.target.value })} placeholder={t('appt.serviceNamePlaceholder')} maxLength={80} />
-                  </Field>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field id="wz-duration" label={t('appt.duration')} required>
-                      <select id="wz-duration" className="input" value={item.duration_min} onChange={(e) => setItem({ ...item, duration_min: e.target.value })}>
-                        {DURATIONS.map((m) => (
-                          <option key={m} value={m}>{m < 60 || m % 60 ? t('appt.minutes', { count: m }) : t('appt.hours', { count: m / 60 })}</option>
-                        ))}
-                      </select>
-                    </Field>
-                    <Field id="wz-sprice" label={t('appt.price')} required error={errors.price}>
-                      <input id="wz-sprice" className="input" type="number" min="0" inputMode="decimal" value={item.price} onChange={(e) => setItem({ ...item, price: e.target.value })} placeholder="300" />
-                    </Field>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
 
-          {key === 'team' && (
-            <>
-              <p className="text-sm text-stone-600">{t('setup.teamHint')}</p>
-              {done.specialists && (
-                <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
-                  <CheckCircle2 size={16} /> {t('setup.teamDone')}
-                </p>
-              )}
-              {done.specialists && !adding ? (
-                <button type="button" onClick={() => setAdding(true)} className="btn-ghost text-sm"><Plus size={16} /> {t('setup.addAnother')}</button>
-              ) : (
-                <div className="space-y-3 rounded-2xl border border-stone-200 p-3 sm:p-4">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Field id="wz-mname" label={t('appt.specialistName')} required>
-                      <input id="wz-mname" className="input" value={member.name} onChange={(e) => setMember({ ...member, name: e.target.value })} maxLength={60} />
-                    </Field>
-                    <Field id="wz-mtitle" label={`${t('appt.specialistTitle')} (${t('common.optional')})`}>
-                      <input id="wz-mtitle" className="input" value={member.title} onChange={(e) => setMember({ ...member, title: e.target.value })} placeholder={t('appt.specialistTitlePlaceholder')} maxLength={80} />
-                    </Field>
-                  </div>
-                  <div>
-                    <p className="label">{t('appt.workingHours')} <span className="text-rose-500">*</span></p>
-                    <ScheduleEditor value={member.schedule} onChange={(schedule) => setMember({ ...member, schedule })} />
-                  </div>
-                  <p className="text-[11px] text-stone-500">{t('setup.teamAllServices')}</p>
+              {editing && (
+                <div className="space-y-3 rounded-2xl border-2 border-brand/30 p-3 sm:p-4">
+                  {list.items.length > 0 && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-bold">{editing === 'new' ? t('setup.addAnother') : `${t('common.edit')}: ${editing.name}`}</p>
+                      <button type="button" onClick={() => setEditing(null)} className="p-1 text-stone-400" aria-label={t('common.cancel')}><X size={16} /></button>
+                    </div>
+                  )}
+                  {key === 'product' && (
+                    <>
+                      <Field id="wz-pname" label={t('pf.name')} required>
+                        <input id="wz-pname" className="input" value={item.name} onChange={(e) => setItem({ ...item, name: e.target.value })} placeholder={t('pf.namePlaceholder')} maxLength={100} />
+                      </Field>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field id="wz-mrp" label={t('pf.mrp')} required error={errors.mrp}>
+                          <input id="wz-mrp" className="input" type="number" min="0" inputMode="decimal" value={item.mrp} onChange={(e) => setItem({ ...item, mrp: e.target.value })} />
+                        </Field>
+                        <Field id="wz-price" label={t('setup.listPrice')} required error={errors.offer_price}>
+                          <input id="wz-price" className="input" type="number" min="0" inputMode="decimal" value={item.offer_price} onChange={(e) => setItem({ ...item, offer_price: e.target.value })} />
+                        </Field>
+                      </div>
+                    </>
+                  )}
+                  {key === 'services' && (
+                    <>
+                      <Field id="wz-sname" label={t('appt.serviceName')} required>
+                        <input id="wz-sname" className="input" value={item.name} onChange={(e) => setItem({ ...item, name: e.target.value })} placeholder={t('appt.serviceNamePlaceholder')} maxLength={80} />
+                      </Field>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field id="wz-duration" label={t('appt.duration')} required>
+                          <select id="wz-duration" className="input" value={item.duration_min} onChange={(e) => setItem({ ...item, duration_min: e.target.value })}>
+                            {[...new Set([...DURATIONS, Number(item.duration_min)])].sort((a, b) => a - b).map((m) => (
+                              <option key={m} value={m}>{m < 60 || m % 60 ? t('appt.minutes', { count: m }) : t('appt.hours', { count: m / 60 })}</option>
+                            ))}
+                          </select>
+                        </Field>
+                        <Field id="wz-sprice" label={t('appt.price')} required error={errors.price}>
+                          <input id="wz-sprice" className="input" type="number" min="0" inputMode="decimal" value={item.price} onChange={(e) => setItem({ ...item, price: e.target.value })} placeholder="300" />
+                        </Field>
+                      </div>
+                    </>
+                  )}
+                  {key === 'team' && (
+                    <>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <Field id="wz-mname" label={t('appt.specialistName')} required>
+                          <input id="wz-mname" className="input" value={member.name} onChange={(e) => setMember({ ...member, name: e.target.value })} maxLength={60} />
+                        </Field>
+                        <Field id="wz-mtitle" label={`${t('appt.specialistTitle')} (${t('common.optional')})`}>
+                          <input id="wz-mtitle" className="input" value={member.title} onChange={(e) => setMember({ ...member, title: e.target.value })} placeholder={t('appt.specialistTitlePlaceholder')} maxLength={80} />
+                        </Field>
+                      </div>
+                      <div>
+                        <p className="label">{t('appt.workingHours')} <span className="text-rose-500">*</span></p>
+                        <ScheduleEditor value={member.schedule} onChange={(schedule) => setMember({ ...member, schedule })} />
+                      </div>
+                      {editing === 'new' && <p className="text-[11px] text-stone-500">{t('setup.teamAllServices')}</p>}
+                    </>
+                  )}
+                  {list.items.length > 0 && (
+                    <button type="button" onClick={saveItem} disabled={busy} className="btn-brand w-full">
+                      {busy && <Loader2 size={16} className="animate-spin" />} {t('common.save')}
+                    </button>
+                  )}
                 </div>
               )}
             </>

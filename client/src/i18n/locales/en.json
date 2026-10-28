@@ -1117,6 +1117,7 @@
     "pendingBodyAppt": "Submitted {date}. We usually review within 24 hours. You can keep adding services and specialists meanwhile.",
     "afterApproval": "Once approved, your store goes live, and Store Settings opens for delivery, opening hours, logo and more.",
     "detailsTitle": "Store details",
-    "moreTitle": "More settings (optional)"
+    "moreTitle": "More settings (optional)",
+    "confirmRemove": "Remove “{name}”?"
   }
 }

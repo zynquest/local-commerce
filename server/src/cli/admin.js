@@ -72,7 +72,7 @@ async function main() {
       username,
       await bcrypt.hash(password, ADMIN_BCRYPT_ROUNDS),
     ]);
-    console.log(`Admin "${username}" created. Log in at /admin/login`);
+    console.log(`Admin "${username}" created. Log in at /motiveboss/login`);
   } else {
     if (!existing[0]) throw new Error('No admin exists yet; use admin:create.');
     const password = await readPassword(existing[0].username);

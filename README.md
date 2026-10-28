@@ -32,7 +32,7 @@ npm run dev              # API :4000 + UI :5173
 | `/account` | shoppers | Optional account: saved address and order history |
 | `/register`, `/login` | store owners | Register with store name + 10-digit mobile + OTP. Log in with mobile + OTP (no passwords). |
 | `/merchant` | store owners | Approval status and remarks, products, orders, Excel/CSV import, settings, account |
-| `/admin/login`, `/admin` | platform admin | Approval queue, approve / reject (with remarks) / suspend / reinstate, plans |
+| `/motiveboss/login`, `/motiveboss` | platform admin | Approval queue, approve / reject (with remarks) / suspend / reinstate, plans |
 
 ```bash
 npm test                    # API integration tests (needs the DB running)

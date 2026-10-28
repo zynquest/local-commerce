@@ -8,7 +8,7 @@ import { isUnclaimedSeed } from './serialize.js';
 import { RTL, availableLanguages, makeServerT, pickLanguage } from './i18n.js';
 
 const BRAND = config.platformName;
-const PRIVATE_PATHS = /^\/(merchant|admin|account|login)(\/|$)/;
+const PRIVATE_PATHS = /^\/(merchant|motiveboss|account|login)(\/|$)/;
 
 const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -479,6 +479,6 @@ export function robots(req, res) {
   res
     .type('text/plain')
     .send(
-      ['User-agent: *', 'Allow: /', 'Disallow: /api/', 'Disallow: /merchant', 'Disallow: /admin', 'Disallow: /account', '', `Sitemap: ${baseUrl(req)}/sitemap.xml`, ''].join('\n'),
+      ['User-agent: *', 'Allow: /', 'Disallow: /api/', 'Disallow: /merchant', 'Disallow: /account', '', `Sitemap: ${baseUrl(req)}/sitemap.xml`, ''].join('\n'),
     );
 }

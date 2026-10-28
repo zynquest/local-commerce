@@ -417,7 +417,7 @@ export default function AdminConsole() {
   }, [admin, load]);
 
   if (admin === undefined) return <LoadingScreen label="Loading…" />;
-  if (!admin) return <Navigate to="/admin/login" replace />;
+  if (!admin) return <Navigate to="/motiveboss/login" replace />;
 
   const count = (k) =>
     k === 'all' ? Object.values(stats?.by_status || {}).reduce((a, b) => a + b, 0)

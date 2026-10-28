@@ -32,7 +32,7 @@ npm run dev                   # API on :4000, PWA on http://localhost:5173
 | http://localhost:5173 | Landing page and store directory |
 | http://localhost:5173/register | Register a store |
 | http://localhost:5173/merchant | Store owner dashboard |
-| http://localhost:5173/admin/login | Platform admin |
+| http://localhost:5173/motiveboss/login | Platform admin |
 | http://localhost:5173/s/demo | Demo storefront |
 
 ## A3. Tests
@@ -398,9 +398,9 @@ sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && se
 ```
 
 Then:
-1. Sign in at **https://sonsari.in/admin/login**. This URL isn't linked from any page, and sessions expire after 12 hours.
+1. Sign in at **https://sonsari.in/motiveboss/login**. This URL isn't linked from any page, and sessions expire after 12 hours.
 2. Register a store at **https://sonsari.in/register**, add products and submit it for review.
-3. Approve it in `/admin`. Only approved stores are public.
+3. Approve it in `/motiveboss`. Only approved stores are public.
 
 To rotate the admin password (this signs the admin out everywhere), run the same command with `reset-password` instead of `create`.
 
@@ -483,7 +483,7 @@ free -m; df -h /                                 # memory / disk
 
 ### Platform-admin tasks
 
-Everything happens in the console at **/admin**:
+Everything happens in the console at **/motiveboss**:
 - **Approval queue:** approve, or reject with remarks. The owner sees the remarks, fixes the issues and resubmits.
 - **Live stores:** suspend with a reason, or reinstate.
 - **Plans:** Free is 50 products; Paid is 50 or more, with a limit you set per store.
@@ -630,7 +630,7 @@ sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && se
 | `/register` | yes | 23 URLs with `hreflang` | `BreadcrumbList` |
 | `/s/<store>` | approved stores only | one canonical URL. `?lang=` variants point to it, because the content is the merchant's own. | `Store` (address, hours, phone, catalog), `BreadcrumbList` |
 | `/s/<store>/p/<item>` | approved stores only | one canonical URL | `Product` + `Offer` (price, stock), `BreadcrumbList` |
-| `/login`, `/merchant`, `/admin`, `/account`, unknown URLs | no (`noindex`; unknown URLs return 404) | — | — |
+| `/login`, `/merchant`, `/motiveboss`, `/account`, unknown URLs | no (`noindex`; unknown URLs return 404) | — | — |
 
 Each page also gets a server-rendered HTML snapshot of its content, Open Graph/Twitter tags, `/sitemap.xml` (all of the above, with `hreflang` alternates) and `/robots.txt`.
 
@@ -708,7 +708,7 @@ When a merchant's own domain (e.g. `shopname.in`) should show their store:
 | Image upload fails (413) | Nginx `client_max_body_size` | It's `10m` in `sonsari.in.conf`; redeploy if you changed it |
 | Logins don't stick | Are you on `https://`? | `NODE_ENV=production` sets `Secure` cookies, so http won't keep the session |
 | "Too many attempts" for every user | `X-Forwarded-For` in the Nginx proxy blocks | Keep the committed Nginx config (it forwards the real client IP) |
-| Store page says not found | Is the store approved? | Approve it in `/admin`; only approved stores are public |
+| Store page says not found | Is the store approved? | Approve it in `/motiveboss`; only approved stores are public |
 | Disk filling up | `df -h /`, `sudo du -sh /var/lib/vfl/*` | `sudo journalctl --vacuum-size=100M`; check old backups |
 | Unexpected charges | **Billing → Reports**, grouped by SKU | See the cost checklist below |
 

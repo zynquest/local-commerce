@@ -8,7 +8,7 @@ import { canPrompt, devicePlatform, isStandalone, promptInstall, subscribe, wasI
 const DISMISS_KEY = 'pwa.installDismissedAt';
 const SNOOZE_MS = 14 * 24 * 3600 * 1000;
 // Merchant / admin / auth screens: no install nag there.
-const HIDDEN_PATHS = /^\/(merchant|admin|login|register)(\/|$)/;
+const HIDDEN_PATHS = /^\/(merchant|motiveboss|login|register)(\/|$)/;
 
 const readDismissed = () => {
   try {

@@ -51,7 +51,7 @@ const storeRoutes = (
 /**
  * Routing:
  *  - Platform hosts: "/" landing, "/stores", "/register", "/login", "/merchant" (store owners),
- *    "/admin" (platform admin), "/account" (shoppers), "/s/:storeSlug/…"
+ *    "/motiveboss" (platform admin), "/account" (shoppers), "/s/:storeSlug/…"
  *  - Custom domains (custom-store plan): the mapped store is served at "/".
  */
 export default function App() {
@@ -90,8 +90,8 @@ export default function App() {
           <Route path="/register" element={<OwnerAuth mode="register" />} />
           <Route path="/login" element={<OwnerAuth mode="login" />} />
           <Route path="/merchant" element={<MerchantDashboard />} />
-          <Route path="/admin" element={<AdminConsole />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/motiveboss" element={<AdminConsole />} />
+          <Route path="/motiveboss/login" element={<AdminLogin />} />
           <Route path="/account" element={<CustomerAccount />} />
           <Route path="/q/:code" element={<QrRedirect />} />
           <Route path="/s/:storeSlug" element={<PathStoreLayout />}>

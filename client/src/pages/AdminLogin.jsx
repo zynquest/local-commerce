@@ -15,7 +15,7 @@ export default function AdminLogin() {
 
   useEffect(() => {
     if (admin === undefined) loadAdmin();
-    else if (admin) navigate('/admin', { replace: true });
+    else if (admin) navigate('/motiveboss', { replace: true });
   }, [admin, loadAdmin, navigate]);
 
   const submit = async (e) => {

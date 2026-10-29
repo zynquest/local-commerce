@@ -12,3 +12,4 @@ deploy/backups
 deploy/env.production
 # Merchant seeding data (shop lists with phone numbers, API caches) stays off git
 data/seed/
+.vscode

@@ -172,6 +172,8 @@
     "storeWord": "स्टोअर",
     "storeTitle": "{name} | ऑनलाइन ऑर्डर, होम डिलिव्हरी",
     "storeTitleCity": "{name} — {city} हांगाचें {category} | ऑनलाइन ऑर्डर",
+    "bookTitle": "{name} | ऑनलाइन अपॉइंटमेंट बुक करात",
+    "bookTitleCity": "{name} — {city} हांगाचें {category} | ऑनलाइन अपॉइंटमेंट बुक करात",
     "storeDesc": "{name} कडल्यान ऑनलाइन ऑर्डर करात. होम डिलिव्हरी, डिलिव्हरी वेळार पेमेंट, WhatsApp चेर ऑर्डर.",
     "productDesc": "{store} कडल्यान {name} ऑनलाइन विकतें घेयात. होम डिलिव्हरी, WhatsApp चेर ऑर्डर.",
     "storesTitle": "तुमच्या लागसारचीं थळावीं दुकानां — होम डिलिव्हरी सयत ऑनलाइन ऑर्डर | {brand}",

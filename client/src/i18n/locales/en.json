@@ -172,6 +172,8 @@
     "storeWord": "Store",
     "storeTitle": "{name} | Order Online, Home Delivery",
     "storeTitleCity": "{name} — {category} in {city} | Order Online",
+    "bookTitle": "{name} | Book Appointment Online",
+    "bookTitleCity": "{name} — {category} in {city} | Book Appointment Online",
     "storeDesc": "Order online from {name}. Home delivery, pay on delivery, order on WhatsApp.",
     "productDesc": "Buy {name} online from {store}. Home delivery, order on WhatsApp.",
     "storesTitle": "Local Stores Near You — Order Online with Home Delivery | {brand}",

@@ -172,6 +172,8 @@
     "storeWord": "ᱫᱚᱠᱟᱱ",
     "storeTitle": "{name} | ᱚᱱᱞᱟᱭᱤᱱ ᱚᱨᱰᱟᱨ, ᱚᱲᱟᱜ ᱫᱷᱟᱹᱵᱤᱡ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ",
     "storeTitleCity": "{name} — {city} ᱨᱮ {category} | ᱚᱱᱞᱟᱭᱤᱱ ᱚᱨᱰᱟᱨ",
+    "bookTitle": "{name} | ᱚᱱᱞᱟᱭᱤᱱ ᱮᱯᱚᱭᱤᱱᱴᱢᱮᱱᱴ ᱵᱩᱠ",
+    "bookTitleCity": "{name} — {city} ᱨᱮ {category} | ᱚᱱᱞᱟᱭᱤᱱ ᱮᱯᱚᱭᱤᱱᱴᱢᱮᱱᱴ ᱵᱩᱠ",
     "storeDesc": "{name} ᱠᱷᱚᱱ ᱚᱱᱞᱟᱭᱤᱱ ᱚᱨᱰᱟᱨ ᱢᱮ᱾ ᱚᱲᱟᱜ ᱫᱷᱟᱹᱵᱤᱡ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ, ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱚᱠᱛᱚ ᱴᱟᱠᱟ ᱮᱢ, WhatsApp ᱨᱮ ᱚᱨᱰᱟᱨ᱾",
     "productDesc": "{store} ᱠᱷᱚᱱ {name} ᱚᱱᱞᱟᱭᱤᱱ ᱠᱤᱨᱤᱧ ᱢᱮ᱾ ᱚᱲᱟᱜ ᱫᱷᱟᱹᱵᱤᱡ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ, WhatsApp ᱨᱮ ᱚᱨᱰᱟᱨ᱾",
     "storesTitle": "ᱟᱢᱟᱜ ᱥᱩᱨ ᱨᱮᱱᱟᱜ ᱫᱚᱠᱟᱱ — ᱚᱲᱟᱜ ᱫᱷᱟᱹᱵᱤᱡ ᱰᱮᱞᱤᱵᱷᱟᱨᱤ ᱥᱟᱶ ᱚᱱᱞᱟᱭᱤᱱ ᱚᱨᱰᱟᱨ | {brand}",

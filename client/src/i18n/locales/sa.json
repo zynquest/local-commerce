@@ -172,6 +172,8 @@
     "storeWord": "आपणः",
     "storeTitle": "{name} | अन्तर्जालेन आदेशः, गृहवितरणम्",
     "storeTitleCity": "{name} — {city} नगरे {category} | अन्तर्जालेन आदेशः",
+    "bookTitle": "{name} | अन्तर्जालेन समयनिर्धारणम्",
+    "bookTitleCity": "{name} — {city} नगरे {category} | अन्तर्जालेन समयनिर्धारणम्",
     "storeDesc": "{name} तः अन्तर्जालेन आदेशं ददातु। गृहवितरणम्, वितरणसमये मूल्यदानम्, WhatsApp इत्यत्र आदेशः।",
     "productDesc": "{store} तः {name} अन्तर्जालेन क्रीणातु। गृहवितरणम्, WhatsApp इत्यत्र आदेशः।",
     "storesTitle": "भवतः समीपस्थाः स्थानीयापणाः — गृहवितरणेन सह अन्तर्जालेन आदेशः | {brand}",

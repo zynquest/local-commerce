@@ -172,6 +172,8 @@
     "storeWord": "دُکان",
     "storeTitle": "{name} | آن لائن آرڈر، گَرہٕ ڈیلیوری",
     "storeTitleCity": "{name} — {city} مَنٛز {category} | آن لائن آرڈر",
+    "bookTitle": "{name} | آن لائن اپائنٹمنٹ بُک کٔرِو",
+    "bookTitleCity": "{name} — {city} مَنٛز {category} | آن لائن اپائنٹمنٹ بُک کٔرِو",
     "storeDesc": "{name} پیٚٹھٕ کٔرِو آن لائن آرڈر۔ گَرہٕ ڈیلیوری، ڈیلیوری وِزِ پیمنٹ، WhatsApp پیٚٹھ آرڈر۔",
     "productDesc": "{store} پیٚٹھٕ ہیٚیِو {name} آن لائن۔ گَرہٕ ڈیلیوری، WhatsApp پیٚٹھ آرڈر۔",
     "storesTitle": "تُہٕنٛدِ نزدیٖک مقٲمی دُکانہٕ — آن لائن آرڈر تہٕ گَرہٕ ڈیلیوری | {brand}",

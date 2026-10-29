@@ -172,6 +172,8 @@
     "storeWord": "ষ্ট’ৰ",
     "storeTitle": "{name} | অনলাইনত অৰ্ডাৰ কৰক, হ’ম ডেলিভাৰী",
     "storeTitleCity": "{name} — {city}ত {category} | অনলাইনত অৰ্ডাৰ কৰক",
+    "bookTitle": "{name} | অনলাইনত এপইণ্টমেণ্ট বুক কৰক",
+    "bookTitleCity": "{name} — {city}ত {category} | অনলাইনত এপইণ্টমেণ্ট বুক কৰক",
     "storeDesc": "{name}ৰ পৰা অনলাইনত অৰ্ডাৰ কৰক। হ’ম ডেলিভাৰী, ডেলিভাৰীৰ সময়ত পইচা দিয়ক, WhatsAppত অৰ্ডাৰ কৰক।",
     "productDesc": "{store}ৰ পৰা অনলাইনত {name} কিনক। হ’ম ডেলিভাৰী, WhatsAppত অৰ্ডাৰ কৰক।",
     "storesTitle": "আপোনাৰ ওচৰৰ স্থানীয় দোকান — হ’ম ডেলিভাৰীৰ সৈতে অনলাইনত অৰ্ডাৰ কৰক | {brand}",

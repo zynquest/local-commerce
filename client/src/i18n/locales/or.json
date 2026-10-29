@@ -172,6 +172,8 @@
     "storeWord": "ଦୋକାନ",
     "storeTitle": "{name} | ଅନଲାଇନ୍ ଅର୍ଡର, ଘରକୁ ଡେଲିଭରି",
     "storeTitleCity": "{name} — {city}ରେ {category} | ଅନଲାଇନ୍ ଅର୍ଡର",
+    "bookTitle": "{name} | ଅନଲାଇନ୍ ଆପଏଣ୍ଟମେଣ୍ଟ ବୁକ୍ କରନ୍ତୁ",
+    "bookTitleCity": "{name} — {city}ରେ {category} | ଅନଲାଇନ୍ ଆପଏଣ୍ଟମେଣ୍ଟ ବୁକ୍ କରନ୍ତୁ",
     "storeDesc": "{name} ରୁ ଅନଲାଇନ୍ ଅର୍ଡର କରନ୍ତୁ। ଘରକୁ ଡେଲିଭରି, ଡେଲିଭରି ସମୟରେ ପଇସା, WhatsApp ରେ ଅର୍ଡର।",
     "productDesc": "{store} ରୁ {name} ଅନଲାଇନ୍ କିଣନ୍ତୁ। ଘରକୁ ଡେଲିଭରି, WhatsApp ରେ ଅର୍ଡର।",
     "storesTitle": "ଆପଣଙ୍କ ପାଖରେ ଥିବା ସ୍ଥାନୀୟ ଦୋକାନ — ଘରକୁ ଡେଲିଭରି ସହ ଅନଲାଇନ୍ ଅର୍ଡର | {brand}",

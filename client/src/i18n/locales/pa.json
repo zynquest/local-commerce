@@ -172,6 +172,8 @@
     "storeWord": "ਸਟੋਰ",
     "storeTitle": "{name} | ਆਨਲਾਈਨ ਆਰਡਰ ਕਰੋ, ਘਰ ਤੱਕ ਡਿਲੀਵਰੀ",
     "storeTitleCity": "{name} — {city} ਵਿੱਚ {category} | ਆਨਲਾਈਨ ਆਰਡਰ ਕਰੋ",
+    "bookTitle": "{name} | ਆਨਲਾਈਨ ਅਪਾਇੰਟਮੈਂਟ ਬੁੱਕ ਕਰੋ",
+    "bookTitleCity": "{name} — {city} ਵਿੱਚ {category} | ਆਨਲਾਈਨ ਅਪਾਇੰਟਮੈਂਟ ਬੁੱਕ ਕਰੋ",
     "storeDesc": "{name} ਤੋਂ ਆਨਲਾਈਨ ਆਰਡਰ ਕਰੋ। ਘਰ ਤੱਕ ਡਿਲੀਵਰੀ, ਡਿਲੀਵਰੀ 'ਤੇ ਭੁਗਤਾਨ, WhatsApp 'ਤੇ ਆਰਡਰ।",
     "productDesc": "{store} ਤੋਂ {name} ਆਨਲਾਈਨ ਖ਼ਰੀਦੋ। ਘਰ ਤੱਕ ਡਿਲੀਵਰੀ, WhatsApp 'ਤੇ ਆਰਡਰ।",
     "storesTitle": "ਤੁਹਾਡੇ ਨੇੜੇ ਦੇ ਲੋਕਲ ਸਟੋਰ — ਘਰ ਤੱਕ ਡਿਲੀਵਰੀ ਨਾਲ ਆਨਲਾਈਨ ਆਰਡਰ | {brand}",

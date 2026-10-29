@@ -172,6 +172,8 @@
     "storeWord": "اسٽور",
     "storeTitle": "{name} | آن لائين آرڊر، گهر تائين ڊليوري",
     "storeTitleCity": "{name} — {city} ۾ {category} | آن لائين آرڊر",
+    "bookTitle": "{name} | آن لائين اپائنٽمينٽ بڪ ڪريو",
+    "bookTitleCity": "{name} — {city} ۾ {category} | آن لائين اپائنٽمينٽ بڪ ڪريو",
     "storeDesc": "{name} کان آن لائين آرڊر ڪريو. گهر تائين ڊليوري، ڊليوري وقت ادائگي، WhatsApp تي آرڊر.",
     "productDesc": "{store} کان {name} آن لائين خريد ڪريو. گهر تائين ڊليوري، WhatsApp تي آرڊر.",
     "storesTitle": "توهان جي ويجهو مقامي اسٽور — گهر تائين ڊليوري سان آن لائين آرڊر | {brand}",

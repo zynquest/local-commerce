@@ -172,6 +172,8 @@
     "storeWord": "स्टोर",
     "storeTitle": "{name} | ऑनलाइन ऑर्डर, होम डिलीवरी",
     "storeTitleCity": "{name} — {city} में {category} | ऑनलाइन ऑर्डर",
+    "bookTitle": "{name} | ऑनलाइन अपॉइंटमेंट बुक करें",
+    "bookTitleCity": "{name} — {city} में {category} | ऑनलाइन अपॉइंटमेंट बुक करें",
     "storeDesc": "{name} से ऑनलाइन ऑर्डर करें। होम डिलीवरी, डिलीवरी पर पेमेंट, WhatsApp पर ऑर्डर।",
     "productDesc": "{store} से {name} ऑनलाइन ख़रीदें। होम डिलीवरी, WhatsApp पर ऑर्डर।",
     "storesTitle": "आपके पास की लोकल दुकानें — होम डिलीवरी के साथ ऑनलाइन ऑर्डर | {brand}",

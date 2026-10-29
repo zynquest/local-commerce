@@ -172,6 +172,8 @@
     "storeWord": "पसल",
     "storeTitle": "{name} | अनलाइन अर्डर, घरमै डेलिभरी",
     "storeTitleCity": "{name} — {city} मा {category} | अनलाइन अर्डर",
+    "bookTitle": "{name} | अनलाइन अपोइन्टमेन्ट बुक गर्नुहोस्",
+    "bookTitleCity": "{name} — {city} मा {category} | अनलाइन अपोइन्टमेन्ट बुक गर्नुहोस्",
     "storeDesc": "{name} बाट अनलाइन अर्डर गर्नुहोस्। घरमै डेलिभरी, डेलिभरीमा भुक्तानी, WhatsApp मा अर्डर।",
     "productDesc": "{store} बाट {name} अनलाइन किन्नुहोस्। घरमै डेलिभरी, WhatsApp मा अर्डर।",
     "storesTitle": "तपाईंको नजिकका स्थानीय पसलहरू — घरमै डेलिभरीसहित अनलाइन अर्डर | {brand}",

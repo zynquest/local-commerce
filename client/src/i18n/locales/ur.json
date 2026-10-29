@@ -172,6 +172,8 @@
     "storeWord": "اسٹور",
     "storeTitle": "{name} | آن لائن آرڈر، گھر پر ڈیلیوری",
     "storeTitleCity": "{name} — {city} میں {category} | آن لائن آرڈر",
+    "bookTitle": "{name} | آن لائن اپائنٹمنٹ بک کریں",
+    "bookTitleCity": "{name} — {city} میں {category} | آن لائن اپائنٹمنٹ بک کریں",
     "storeDesc": "{name} سے آن لائن آرڈر کریں۔ گھر پر ڈیلیوری، ڈیلیوری پر ادائیگی، WhatsApp پر آرڈر۔",
     "productDesc": "{store} سے {name} آن لائن خریدیں۔ گھر پر ڈیلیوری، WhatsApp پر آرڈر۔",
     "storesTitle": "آپ کے قریب مقامی دکانیں — آن لائن آرڈر، گھر پر ڈیلیوری | {brand}",

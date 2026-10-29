@@ -172,6 +172,8 @@
     "storeWord": "स्टोर",
     "storeTitle": "{name} | ऑनलाइन ऑर्डर करो, घर तगर डिलीवरी",
     "storeTitleCity": "{name} — {city} च {category} | ऑनलाइन ऑर्डर करो",
+    "bookTitle": "{name} | ऑनलाइन अपॉइंटमेंट बुक करो",
+    "bookTitleCity": "{name} — {city} च {category} | ऑनलाइन अपॉइंटमेंट बुक करो",
     "storeDesc": "{name} थमां ऑनलाइन ऑर्डर करो। घर तगर डिलीवरी, डिलीवरी पर भुगतान, WhatsApp पर ऑर्डर।",
     "productDesc": "{store} थमां {name} ऑनलाइन खरीदो। घर तगर डिलीवरी, WhatsApp पर ऑर्डर।",
     "storesTitle": "तुंदे लागै दे लोकल स्टोर — घर तगर डिलीवरी कन्नै ऑनलाइन ऑर्डर | {brand}",

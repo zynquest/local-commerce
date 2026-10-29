@@ -172,6 +172,8 @@
     "storeWord": "दोकान",
     "storeTitle": "{name} | अनलाइन ऑर्डर, नआव डेलिभारि",
     "storeTitleCity": "{name} — {city}आव {category} | अनलाइन ऑर्डर",
+    "bookTitle": "{name} | अनलाइन एपइन्टमेन्ट बुक",
+    "bookTitleCity": "{name} — {city}आव {category} | अनलाइन एपइन्टमेन्ट बुक",
     "storeDesc": "{name}-निफ्राय अनलाइन ऑर्डर हो। नआव डेलिभारि, डेलिभारि मोनब्ला रां हो, WhatsApp-आव ऑर्डर हो।",
     "productDesc": "{store}-निफ्राय {name} अनलाइनआव बाय। नआव डेलिभारि, WhatsApp-आव ऑर्डर हो।",
     "storesTitle": "नोंनि खाथियनि दोकानफोर — नआव डेलिभारिजों अनलाइन ऑर्डर | {brand}",

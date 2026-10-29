@@ -345,6 +345,7 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
                       placeholder={form.business_type === 'appointments' ? t('setup.serviceTypeSearch') : t('setup.storeTypeSearch')}
                       customLabel={(text) => t('setup.useCustom', { text })}
                       invalid={!!errors.category}
+                      maxLength={40}
                     />
                   </Field>
                   <Field id="wz-name" label={form.business_type === 'appointments' ? t('biz.businessName') : t('owner.storeName')} required error={errors.name}>
@@ -544,7 +545,7 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
                 ))}
               </dl>
               <Field id="wz-note" label={`${t('setup.noteLabel')} (${t('common.optional')})`}>
-                <textarea
+                <textarea maxLength={500}
                   id="wz-note"
                   className="input"
                   rows={2}

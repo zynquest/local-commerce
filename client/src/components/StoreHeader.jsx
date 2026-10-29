@@ -73,6 +73,8 @@ export default function StoreHeader() {
           <SmartImage
             src={config.logo_url}
             alt={config.name}
+            kind={config.business_type === 'appointments' ? 'appointments' : 'shop'}
+            hint={config.category}
             width={200}
             eager
             className="-mt-10 h-20 w-20 flex-none rounded-2xl border-4 border-white bg-white object-cover shadow-md"

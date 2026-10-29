@@ -141,6 +141,8 @@ export function getProvider(name = config.otpProvider) {
  * Shoppers log in with email + OTP, whatever OTP_PROVIDER says (that setting is for owners' mobile codes).
  * The code is emailed straight to the customer in their language. Local dev providers (fixed / console) still apply.
  */
+const esc = (v) => String(v).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]);
+
 export const customerEmail = {
   delivery: 'email',
   async send(email, code, purpose, meta = {}) {
@@ -151,9 +153,12 @@ export const customerEmail = {
       to: email,
       subject: t('otp.emailSubject', { code, brand }),
       text: body,
-      html: `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.5">
-<p style="font-size:28px;letter-spacing:6px;font-weight:700;margin:0 0 12px">${code}</p>
-<p style="margin:0">${String(body).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c])}</p></div>`,
+      // Copy-friendly: the code is alone in a box that selects in one tap (user-select: all), and the subject and first
+      // line say "… verification code", so Gmail and iPhone Mail offer their own "Copy code" button.
+      html: `<div style="font-family:system-ui,sans-serif;font-size:15px;line-height:1.5;color:#1c1917">
+<p style="margin:0 0 8px;color:#57534e">${esc(t('otp.emailCopyHint'))}</p>
+<p style="margin:0 0 16px"><span style="display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:32px;letter-spacing:8px;font-weight:700;padding:12px 18px;border:2px dashed #15803d;border-radius:12px;background:#f0fdf4;color:#14532d;-webkit-user-select:all;user-select:all">${code}</span></p>
+<p style="margin:0">${esc(body)}</p></div>`,
     });
   },
 };

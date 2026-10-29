@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { BadgeCheck, Camera, Check, Loader2, Save } from 'lucide-react';
+import { BadgeCheck, Camera, Check, Link2, Loader2, Save } from 'lucide-react';
 import AddressPicker from '../components/AddressPicker.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import SmartImage from '../components/SmartImage.jsx';
@@ -91,9 +91,30 @@ export default function StoreSettings({ store, onSaved }) {
     }
   };
 
+  // Photo upload is on the paid plan; free stores use an image link (https://…).
+  const canUpload = store.plan !== 'free';
   const imagePicker = (key, label, ref, className) => (
     <div>
       <span className="label">{label}</span>
+      {!canUpload ? (
+        <div className="space-y-1.5">
+          <div className={`flex items-center justify-center overflow-hidden border-2 border-stone-200 bg-stone-50 text-stone-400 ${className}`}>
+            {form[key] ? <SmartImage src={form[key]} alt="" className="h-full w-full object-cover" /> : <Link2 size={20} />}
+          </div>
+          <input
+            className="input py-1.5 text-xs"
+            type="url"
+            inputMode="url"
+            maxLength={1000}
+            placeholder="https://"
+            value={form[key] || ''}
+            onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value.trim() }))}
+            aria-label={label}
+          />
+          {fields[key] && <p className="text-xs text-rose-600">{fields[key]}</p>}
+        </div>
+      ) : (
+      <>
       <button
         type="button"
         onClick={() => ref.current?.click()}
@@ -107,6 +128,8 @@ export default function StoreSettings({ store, onSaved }) {
         )}
       </button>
       <input ref={ref} type="file" accept="image/*" hidden onChange={(e) => upload(key, e.target.files?.[0])} />
+      </>
+      )}
     </div>
   );
 
@@ -118,6 +141,7 @@ export default function StoreSettings({ store, onSaved }) {
       ) : (
         <input
           id={`st-${key}`}
+          maxLength={opts.maxLength}
           className={opts.type === 'color' ? 'h-10 w-16 cursor-pointer rounded-lg border border-stone-200' : 'input'}
           type={opts.type || 'text'}
           value={form[key] ?? ''}
@@ -165,7 +189,7 @@ export default function StoreSettings({ store, onSaved }) {
 
       <Section title={t('loc.title')}>
         <AddressPicker value={form} onChange={(patch) => setForm((f) => ({ ...f, ...patch }))} error={fields.lat || fields.address_text} />
-        {input('city', { placeholder: t('settings.p.city') })}
+        {input('city', { placeholder: t('settings.p.city'), maxLength: 60 })}
         <div>
           <label className="label" htmlFor="st-order_language">{t('settings.orderLanguage')}</label>
           <select id="st-order_language" className="input" value={form.order_language} onChange={set('order_language')}>
@@ -203,12 +227,13 @@ export default function StoreSettings({ store, onSaved }) {
           {imagePicker('logo_url', t('settings.logo'), logoRef, 'h-24 w-24 rounded-2xl')}
           <div className="flex-1">{imagePicker('banner_url', t('settings.banner'), bannerRef, 'h-24 w-full rounded-2xl')}</div>
         </div>
+        {!canUpload && <p className="-mt-2 text-[11px] text-stone-500">{t('pf.uploadPaid')}</p>}
 
         <div className="grid gap-4 sm:grid-cols-2">
-          {input('opening_hours', { placeholder: '09:00-21:00', hint: t('settings.h.opening_hours') })}
-          {input('closed_days', { placeholder: 'Sun' })}
+          {input('opening_hours', { placeholder: '09:00-21:00', hint: t('settings.h.opening_hours'), maxLength: 11 })}
+          {input('closed_days', { placeholder: 'Sun', maxLength: 40 })}
           {!appointments && input('minimum_order', { type: 'number', min: 0, inputMode: 'numeric' })}
-          {input('instagram_handle', { placeholder: 'yourstore' })}
+          {input('instagram_handle', { placeholder: 'yourstore', maxLength: 31 })}
           {input('theme_color', { type: 'color' })}
           {input('description', { textarea: true, maxLength: 500, wide: true })}
         </div>

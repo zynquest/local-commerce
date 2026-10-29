@@ -4,7 +4,7 @@ import SmartImage from './SmartImage.jsx';
 import { useT } from '../i18n/index.jsx';
 
 /** Touch-swipe carousel built on CSS scroll-snap, with dot indicators. */
-export default function ImageCarousel({ images, alt, width = 600, className = '', showArrows = false, eager = false }) {
+export default function ImageCarousel({ images, alt, width = 600, className = '', showArrows = false, eager = false, hint = '' }) {
   const t = useT();
   const ref = useRef(null);
   const [index, setIndex] = useState(0);
@@ -33,6 +33,7 @@ export default function ImageCarousel({ images, alt, width = 600, className = ''
             key={i}
             src={src}
             alt={alt}
+            hint={hint}
             width={width}
             eager={eager && i === 0}
             className="h-full w-full flex-none snap-center object-cover"

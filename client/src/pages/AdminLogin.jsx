@@ -40,7 +40,7 @@ export default function AdminLogin() {
           <h1 className="mt-2 text-lg font-bold">Platform Admin</h1>
           <p className="text-xs text-stone-500">Authorised personnel only. Sessions expire after 12 hours.</p>
         </div>
-        <input className="input" placeholder="Username" autoComplete="username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required />
+        <input maxLength={40} className="input" placeholder="Username" autoComplete="username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required />
         <input className="input" type="password" placeholder="Password" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
         {error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
         <button disabled={busy} className="btn-brand w-full">

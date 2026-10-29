@@ -74,7 +74,7 @@ export default function CustomerAuthModal({ onClose }) {
         {needsName ? (
           <>
             <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{t('auth.newAccountName')}</p>
-            <input className="input" placeholder={t('cart.yourName')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" autoFocus required />
+            <input maxLength={80} className="input" placeholder={t('cart.yourName')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" autoFocus required />
           </>
         ) : (
           <>
@@ -94,7 +94,7 @@ export default function CustomerAuthModal({ onClose }) {
                 <label className="label" htmlFor="customer-email">{t('auth.email')}</label>
                 <div className="relative" dir="ltr">
                   <Mail size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-                  <input
+                  <input maxLength={254}
                     id="customer-email"
                     className="input ps-9"
                     type="email"

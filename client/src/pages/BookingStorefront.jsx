@@ -59,6 +59,7 @@ export default function BookingStorefront() {
               <ul className="card divide-y divide-stone-100">
                 {items.map((s) => (
                   <li key={s.id} className="flex items-center gap-3 p-3">
+                    <SmartImage alt={s.name} kind="service" hint={config.category} width={96} className="h-12 w-12 flex-none rounded-xl object-cover" />
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold">{s.name}</p>
                       {s.description && <p className="line-clamp-2 text-xs text-stone-500">{s.description}</p>}

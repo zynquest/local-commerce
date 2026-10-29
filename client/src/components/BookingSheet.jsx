@@ -168,7 +168,8 @@ export default function BookingSheet({ initialServiceId, onClose }) {
               {services.map((s) => (
                 <li key={s.id}>
                   <button type="button" onClick={() => setServiceId(s.id)} className="flex w-full items-center justify-between gap-3 rounded-xl border border-stone-200 p-3 text-start hover:border-brand">
-                    <span className="min-w-0">
+                    <SmartImage alt={s.name} kind="service" hint={store.category} width={88} className="h-11 w-11 flex-none rounded-lg object-cover" />
+                    <span className="min-w-0 flex-1">
                       <span className="block font-semibold">{s.name}</span>
                       <span className="block text-xs text-stone-500">{t('appt.minutes', { count: s.duration_min })}</span>
                     </span>

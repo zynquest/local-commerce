@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Camera, ChevronDown, Link2, Loader2, Plus, Save, Star, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Camera, ChevronDown, FileUp, Link2, Loader2, Plus, Save, Star, Trash2, X } from 'lucide-react';
 import SmartImage from '../components/SmartImage.jsx';
 import { discountPercent, formatMoney } from '../lib/format.js';
 import { isInstagramCdn, normalizeImageUrl, uploadImage } from '../services/imageService.js';
@@ -61,7 +61,10 @@ function validate(t, f, isNew, existingSkus) {
 // Server field names → form field names.
 const SERVER_FIELD = { offer_price: 'list_price' };
 
-export default function ProductForm({ product, categories, existingSkus, onSave, onCancel }) {
+/**
+ * canUpload: photo upload is on the paid plan; free stores add photos by link (https://…). onBulk: opens CSV Import.
+ */
+export default function ProductForm({ product, categories, existingSkus, onSave, onCancel, canUpload = true, onBulk }) {
   const t = useT();
   const isNew = !product;
   const [f, setF] = useState(() =>
@@ -192,12 +195,12 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
           </div>
           <div>
             {reqLabel('pf-mrp', t('pf.mrp'))}
-            <input id="pf-mrp" className="input" value={f.mrp} onChange={set('mrp')} inputMode="decimal" placeholder="260" aria-invalid={!!errors.mrp} />
+            <input maxLength={10} id="pf-mrp" className="input" value={f.mrp} onChange={set('mrp')} inputMode="decimal" placeholder="260" aria-invalid={!!errors.mrp} />
             {err('mrp')}
           </div>
           <div>
             {reqLabel('pf-list_price', t('pf.listPrice'))}
-            <input id="pf-list_price" className="input" value={f.list_price} onChange={set('list_price')} inputMode="decimal" placeholder="235" aria-invalid={!!errors.list_price} />
+            <input maxLength={10} id="pf-list_price" className="input" value={f.list_price} onChange={set('list_price')} inputMode="decimal" placeholder="235" aria-invalid={!!errors.list_price} />
             {err('list_price')}
           </div>
         </div>
@@ -241,7 +244,7 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
                     </div>
                   </div>
                 ))}
-                {f.images.length < 8 && (
+                {canUpload && f.images.length < 8 && (
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
@@ -256,9 +259,9 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
               <div className="mt-2 flex gap-2">
                 <div className="relative flex-1">
                   <Link2 size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-                  <input
+                  <input maxLength={1000}
                     className="input ps-9"
-                    placeholder={t('pf.pasteLink')}
+                    placeholder={canUpload ? t('pf.pasteLink') : 'https://…'}
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
@@ -266,13 +269,14 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
                 </div>
                 <button type="button" onClick={addImageUrl} className="btn-ghost">{t('common.add')}</button>
               </div>
+              {!canUpload && <p className="mt-1 text-[11px] text-stone-500">{t('pf.uploadPaid')}</p>}
               {mediaError && <p className="mt-1 text-xs text-rose-600">{mediaError}</p>}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="label" htmlFor="pf-category">{t('pf.category')}</label>
-                <input id="pf-category" className="input" list="pf-categories" value={f.category} onChange={set('category')} placeholder={t('pf.categoryPlaceholder')} />
+                <input maxLength={60} id="pf-category" className="input" list="pf-categories" value={f.category} onChange={set('category')} placeholder={t('pf.categoryPlaceholder')} />
                 <datalist id="pf-categories">
                   {categories.map((c) => <option key={c} value={c} />)}
                 </datalist>
@@ -285,7 +289,7 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
 
             <div>
               <label className="label" htmlFor="pf-description">{t('pf.description')}</label>
-              <textarea id="pf-description" rows={3} className="input" value={f.description} onChange={set('description')} />
+              <textarea maxLength={2000} id="pf-description" rows={3} className="input" value={f.description} onChange={set('description')} />
             </div>
 
             <div>
@@ -299,7 +303,7 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
                     </button>
                   </span>
                 ))}
-                <input
+                <input maxLength={30}
                   className="input max-w-48 py-1.5"
                   placeholder={t('pf.tagPlaceholder')}
                   value={tagInput}
@@ -315,8 +319,8 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
               <div className="space-y-2">
                 {specRows.map(([k, v], i) => (
                   <div key={i} className="flex gap-2">
-                    <input className="input w-2/5" placeholder={t('pf.detailKey')} value={k} onChange={(e) => setSpecRows((rows) => rows.map((r, j) => (j === i ? [e.target.value, r[1]] : r)))} />
-                    <input className="input flex-1" placeholder={t('pf.detailValue')} value={v} onChange={(e) => setSpecRows((rows) => rows.map((r, j) => (j === i ? [r[0], e.target.value] : r)))} />
+                    <input maxLength={60} className="input w-2/5" placeholder={t('pf.detailKey')} value={k} onChange={(e) => setSpecRows((rows) => rows.map((r, j) => (j === i ? [e.target.value, r[1]] : r)))} />
+                    <input maxLength={500} className="input flex-1" placeholder={t('pf.detailValue')} value={v} onChange={(e) => setSpecRows((rows) => rows.map((r, j) => (j === i ? [r[0], e.target.value] : r)))} />
                     <button type="button" onClick={() => setSpecRows((rows) => rows.filter((_, j) => j !== i))} className="p-2 text-stone-400 hover:text-rose-600" aria-label={t('pf.removeDetail')}>
                       <Trash2 size={16} />
                     </button>
@@ -331,23 +335,30 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <label className="label" htmlFor="pf-sku">{t('pf.itemCode')}</label>
-                <input id="pf-sku" className="input" value={f.sku_id} onChange={set('sku_id')} disabled={!isNew} placeholder={isNew ? t('pf.auto') : ''} />
+                <input maxLength={40} id="pf-sku" className="input" value={f.sku_id} onChange={set('sku_id')} disabled={!isNew} placeholder={isNew ? t('pf.auto') : ''} />
                 {err('sku_id') || <p className="mt-1 text-[11px] text-stone-400">{isNew ? t('pf.itemCodeNew') : t('pf.itemCodeInternal')}</p>}
               </div>
               <div>
                 <label className="label" htmlFor="pf-rating">{t('pf.rating')}</label>
-                <input id="pf-rating" className="input" value={f.rating} onChange={set('rating')} inputMode="decimal" />
+                <input maxLength={3} id="pf-rating" className="input" value={f.rating} onChange={set('rating')} inputMode="decimal" />
                 {err('rating')}
               </div>
               <div>
                 <label className="label" htmlFor="pf-review_count">{t('pf.reviewCount')}</label>
-                <input id="pf-review_count" className="input" value={f.review_count} onChange={set('review_count')} inputMode="numeric" />
+                <input maxLength={7} id="pf-review_count" className="input" value={f.review_count} onChange={set('review_count')} inputMode="numeric" />
                 {err('review_count')}
               </div>
             </div>
           </div>
         )}
       </section>
+
+      {isNew && onBulk && (
+        <button type="button" onClick={onBulk} className="flex w-full items-center gap-2 rounded-2xl border border-dashed border-stone-300 px-4 py-3 text-start text-sm text-stone-600 hover:border-brand hover:text-brand">
+          <FileUp size={18} className="flex-none text-brand" />
+          <span className="flex-1">{t('pf.bulkLink')}</span>
+        </button>
+      )}
 
       {saveError && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{saveError}</p>}
       <div className="flex gap-2">

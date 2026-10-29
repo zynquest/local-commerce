@@ -84,8 +84,8 @@ export default function CustomerAccount() {
       <form onSubmit={save} className="card space-y-3 p-5">
         <h1 className="text-lg font-bold">{t('account.hi', { name: customer.name })}</h1>
         <p className="text-xs text-stone-500">{customer.email ? t('account.email', { email: customer.email }) : t('account.mobile', { phone: `+${customer.phone}` })}</p>
-        <input className="input" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} placeholder={t('account.name')} required />
-        <textarea
+        <input maxLength={80} className="input" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} placeholder={t('account.name')} required />
+        <textarea maxLength={300}
           className="input"
           rows={2}
           value={profile.default_address}

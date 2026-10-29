@@ -9,6 +9,7 @@ import { clientKey } from '../clientIp.js';
 import { query, tx } from '../db.js';
 import { badRequest, notFound, parse } from '../errors.js';
 import * as S from '../schemas.js';
+import { notifyStoreOwner, pushEnabled } from '../push.js';
 import { PRODUCT_COLUMNS, PUBLIC_STORE_COLUMNS, deliveryFeeFor, product as serializeProduct, publicStore, round2 } from '../serialize.js';
 import { publicBookingCatalog } from './appointments.js';
 
@@ -42,6 +43,8 @@ publicRouter.get('/config', (_req, res) => {
     mapsKey: config.googleMapsKey,
     mapId: config.googleMapId,
     nearbyKm: config.nearbyRadiusKm,
+    // Web push public key for store-owner notifications ('' = off).
+    vapidPublicKey: pushEnabled() ? config.vapidPublicKey : '',
   });
 });
 
@@ -155,7 +158,7 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
   const o = parse(S.placeOrder, req.body);
   if (!o.items.length && !o.notes) throw badRequest('Add at least one item or a note');
 
-  const storeRes = await query(`SELECT id, delivery_fee, free_delivery_above, whatsapp_number, business_type, is_demo FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
+  const storeRes = await query(`SELECT id, delivery_fee, free_delivery_above, whatsapp_number, business_type, is_demo, currency_symbol FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
   const store = storeRes.rows[0];
   if (!store) throw notFound('Store not found');
   if (store.business_type === 'appointments') throw badRequest('This business takes appointments, not orders');
@@ -224,4 +227,11 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
     return res.json({ order: again.rows[0], duplicate: true });
   }
   res.status(201).json({ order });
+  // Owner's phones: a notification per new order (not for retries of one already recorded).
+  notifyStoreOwner(store.id, (t) => ({
+    title: t('push.newOrderTitle', { code: order.order_code }),
+    body: t('push.newOrderBody', { name: name || t('push.customer'), total: `${store.currency_symbol || '₹'}${order.total}` }),
+    url: '/merchant?tab=orders',
+    tag: `order-${order.order_code}`,
+  }));
 });

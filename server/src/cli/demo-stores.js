@@ -1,4 +1,4 @@
-// Demo businesses: six shops (Grocery, Vegetables, Flowers, Electricals, Bakery, Restaurant) and two appointment businesses
+// Demo businesses: five shops (Grocery, Vegetables, Electricals, Bakery, Restaurant) and two appointment businesses
 // (hair & beauty salon, dental & physio clinic) for showing the platform. They're approved
 // and orderable (orders always go to the company WhatsApp, config.demoWhatsApp = 919353095481) but marked is_demo: labelled "Demo", listed after real stores,
 // noindex and left out of the sitemap. Safe to re-run: stores and products are upserted.

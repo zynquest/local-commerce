@@ -89,6 +89,15 @@ export const qrGenerate = z.object({ count: z.coerce.number().int().min(1, 'At l
 export const qrAssign = z.object({ store: z.string().trim().min(1, 'Enter the store name').max(300) });
 export const submitForReview = z.object({ note: optText(500).optional(), whatsapp_number: mobile10.optional() });
 export const whatsappSet = z.object({ phone: mobile10 });
+// A browser's web push subscription (PushSubscription.toJSON()) + the owner's app language for the texts.
+export const pushSubscribe = z.object({
+  subscription: z.object({
+    endpoint: z.string().url().max(1000).refine((u) => u.startsWith('https://'), 'Push endpoint must be https'),
+    keys: z.object({ p256dh: z.string().min(1).max(200), auth: z.string().min(1).max(100) }),
+  }),
+  language: z.enum(LANGUAGE_CODES).default('en'),
+});
+export const pushUnsubscribe = z.object({ endpoint: z.string().max(1000) });
 // Admin correction of the details owners can't change after approval (name, link, type, store type, WhatsApp).
 export const storeDetailsFix = z
   .object({
@@ -219,7 +228,7 @@ const productObject = z
         z.array(httpsUrl).max(8, 'Max 8 images'),
       )
       .default([]),
-    description: text(5000).default(''),
+    description: text(2000).default(''),
     specs: z
       .preprocess((v) => {
         if (!v) return {};
@@ -256,12 +265,6 @@ const productObject = z
 export const product = z.preprocess(productAliases, productObject);
 
 export const productImport = z.object({ products: z.array(z.unknown()).min(1).max(500) });
-
-/** Product list pasted from a WhatsApp message (see src/catalog/messageParser.js). */
-export const messageImport = z.object({
-  text: z.string().trim().min(1, 'Paste your product list first').max(20_000, 'Message is too long (max 20,000 characters). Send it in parts.'),
-  dryRun: z.boolean().optional().default(false),
-});
 
 export const placeOrder = z.object({
   order_code: z.string().regex(/^ORD-[A-Z0-9]{6,12}$/, 'Invalid order code'),

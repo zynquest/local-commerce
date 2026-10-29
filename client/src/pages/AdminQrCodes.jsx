@@ -65,7 +65,7 @@ function StorePicker({ code, value, onChange, onPick, onSubmit }) {
 
   return (
     <div className="relative min-w-0 flex-1">
-      <input
+      <input maxLength={60}
         className="input w-full text-base sm:text-sm"
         placeholder="Store name"
         value={value}
@@ -296,7 +296,7 @@ export default function AdminQrCodes() {
         ))}
         <label className="relative w-full sm:ms-auto sm:w-64">
           <Search size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-          <input className="input ps-9" placeholder="Search code, store or scanned link" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input maxLength={120} className="input ps-9" placeholder="Search code, store or scanned link" value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
         <button onClick={load} className="btn-ghost px-3" aria-label="Refresh"><RefreshCw size={16} className={data.loading ? 'animate-spin' : ''} /></button>
       </div>

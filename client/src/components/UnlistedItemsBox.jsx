@@ -12,7 +12,7 @@ export default function UnlistedItemsBox({ compact = false }) {
         <NotebookPen size={16} className="text-brand" />
         {t('cart.unlistedTitle')}
       </label>
-      <textarea
+      <textarea maxLength={1000}
         id="unlisted-notes"
         value={notes}
         onChange={(e) => setNotes(e.target.value.slice(0, 1000))}

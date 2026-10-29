@@ -128,7 +128,7 @@ export default function StoreStatusCard({ store, onChange }) {
             <p className="mt-1 whitespace-pre-line text-stone-800">{store.review_remarks}</p>
           </div>
         )}
-        <textarea className="input" rows={2} value={note} onChange={(e) => setNote(e.target.value.slice(0, 500))} placeholder={t('review.notePlaceholderResubmit')} />
+        <textarea maxLength={500} className="input" rows={2} value={note} onChange={(e) => setNote(e.target.value.slice(0, 500))} placeholder={t('review.notePlaceholderResubmit')} />
         {error && <p className="text-sm text-rose-700">{error}</p>}
         <button onClick={resubmit} disabled={busy} className="btn-brand w-full">
           {busy ? <Loader2 size={16} className="animate-spin" /> : <WhatsAppIcon size={16} />} {t('review.resubmit')}

@@ -19,7 +19,6 @@ const PATTERNS = [
   P(/^Cannot (\w+) a store that is (.+)$/, 'errors.cannotTransition', ['action', 'status']),
   P(/^Request failed \((\d+)\)$/, 'errors.requestFailed', ['status']),
   P(/^Business type, store type, store name, store link and WhatsApp number can't be changed after approval\. Message support on WhatsApp (.+) to correct them\.$/, 'setup.lockedNote', ['phone']),
-  P(/^Too many products in one message \(max (\d+)\)\..*$/, 'msgimp.tooManyItems', ['max']),
 ];
 
 const EXACT = {
@@ -38,15 +37,12 @@ const EXACT = {
   'Enter a valid 10-digit mobile number': 'errors.validMobile10',
   'Could not send the code right now. Please try again in a minute.': 'errors.otpSendFailed',
   'Enter the 6-digit code': 'otp.enter',
-  'Paste your product list first': 'msgimp.empty',
   'That time was just booked by someone else. Please pick another slot.': 'errors.slotTaken',
   'That time is no longer available. Please pick another slot.': 'errors.slotGone',
   'You already have 3 pending requests here. Please wait for the business to confirm them.': 'errors.tooManyPending',
   'Too many booking requests. Please try again later or message the business on WhatsApp.': 'errors.bookingLimit',
   'This business is not taking bookings yet': 'errors.notTakingBookings',
   'Location on the map': 'review.check.location',
-  'No products found in the message': 'msgimp.noneFound',
-  'Message is too long (max 20,000 characters). Send it in parts.': 'msgimp.tooLong',
   'Enter your current password': 'errors.enterCurrentPassword',
   'Enter your name': 'errors.enterName',
   'Enter your password': 'errors.enterPassword',
@@ -85,6 +81,7 @@ const EXACT = {
   'Store not found': 'status.storeNotFound',
   'That file could not be read as an image': 'errors.badImage',
   'That store link is already taken': 'errors.slugTaken',
+  'Photo upload is on the paid plan. Paste an image link (https://…) instead.': 'pf.uploadPaid',
   'The reopening date must be after today': 'closure.dateAfterToday',
   'This business is temporarily closed and not taking bookings right now.': 'closure.bannerBookings',
   'That username is taken': 'errors.usernameTaken',

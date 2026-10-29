@@ -322,7 +322,9 @@
     "smsSent": "We've sent the code by SMS to <b>{phone}</b>.",
     "emailSent": "We've sent the code to <b>{email}</b>. Check your spam folder too.",
     "emailSubject": "{code} is your {brand} verification code",
-    "emailBody": "{code} is your {brand} verification code. Enter it in the app to continue. It expires in 10 minutes. If you didn't request it, you can ignore this email."
+    "emailBody": "{code} is your {brand} verification code. Enter it in the app to continue. It expires in 10 minutes. If you didn't request it, you can ignore this email.",
+    "emailCopyHint": "Your code (tap it to copy):",
+    "paste": "Paste"
   },
   "landing": {
     "tagline": "Your shop. Your customers. Your WhatsApp.",
@@ -357,8 +359,6 @@
       "bakeryBody": "Fresh bread, cakes and snacks, with custom cake orders.",
       "vegetablesTitle": "Vegetables & fruits",
       "vegetablesBody": "Same-day delivery from the mandi, weighed fairly.",
-      "flowersTitle": "Flowers",
-      "flowersBody": "Garlands and bouquets for pooja, weddings and festivals.",
       "electricalsTitle": "Electricals & hardware",
       "electricalsBody": "Bulbs, fans, switches and wires with home delivery.",
       "salonTitle": "Salons & spas",
@@ -706,7 +706,9 @@
     "itemCodeInternal": "Internal only, not shown to customers.",
     "rating": "Rating (1–5)",
     "reviewCount": "Review count",
-    "save": "Save product"
+    "save": "Save product",
+    "bulkLink": "Have many products? Add them all at once with CSV Import →",
+    "uploadPaid": "Photo upload is on the paid plan. Paste an image link (https://…) instead."
   },
   "imp": {
     "title": "Bulk import from Excel / CSV",
@@ -854,58 +856,6 @@
     "freeDelivery": "Free delivery (no delivery fee)",
     "waPending": "Verified on approval",
     "waSave": "Save number"
-  },
-  "msgimp": {
-    "title": "Add products from a WhatsApp message",
-    "teaser": "Paste your product list, and we'll create the catalog for you",
-    "format1": "Format 1: three lines per product",
-    "format1Body": "Product name, then MRP, then list price, each on its own line.",
-    "format2": "Format 2: one line",
-    "format2Body": "<b>Name, MRP, List price</b>, with products separated by <b>|</b>",
-    "boxLabel": "Your message",
-    "tryExample": "Try the example",
-    "hint": "You can mix both formats. ₹, Rs, MRP labels and /- are fine. Each product is checked on its own, so one mistake won't stop the rest.",
-    "check": "Check",
-    "create": "Create products",
-    "preview": "Check only, nothing saved",
-    "created_one": "{count} product added",
-    "created_other": "{count} products added",
-    "willCreate_one": "{count} product will be added",
-    "willCreate_other": "{count} products will be added",
-    "updated_one": "{count} price updated",
-    "updated_other": "{count} prices updated",
-    "willUpdate_one": "{count} existing product will get new prices",
-    "willUpdate_other": "{count} existing products will get new prices",
-    "failed_one": "{count} could not be read",
-    "failed_other": "{count} could not be read",
-    "fixAndResend": "Only the products that failed are left in the box. Fix them and tap Create products again.",
-    "item": "Product {n}",
-    "line": "Line {n}",
-    "lines": "Lines {a}–{b}",
-    "prices": "MRP {mrp} · List price {list}",
-    "priceUpdated": "already in your catalog, prices updated",
-    "done": "Catalog updated: {created} added, {updated} updated",
-    "e": {
-      "missing_prices": "MRP and list price are missing. Add them on the next two lines.",
-      "missing_list_price": "List price is missing. Add it on the line after the MRP ({mrp}).",
-      "missing_name": "Product name is missing.",
-      "missing_field": "Needs 3 values: name, MRP, list price (e.g. Milk,25,21).",
-      "ambiguous_commas": "Too many commas. Don't put commas inside prices (write 1250, not 1,250).",
-      "mrp_not_number": "MRP \"{value}\" is not a number.",
-      "list_not_number": "List price \"{value}\" is not a number.",
-      "price_too_large": "Price is too large.",
-      "list_over_mrp": "List price ({list}) is more than MRP ({mrp}). Did you swap them? MRP comes first.",
-      "name_too_long": "Product name is too long (max {max} characters).",
-      "duplicate": "Same product as product {n} in this message. It was added only once.",
-      "sku_limit": "Your plan allows {limit} active products. Archive some products or upgrade to add more.",
-      "price_without_name": "Price \"{value}\" has no product name above it.",
-      "one_line_spaces": "Looks like name and prices on one line. Use commas: Name, MRP, List price.",
-      "invalid": "{message}"
-    },
-    "empty": "Paste your product list first.",
-    "noneFound": "No products found in the message. Use one of the two formats shown above.",
-    "tooLong": "The message is too long (max 20,000 characters). Send it in parts.",
-    "tooManyItems": "Too many products in one message (max {max}). Send it in parts."
   },
   "loc": {
     "title": "Shop location",
@@ -1155,5 +1105,23 @@
     "statusUntil": "Temporarily closed · reopens {date}",
     "cartClosed": "This store is temporarily closed and isn't taking orders right now.",
     "dateAfterToday": "The reopening date must be after today"
+  },
+  "push": {
+    "title": "Order alerts on this phone",
+    "body": "Get a notification for every new order, and when your store is approved.",
+    "bodyAppt": "Get a notification for every new booking, and when your business is approved.",
+    "enable": "Turn on notifications",
+    "enabled": "Notifications are on for this phone",
+    "disable": "Turn off",
+    "denied": "Notifications are blocked for this site. Allow them in your browser settings, then reload.",
+    "iosHint": "On iPhone, add this app to your Home Screen first (Share → Add to Home Screen), open it from there, then turn on notifications.",
+    "newOrderTitle": "New order {code}",
+    "newOrderBody": "{name} · Total {total}",
+    "newBookingTitle": "New booking {code}",
+    "newBookingBody": "{name} · {service} · {when}",
+    "customer": "Customer",
+    "approvedTitle": "Your store is live! 🎉",
+    "approvedBody": "{name} is approved. Customers near you can now find it and order on WhatsApp.",
+    "approvedBodyAppt": "{name} is approved. Customers near you can now find it and book appointments."
   }
 }

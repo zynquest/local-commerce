@@ -54,7 +54,7 @@ export function ScheduleEditor({ value, onChange }) {
   );
 }
 
-function SpecialistForm({ specialist, services, onSave, onCancel }) {
+function SpecialistForm({ specialist, services, onSave, onCancel, canUpload = true }) {
   const { t } = useI18n();
   const [form, setForm] = useState(() => (specialist ? { ...EMPTY, ...specialist } : { ...EMPTY, service_ids: services.map((s) => s.id) }));
   const [busy, setBusy] = useState(false);
@@ -99,7 +99,7 @@ function SpecialistForm({ specialist, services, onSave, onCancel }) {
         <button type="button" onClick={onCancel} className="p-1 text-stone-400" aria-label={t('common.cancel')}><X size={18} /></button>
       </div>
       <div className="flex gap-3">
-        <button type="button" onClick={() => photoRef.current?.click()} className="relative flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-stone-300 bg-stone-50 text-stone-400" aria-label={t('appt.photo')}>
+        <button type="button" onClick={() => canUpload && photoRef.current?.click()} disabled={!canUpload} className="relative flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-stone-300 bg-stone-50 text-stone-400" aria-label={t('appt.photo')}>
           {form.photo_url ? <SmartImage src={form.photo_url} alt="" className="h-full w-full object-cover" /> : <Camera size={20} />}
           {uploading && <span className="absolute inset-0 flex items-center justify-center bg-white/70"><Loader2 className="animate-spin text-brand" /></span>}
         </button>
@@ -107,6 +107,12 @@ function SpecialistForm({ specialist, services, onSave, onCancel }) {
         <div className="flex-1 space-y-2">
           <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('appt.specialistName')} aria-label={t('appt.specialistName')} maxLength={60} autoFocus />
           <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('appt.specialistTitlePlaceholder')} aria-label={t('appt.specialistTitle')} maxLength={80} />
+          {!canUpload && (
+            <>
+              <input className="input text-xs" type="url" inputMode="url" maxLength={1000} placeholder="https://" value={form.photo_url || ''} onChange={(e) => setForm({ ...form, photo_url: e.target.value.trim() || null })} aria-label={t('appt.photo')} />
+              <p className="text-[11px] text-stone-500">{t('pf.uploadPaid')}</p>
+            </>
+          )}
         </div>
       </div>
       <div>
@@ -138,7 +144,7 @@ function SpecialistForm({ specialist, services, onSave, onCancel }) {
 }
 
 /** Specialists (stylist, therapist, doctor): services they offer and weekly working hours. */
-export default function SpecialistsPanel({ onChange }) {
+export default function SpecialistsPanel({ onChange, canUpload = true }) {
   const { t, dayName } = useI18n();
   const [data, setData] = useState({ loading: true, specialists: [], services: [], error: '' });
   const [editing, setEditing] = useState(null);
@@ -166,7 +172,7 @@ export default function SpecialistsPanel({ onChange }) {
     onChange?.();
   };
 
-  if (editing) return <SpecialistForm specialist={editing === 'new' ? null : editing} services={data.services} onSave={save} onCancel={() => setEditing(null)} />;
+  if (editing) return <SpecialistForm specialist={editing === 'new' ? null : editing} services={data.services} onSave={save} onCancel={() => setEditing(null)} canUpload={canUpload} />;
 
   const serviceName = Object.fromEntries(data.services.map((s) => [s.id, s.name]));
   return (

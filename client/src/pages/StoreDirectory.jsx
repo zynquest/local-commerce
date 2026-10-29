@@ -90,7 +90,7 @@ export function StoreList({ query = '', limit, type = '' }) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {all.map((s) => (
           <Link key={s.slug} to={`/s/${s.slug}`} className="card flex min-w-0 gap-3 p-4 transition hover:shadow-md">
-            <SmartImage src={s.logo_url} alt={s.name} width={120} className="h-16 w-16 flex-none rounded-xl object-cover" />
+            <SmartImage src={s.logo_url} alt={s.name} kind={s.business_type === 'appointments' ? 'appointments' : 'shop'} hint={s.category} width={120} className="h-16 w-16 flex-none rounded-xl object-cover" />
             <div className="min-w-0 flex-1">
               <p className="flex flex-wrap items-center gap-x-1 gap-y-0.5 leading-snug font-bold break-words">
                 <span>{s.name}</span>
@@ -148,7 +148,7 @@ export default function StoreDirectory() {
       <NearbyBar className="mt-3" />
       <label className="relative mt-3 block">
         <Search size={18} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-        <input className="input ps-10" placeholder={t('stores.search')} value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input maxLength={60} className="input ps-10" placeholder={t('stores.search')} value={query} onChange={(e) => setQuery(e.target.value)} />
       </label>
       <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
         {TYPES.map((ty) => (

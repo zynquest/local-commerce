@@ -126,6 +126,7 @@ export default function ProductDetail() {
         <ImageCarousel
           images={product.images}
           alt={product.name}
+          hint={config?.category}
           width={1000}
           eager
           showArrows

@@ -22,7 +22,7 @@ export default function MobileInput({ id = 'phone', value, onChange, error, labe
       <label className="label" htmlFor={id}>{label || t('auth.mobile')}</label>
       <div className="flex items-center gap-2" dir="ltr">
         <span className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-sm text-stone-500">+91</span>
-        <input
+        <input maxLength={16}
           id={id}
           className="input tracking-wide"
           value={value}

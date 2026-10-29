@@ -18,7 +18,8 @@
     "owner:set-phone": "node --env-file-if-exists=../.env src/cli/owner.js set-phone",
     "images:share-jpegs": "node --env-file-if-exists=../.env src/cli/share-images.js",
     "demo:create": "node --env-file-if-exists=../.env src/cli/demo-stores.js create",
-    "demo:remove": "node --env-file-if-exists=../.env src/cli/demo-stores.js remove"
+    "demo:remove": "node --env-file-if-exists=../.env src/cli/demo-stores.js remove",
+    "push:keys": "node src/cli/push-keys.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -30,6 +31,7 @@
     "nodemailer": "^10.1.1",
     "pg": "^8.23.1",
     "sharp": "^0.35.5",
+    "web-push": "^3.6.7",
     "zod": "^4.6.7"
   }
 }

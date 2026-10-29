@@ -10,6 +10,7 @@ import * as S from '../schemas.js';
 import { PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
 import { claimSeedStore, removeSeedStore } from '../seed/stores.js';
 import { assignQrCode, generateQrCodes, isQrCode, qrBase, unassignQrCode } from '../qr.js';
+import { notifyStoreOwner } from '../push.js';
 
 export const platformRouter = Router();
 
@@ -235,6 +236,15 @@ for (const [action, t] of Object.entries(TRANSITIONS)) {
       return updated.rows[0];
     });
     res.json({ store });
+    if (action === 'approve' || action === 'reinstate') {
+      const { rows } = await query('SELECT name, business_type FROM stores WHERE id = $1', [req.params.id]);
+      notifyStoreOwner(req.params.id, (t) => ({
+        title: t('push.approvedTitle'),
+        body: t(rows[0]?.business_type === 'appointments' ? 'push.approvedBodyAppt' : 'push.approvedBody', { name: rows[0]?.name || '' }),
+        url: '/merchant',
+        tag: 'store-approved',
+      }));
+    }
   });
 }
 

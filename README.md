@@ -75,10 +75,8 @@ npm run admin:reset-password
   - The business confirms, cancels, or marks done / no-show, and replies on WhatsApp with a pre-filled message in the customer's language.
   - Code: `server/src/routes/appointments.js`, slot maths in `server/src/appointments/slots.js` (IST).
 - **Location / near me:** merchants set the shop location with Google Maps search, GPS and a draggable pin (`client/src/components/AddressPicker.jsx`). Shoppers see only businesses within `NEARBY_RADIUS_KM` (default 10) of their location (`GET /api/stores?lat=&lng=`); demo stores are always listed. A Google Maps key is optional (Deployment.md §B19).
-- **Products from a WhatsApp message** (Products tab, `POST /api/merchant/products/from-message`, parser in `server/src/catalog/messageParser.js`):
-  - Format 1 is three lines per product (`Name` / `MRP` / `List price`). Format 2 is `Name,MRP,List price|Name,MRP,List price`. The two can be mixed.
-  - WhatsApp timestamps and sender names, `*bold*`, bullets, `₹`/`Rs`/`MRP:` labels, `/-` and `1,250` are tolerated.
-  - Each product is handled on its own. Valid ones are created; if a product with the same name exists, only its prices are updated. Failed ones come back with an error code and their line numbers, and the UI leaves only those in the box to fix. **Check** is a dry run.
+- **Photos and artwork:** photo upload is on the paid plan; free stores add photos by image link (https://…). Items and stores without a photo get artwork picked from their name and store type (`client/src/lib/artwork.js`).
+- **Owner notifications:** web push for new orders, new bookings and store approval (`server/src/push.js`, `client/public/push-sw.js`; keys in Deployment.md §B24).
 - **Bulk import:**
   - Light (3 columns) and Full (12 columns, still only 3 required) templates; `.csv` or `.xlsx`.
   - Header spellings like "Product Name" or "Selling Price" are recognised; `₹1,299` and "Rs. 45" are parsed.

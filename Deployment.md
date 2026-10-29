@@ -406,13 +406,12 @@ To rotate the admin password (this signs the admin out everywhere), run the same
 
 ### Demo stores (optional)
 
-Eight ready-made demo businesses (all in Bengaluru) show visitors how the platform works. The home page's "Built for every local business" cards link to them:
+Seven ready-made demo businesses (all in Bengaluru) show visitors how the platform works. The home page's "Built for every local business" cards link to them:
 
 | Business | Link | Catalog |
 |---|---|---|
 | Shree Shivam Groceries | `/s/demo` | 19 |
 | Hari Bhari Sabzi Mandi (vegetables & fruits) | `/s/demo-vegetables` | 12 |
-| Malligai Flower Stall | `/s/demo-flowers` | 12 |
 | Sri Ganesh Electricals | `/s/demo-electricals` | 12 |
 | Iyengar Fresh Bakery | `/s/demo-bakery` | 11 |
 | Annapoorna Family Restaurant (pure-veg food delivery) | `/s/demo-restaurant` | 19 |
@@ -979,3 +978,26 @@ If the button shows an error or nothing happens, open the browser console: *"The
 Each code encodes `https://sonsari.in/q/<code>` (from `PUBLIC_URL`). The server counts the scan and redirects to `/s/<store>`. A code that isn't linked yet shows a friendly "not linked to a shop yet" page with *Shop local stores*, *Register your store* and a WhatsApp link to you; an unknown code returns 404. Scans are counted even while a code is free.
 
 Migration `012_qr_codes.sql` creates the table and applies on the next deploy. Nothing else to configure.
+
+## B24. Order notifications (web push)
+
+Owners can turn on browser notifications from their dashboard ("Order alerts on this phone"). They get one for every new order or booking, and when their store is approved. Each notification arrives in the language the owner was using when they turned it on, and tapping it opens the dashboard.
+
+One-time setup on the server:
+
+```bash
+cd /opt/vfl/app/server && npm run push:keys
+```
+
+It prints two lines. Add both to `/etc/vfl/env` and restart (`sudo systemctl restart vfl-api`):
+
+```
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+```
+
+Generate the keys only once. New keys mean every owner has to turn notifications on again. Until the keys are set, the card stays hidden and nothing is sent. Migration `016_push_subscriptions.sql` creates the table on deploy.
+
+- **Android and desktop:** works in Chrome, Edge and Firefox, in the browser or the installed app.
+- **iPhone (iOS 16.4+):** works only in the app added to the Home Screen. The card explains this when opened in Safari.
+- **Clean-up:** phones that uninstall or revoke permission are removed automatically when a send fails with "gone".

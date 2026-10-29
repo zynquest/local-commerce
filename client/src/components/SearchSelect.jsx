@@ -5,7 +5,7 @@ import { Check, ChevronDown } from 'lucide-react';
  * Searchable drop-down: type to filter `options`, pick with a tap or the arrow keys + Enter. With `customLabel`,
  * text that matches no option can be used as typed ("Use “Dosa corner”").
  */
-export default function SearchSelect({ id, value, onChange, options, placeholder, customLabel, invalid }) {
+export default function SearchSelect({ id, value, onChange, options, placeholder, customLabel, invalid, maxLength = 60 }) {
   const listId = useId();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState(value || '');
@@ -53,6 +53,7 @@ export default function SearchSelect({ id, value, onChange, options, placeholder
     <div className="relative" ref={box}>
       <input
         id={id}
+        maxLength={maxLength}
         className={`input pe-9 ${invalid ? 'border-rose-400' : ''}`}
         value={text}
         placeholder={placeholder}

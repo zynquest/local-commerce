@@ -237,7 +237,7 @@ function StoreDetail({ id, onClose, onChanged }) {
                 {s.banner_url && <SmartImage src={s.banner_url} alt="" className="h-full w-full object-cover" />}
               </div>
               <div className="flex gap-3 p-4">
-                <SmartImage src={s.logo_url} alt="" width={120} className="relative z-10 -mt-10 h-16 w-16 flex-none rounded-xl border-4 border-white bg-white object-cover shadow-sm" />
+                <SmartImage src={s.logo_url} alt={s.name} kind={s.business_type === 'appointments' ? 'appointments' : 'shop'} hint={s.category} width={120} className="relative z-10 -mt-10 h-16 w-16 flex-none rounded-xl border-4 border-white bg-white object-cover shadow-sm" />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusPill status={s.status} />
@@ -273,7 +273,7 @@ function StoreDetail({ id, onClose, onChanged }) {
                     </p>
                     <div>
                       <label className="label" htmlFor="seed-owner-email">Owner's email (login)</label>
-                      <input id="seed-owner-email" className="input" type="email" inputMode="email" placeholder="owner@example.com" value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} />
+                      <input maxLength={254} id="seed-owner-email" className="input" type="email" inputMode="email" placeholder="owner@example.com" value={ownerEmail} onChange={(e) => setOwnerEmail(e.target.value)} />
                     </div>
                     <MobileInput id="seed-owner" value={ownerMobile} onChange={setOwnerMobile} label="Owner's WhatsApp mobile" />
                     <button onClick={handOver} disabled={!!busy} className="btn-brand w-full">
@@ -318,7 +318,7 @@ function StoreDetail({ id, onClose, onChanged }) {
             {/* Decision */}
             <div className="card space-y-3 p-4">
               <h3 className="font-bold">Decision</h3>
-              <textarea
+              <textarea maxLength={1000}
                 className="input"
                 rows={3}
                 value={remarks}
@@ -398,7 +398,7 @@ function StoreDetail({ id, onClose, onChanged }) {
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                   {data.products.map((p) => (
                     <div key={p.id} className="overflow-hidden rounded-lg border border-stone-200 bg-white text-xs">
-                      <SmartImage src={p.images[0]} alt={p.name} width={200} className="aspect-square w-full object-cover" />
+                      <SmartImage src={p.images[0]} alt={p.name} hint={s.category} width={200} className="aspect-square w-full object-cover" />
                       <p className="line-clamp-2 px-1.5 pt-1 font-medium">{p.name}</p>
                       <p className="px-1.5 pb-1.5 text-stone-500">{formatMoney(p.offer_price)}</p>
                     </div>
@@ -598,7 +598,7 @@ export default function AdminConsole() {
           </div>
           <label className="relative w-full sm:w-64">
             <Search size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-            <input className="input ps-9" placeholder="Search name, link, phone" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input maxLength={60} className="input ps-9" placeholder="Search name, link, phone" value={query} onChange={(e) => setQuery(e.target.value)} />
           </label>
           <button onClick={load} className="btn-ghost px-3" aria-label="Refresh"><RefreshCw size={16} className={list.loading ? 'animate-spin' : ''} /></button>
         </div>
@@ -615,7 +615,7 @@ export default function AdminConsole() {
           {list.stores.map((s) => (
             <li key={s.id}>
               <button onClick={() => setOpenId(s.id)} className="flex w-full items-start gap-3 p-3 text-start hover:bg-stone-50">
-                <SmartImage src={s.logo_url} alt="" width={96} className="h-12 w-12 flex-none rounded-xl object-cover" />
+                <SmartImage src={s.logo_url} alt={s.name} kind={s.business_type === 'appointments' ? 'appointments' : 'shop'} hint={s.category} width={96} className="h-12 w-12 flex-none rounded-xl object-cover" />
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="leading-snug font-semibold break-words">{s.name}</p>
                   <p className="text-xs break-words text-stone-500">

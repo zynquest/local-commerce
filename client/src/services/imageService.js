@@ -34,8 +34,8 @@ export async function uploadImage(file) {
 }
 
 /** Inline SVG used when a product has no image or its image fails to load. */
-export function placeholderImage(label = '', emoji = '🛒') {
-  const text = String(label).slice(0, 22).replace(/[<>&"]/g, '');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecfdf5"/><stop offset="1" stop-color="#d1fae5"/></linearGradient></defs><rect width="600" height="600" fill="url(#g)"/><text x="300" y="300" font-size="180" text-anchor="middle" dominant-baseline="central">${emoji}</text><text x="300" y="500" font-family="system-ui,sans-serif" font-size="34" fill="#047857" text-anchor="middle">${text}</text></svg>`;
+export function placeholderImage(label = '', emoji = '🛒', [from, to, ink] = ['#ecfdf5', '#d1fae5', '#047857'], showLabel = true) {
+  const text = showLabel ? String(label).slice(0, 22).replace(/[<>&"]/g, '') : '';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs><rect width="600" height="600" fill="url(#g)"/><text x="300" y="${text ? 300 : 320}" font-size="${text ? 180 : 230}" text-anchor="middle" dominant-baseline="central">${emoji}</text>${text ? `<text x="300" y="500" font-family="system-ui,sans-serif" font-size="34" fill="${ink}" text-anchor="middle">${text}</text>` : ''}</svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }

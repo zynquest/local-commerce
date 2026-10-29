@@ -10,6 +10,7 @@ import { query, tx } from '../db.js';
 import { badRequest, conflict, notFound, parse } from '../errors.js';
 import * as S from '../schemas.js';
 import { CLOSED_NOW_SQL } from '../serialize.js';
+import { notifyStoreOwner } from '../push.js';
 import { addDays, appointmentCode, computeSlots, hasHours, istDate, istToMs, normaliseSchedule } from '../appointments/slots.js';
 
 export const publicAppointmentsRouter = Router();
@@ -186,6 +187,13 @@ publicAppointmentsRouter.post('/stores/:slug/appointments', bookingLimiter, opti
     throw conflict('Could not create the booking, please try again');
   });
   res.status(201).json({ appointment: appointmentOut(appointment) });
+  const when = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).format(new Date(appointment.starts_at));
+  notifyStoreOwner(store.id, (t) => ({
+    title: t('push.newBookingTitle', { code: appointment.code }),
+    body: t('push.newBookingBody', { name: appointment.customer_name, service: appointment.service_name, when }),
+    url: '/merchant?tab=appointments',
+    tag: `appt-${appointment.code}`,
+  }));
 });
 
 const appointmentOut = (a) => ({

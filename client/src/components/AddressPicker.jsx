@@ -118,7 +118,7 @@ export default function AddressPicker({ value, onChange, error }) {
       {key ? (
         <div className="relative">
           <Search size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-          <input
+          <input maxLength={120}
             className="input ps-9 pe-9"
             value={q}
             onChange={(e) => setQ(e.target.value)}

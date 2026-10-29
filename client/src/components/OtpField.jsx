@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { KeyRound, Loader2, Send } from 'lucide-react';
+import { ClipboardPaste, KeyRound, Loader2, Send } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon.jsx';
 import { isMobile10 } from './MobileInput.jsx';
 import { useSession } from '../context/SessionContext.jsx';
@@ -9,6 +9,8 @@ import { whatsappLink } from '../services/whatsappService.js';
 const pretty = (n) => `+${n.slice(0, n.length - 10)} ${n.slice(-10, -5)} ${n.slice(-5)}`;
 
 const isEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v || '').trim());
+// The 6-digit code out of whatever was typed or pasted ("123 456", "Your code is 123456").
+const codeFrom = (v) => String(v || '').match(/\d{6}/)?.[0] || String(v || '').replace(/\D/g, '').slice(0, 6);
 
 /**
  * "Send code" + 6-digit code input. The parent owns `code`; `phone` (10 digits, owners) or `email` (customers)
@@ -103,18 +105,36 @@ export default function OtpField({ phone, email, purpose, code, onCode, disabled
       {sent && (
         <div>
           <label className="label" htmlFor={`otp-${purpose}`}>{t('otp.enter')}</label>
-          <div className="relative" dir="ltr">
-            <KeyRound size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-            <input
-              id={`otp-${purpose}`}
-              className="input ps-9 font-mono tracking-[0.4em]"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              value={code}
-              onChange={(e) => onCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="••••••"
-            />
+          <div className="flex gap-2" dir="ltr">
+            <div className="relative flex-1">
+              <KeyRound size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
+              <input
+                id={`otp-${purpose}`}
+                className="input ps-9 font-mono tracking-[0.4em]"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={40}
+                value={code}
+                onChange={(e) => onCode(codeFrom(e.target.value))}
+                placeholder="••••••"
+              />
+            </div>
+            {typeof navigator !== 'undefined' && navigator.clipboard?.readText && (
+              <button
+                type="button"
+                className="btn-ghost flex-none px-3 text-sm"
+                onClick={async () => {
+                  try {
+                    const pasted = codeFrom(await navigator.clipboard.readText());
+                    if (pasted) onCode(pasted);
+                  } catch {
+                    /* clipboard permission refused: typing still works */
+                  }
+                }}
+              >
+                <ClipboardPaste size={16} /> {t('otp.paste')}
+              </button>
+            )}
           </div>
           {devCode && (
             <p className="mt-1 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-800">

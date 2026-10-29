@@ -187,7 +187,7 @@ function EmailOwnerAuth({ mode }) {
             <label className="label" htmlFor="owner-email">{t('auth.email')}</label>
             <div className="relative" dir="ltr">
               <Mail size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-              <input
+              <input maxLength={254}
                 id="owner-email"
                 className="input ps-9"
                 type="email"

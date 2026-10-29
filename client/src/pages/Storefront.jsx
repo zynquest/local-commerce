@@ -79,7 +79,7 @@ export default function Storefront() {
           <div className="flex gap-2">
             <label className="relative flex-1">
               <Search size={18} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-              <input
+              <input maxLength={60}
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}

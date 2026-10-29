@@ -8,12 +8,12 @@ import sharp from 'sharp';
 import { requireOwner } from '../auth.js';
 import { config } from '../config.js';
 import { query, tx } from '../db.js';
-import { badRequest, conflict, notFound, parse } from '../errors.js';
-import { MAX_MESSAGE_ITEMS, parseCatalogMessage } from '../catalog/messageParser.js';
+import { badRequest, conflict, forbidden, notFound, parse } from '../errors.js';
 import { verifyOtp } from '../otp/otp.js';
 import * as S from '../schemas.js';
 import { CLOSED_NOW_SQL, PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
 import { qrBase } from '../qr.js';
+import { removeSubscription, saveSubscription } from '../push.js';
 
 export const merchantRouter = Router();
 merchantRouter.use(requireOwner);
@@ -209,6 +209,19 @@ merchantRouter.put('/store', async (req, res) => {
   res.json({ store: await storeWithReview(req.user.store_id) });
 });
 
+/** Turns notifications on for this browser/phone (new orders, new bookings, approval). */
+merchantRouter.post('/push/subscribe', async (req, res) => {
+  const { subscription, language } = parse(S.pushSubscribe, req.body ?? {});
+  await saveSubscription(req.user.id, subscription, language, req.get('user-agent'));
+  res.json({ ok: true });
+});
+
+merchantRouter.post('/push/unsubscribe', async (req, res) => {
+  const { endpoint } = parse(S.pushUnsubscribe, req.body ?? {});
+  await removeSubscription(req.user.id, endpoint);
+  res.json({ ok: true });
+});
+
 /** The printed QR stickers the platform team linked to this store (see /api/platform/qr), for printing and sharing. */
 merchantRouter.get('/qr', async (req, res) => {
   const { rows } = await query(
@@ -385,71 +398,6 @@ merchantRouter.post('/products/import', async (req, res) => {
   res.json(result);
 });
 
-/**
- * Products from a pasted WhatsApp message. Each product is handled on its own: valid ones are created (or, when a
- * product with the same name exists, its prices are updated); invalid ones come back with an error code and the
- * message lines they came from. dryRun: same report, nothing saved.
- */
-merchantRouter.post('/products/from-message', async (req, res) => {
-  const { text, dryRun } = parse(S.messageImport, req.body);
-  const { items } = parseCatalogMessage(text);
-  if (!items.length) throw badRequest('No products found in the message');
-  if (items.length > MAX_MESSAGE_ITEMS) throw badRequest(`Too many products in one message (max ${MAX_MESSAGE_ITEMS}). Send it in parts.`);
-
-  const results = await tx(async (client) => {
-    const { limit, used } = await lockSkuUsage(client, req.user.store_id);
-    const { rows: existing } = await client.query('SELECT id, lower(name) AS name_key, status FROM products WHERE store_id = $1', [req.user.store_id]);
-    const byName = new Map(existing.map((e) => [e.name_key, e]));
-    let room = Math.max(0, limit - used);
-    let { rows: posRows } = await client.query('SELECT coalesce(max(position), 0) AS pos FROM products WHERE store_id = $1', [req.user.store_id]);
-    let position = Number(posRows[0].pos);
-    const out = [];
-
-    for (const item of items) {
-      const base = { index: item.index, lines: item.lines, source: item.source };
-      if (item.error) {
-        out.push({ ...base, status: 'failed', error: item.error, params: item.params || {} });
-        continue;
-      }
-      // Same rules as the product form (name length, price range, list price ≤ MRP).
-      const checked = S.product.safeParse({ name: item.name, mrp: item.mrp, offer_price: item.list_price });
-      if (!checked.success) {
-        out.push({ ...base, status: 'failed', error: 'invalid', params: { message: checked.error.issues.map((x) => x.message).join('; ') } });
-        continue;
-      }
-      const p = checked.data;
-      const match = byName.get(p.name.toLowerCase());
-      const needsSlot = !match || match.status !== 'active';
-      if (needsSlot && room <= 0) {
-        out.push({ ...base, status: 'failed', error: 'sku_limit', params: { limit } });
-        continue;
-      }
-      if (needsSlot) room--;
-      const result = { ...base, status: match ? 'updated' : 'created', name: p.name, mrp: p.mrp, list_price: p.offer_price };
-      if (!dryRun) {
-        if (match) {
-          // Only prices change; the product's photos, category and description are kept.
-          await client.query(`UPDATE products SET mrp = $2, offer_price = $3, status = 'active', updated_at = now() WHERE id = $1`, [match.id, p.mrp, p.offer_price]);
-        } else {
-          const sku = await nextSku(client, req.user.store_id);
-          await client.query(
-            `INSERT INTO products (store_id, sku_id, ${PRODUCT_FIELDS.join(', ')}, position)
-             VALUES ($1, $2, ${PRODUCT_FIELDS.map((_, j) => `$${j + 3}`).join(', ')}, $${PRODUCT_FIELDS.length + 3})`,
-            [req.user.store_id, sku, ...PRODUCT_FIELDS.map((f) => (f === 'specs' ? JSON.stringify(p[f]) : p[f])), ++position],
-          );
-        }
-      }
-      byName.set(p.name.toLowerCase(), { id: match?.id, status: 'active' });
-      out.push(result);
-    }
-    if (!dryRun && out.some((r) => r.status !== 'failed')) await client.query('UPDATE stores SET updated_at = now() WHERE id = $1', [req.user.store_id]);
-    return out;
-  });
-
-  const count = (status) => results.filter((r) => r.status === status).length;
-  res.json({ dryRun, summary: { created: count('created'), updated: count('updated'), failed: count('failed') }, results });
-});
-
 // ---------------------------------------------------------------------------
 // Image uploads: resized to WebP (+ a JPEG twin for link previews) and stored under UPLOAD_DIR/<store_id>/
 // ---------------------------------------------------------------------------
@@ -461,7 +409,16 @@ const upload = multer({
     /^image\/(jpeg|png|webp|gif|avif|heic|heif)$/.test(file.mimetype) ? cb(null, true) : cb(badRequest('Please upload an image')),
 });
 
-merchantRouter.post('/uploads', upload.single('image'), async (req, res) => {
+// Photo upload is part of the paid plan; free stores add photos by link (https://…), and items without a photo
+// get artwork from their name in the app.
+export const UPLOAD_PAID_ONLY = 'Photo upload is on the paid plan. Paste an image link (https://…) instead.';
+async function requirePaidUploads(req, _res, next) {
+  const { rows } = await query('SELECT plan, is_demo FROM stores WHERE id = $1', [req.user.store_id]);
+  if (rows[0]?.plan === 'free' && !rows[0]?.is_demo) return next(forbidden(UPLOAD_PAID_ONLY));
+  next();
+}
+
+merchantRouter.post('/uploads', requirePaidUploads, upload.single('image'), async (req, res) => {
   if (!req.file) throw badRequest('No image received');
   let output;
   let share;

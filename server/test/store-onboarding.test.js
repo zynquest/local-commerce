@@ -12,6 +12,7 @@ const slug = `onb-${run}`;
 let server;
 let base;
 let owner;
+let ownerToken;
 let admin;
 let ownerId;
 let storeId;
@@ -46,7 +47,8 @@ before(async () => {
   ownerId = rows[0].id;
   ({ rows } = await query(`INSERT INTO stores (owner_id, slug, name) VALUES ($1, $2, $3) RETURNING id`, [ownerId, slug, `Onboarding Test ${run}`]));
   storeId = rows[0].id;
-  owner = client({ vfl_owner: await session('user', ownerId) });
+  ownerToken = await session('user', ownerId);
+  owner = client({ vfl_owner: ownerToken });
   ({ rows } = await query(`SELECT id FROM users WHERE role = 'platform_admin'`));
   if (!rows[0]) {
     ({ rows } = await query(`INSERT INTO users (username, password_hash, role) VALUES ($1, 'x', 'platform_admin') RETURNING id`, [`onbadmin${run}`]));
@@ -97,6 +99,14 @@ describe('store onboarding', () => {
     const ok = await owner('PUT', '/api/merchant/store', { name: me.body.store.name, slug, opening_hours: '09:00-21:00', closed_days: 'Sun' });
     assert.equal(ok.status, 200, JSON.stringify(ok.body));
     assert.equal(ok.body.store.opening_hours, '09:00-21:00');
+  });
+
+  test('photo upload is refused on the free plan (image links still work)', async () => {
+    const form = new FormData();
+    form.append('image', new Blob([Buffer.from('not really an image')], { type: 'image/png' }), 'x.png');
+    const res = await fetch(`${base}/api/merchant/uploads`, { method: 'POST', body: form, headers: { Cookie: `vfl_owner=${ownerToken}` } });
+    assert.equal(res.status, 403);
+    assert.match((await res.json()).error, /paid plan/);
   });
 
   test('the platform team can correct the locked details', async () => {

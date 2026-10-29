@@ -29,7 +29,6 @@ const USE_CASES = [
   { key: 'restaurant', emoji: '🍛', slug: 'demo-restaurant' },
   { key: 'bakery', emoji: '🎂', slug: 'demo-bakery' },
   { key: 'vegetables', emoji: '🥬', slug: 'demo-vegetables' },
-  { key: 'flowers', emoji: '💐', slug: 'demo-flowers' },
   { key: 'electricals', emoji: '💡', slug: 'demo-electricals' },
   { key: 'salon', emoji: '💇', slug: 'demo-salon' },
   { key: 'clinic', emoji: '🦷', slug: 'demo-clinic' },
@@ -195,7 +194,7 @@ function Sandbox() {
           ))}
         </ul>
         <p className="mt-4 mb-2 text-sm font-bold">{t('landing.sandbox.step2')}</p>
-        <textarea value={noteText} onChange={(e) => setNotes(e.target.value)} rows={2} className="input resize-none" />
+        <textarea maxLength={500} value={noteText} onChange={(e) => setNotes(e.target.value)} rows={2} className="input resize-none" />
       </div>
       <div className="flex min-w-0 flex-col rounded-2xl bg-[#efeae2] p-4">
         <p className="mb-3 text-sm font-bold">{t('landing.sandbox.step3')}</p>

@@ -32,6 +32,10 @@ export const config = {
   // Google Sign-In (OAuth web client ID, public). Owners and shoppers can sign in with Google; set GOOGLE_CLIENT_ID=
   // (empty) to turn it off. The client's Authorized JavaScript origins must list every site origin (Deployment.md §B22).
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? '754008456964-dqo6ro2fn6hqcejvtoa7djpe1i8sq5ev.apps.googleusercontent.com',
+  // Web push to store owners (npm run push:keys). Both keys empty = notifications off.
+  vapidPublicKey: process.env.VAPID_PUBLIC_KEY || '',
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || '',
+  vapidSubject: process.env.VAPID_SUBJECT || (process.env.PUBLIC_URL || 'https://sonsari.in').replace(/\/$/, ''),
   googleMapId: process.env.GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
   // Shoppers see businesses within this distance of their location.
   nearbyRadiusKm: Math.min(50, Math.max(1, Number(process.env.NEARBY_RADIUS_KM) || 10)),

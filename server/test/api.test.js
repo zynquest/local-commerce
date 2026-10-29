@@ -216,56 +216,6 @@ describe('catalog: required fields, auto SKU, limits', () => {
   });
 });
 
-describe('catalog from a WhatsApp message', () => {
-  const msg = 'Green Apple 4 pc\n200\n100\nTomatoes\n30\n28\nOnion\n40\nMilk,25,21|Wheat Flour,abc,69|Bread,40,35';
-
-  test('dry run reports per product and saves nothing', async () => {
-    const r = await other('POST', '/api/merchant/products/from-message', { text: msg, dryRun: true });
-    assert.equal(r.status, 200, JSON.stringify(r.body));
-    assert.deepEqual(r.body.summary, { created: 4, updated: 0, failed: 2 });
-    assert.equal((await other('GET', '/api/merchant/products')).body.products.length, 0);
-  });
-
-  test('valid products are created; only the failed ones are rejected, with reason + lines', async () => {
-    const r = await other('POST', '/api/merchant/products/from-message', { text: msg });
-    assert.equal(r.status, 200);
-    assert.deepEqual(r.body.summary, { created: 4, updated: 0, failed: 2 });
-    const failed = r.body.results.filter((x) => x.status === 'failed');
-    assert.deepEqual(failed.map((x) => [x.error, x.lines, x.source]), [
-      ['missing_list_price', [7, 8], 'Onion\n40'],
-      ['mrp_not_number', [9, 9], 'Wheat Flour,abc,69'],
-    ]);
-    const products = (await other('GET', '/api/merchant/products')).body.products;
-    assert.deepEqual(products.map((p) => [p.name, p.mrp, p.offer_price]).sort(), [['Bread', 40, 35], ['Green Apple 4 pc', 200, 100], ['Milk', 25, 21], ['Tomatoes', 30, 28]]);
-    assert.ok(products.every((p) => /^P\d{4}$/.test(p.sku_id)), 'auto item codes');
-  });
-
-  test('a product that already exists gets new prices (photos/category kept), not a duplicate', async () => {
-    const r = await other('POST', '/api/merchant/products/from-message', { text: 'milk,26,22' });
-    assert.deepEqual(r.body.summary, { created: 0, updated: 1, failed: 0 });
-    const milk = (await other('GET', '/api/merchant/products')).body.products.filter((p) => p.name.toLowerCase() === 'milk');
-    assert.equal(milk.length, 1);
-    assert.equal(milk[0].offer_price, 22);
-  });
-
-  test('plan limit rejects only the products that do not fit', async () => {
-    const { rows } = await query(`UPDATE stores SET sku_limit = 5 WHERE owner_id = (SELECT id FROM users WHERE phone = $1) RETURNING id`, [phoneB]);
-    try {
-      const r = await other('POST', '/api/merchant/products/from-message', { text: 'Salt,20,18|Sugar,50,45|Tea,120,110' });
-      assert.deepEqual(r.body.summary, { created: 1, updated: 0, failed: 2 });
-      assert.deepEqual(r.body.results.map((x) => x.error || x.status), ['created', 'sku_limit', 'sku_limit']);
-    } finally {
-      await query('UPDATE stores SET sku_limit = 50 WHERE id = $1', [rows[0].id]);
-    }
-  });
-
-  test('empty / unparseable messages get a clear error', async () => {
-    assert.equal((await other('POST', '/api/merchant/products/from-message', { text: '   ' })).body.error, 'Paste your product list first');
-    const r = await other('POST', '/api/merchant/products/from-message', { text: '\n\n' });
-    assert.equal(r.status, 400);
-  });
-});
-
 describe('approval workflow', () => {
   test('draft store is hidden publicly but previewable by its owner', async () => {
     assert.equal((await shopper('GET', `/api/stores/${slug}`)).status, 404);

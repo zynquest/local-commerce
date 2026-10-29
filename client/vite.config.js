@@ -27,6 +27,8 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/index.html',
+        // Owner notifications (new orders / bookings, store approved): push + notification-click handlers.
+        importScripts: ['push-sw.js'],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         // API responses are never cached by the service worker: the 30-minute catalog cache lives in
         // IndexedDB so it can hard-expire. The app shell is precached, so the PWA opens offline.

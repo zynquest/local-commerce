@@ -162,7 +162,7 @@ export default function CartDrawer() {
                 <ul className="card divide-y divide-stone-100">
                   {cart.items.map((item) => (
                     <li key={item.sku_id} className="flex gap-3 p-3">
-                      <SmartImage src={item.image} alt={item.name} width={160} className="h-16 w-16 flex-none rounded-lg object-cover" />
+                      <SmartImage src={item.image} alt={item.name} hint={config.category} width={160} className="h-16 w-16 flex-none rounded-lg object-cover" />
                       <div className="flex min-w-0 flex-1 flex-col">
                         <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
                         <p className="text-xs text-stone-500">
@@ -215,7 +215,7 @@ export default function CartDrawer() {
                   )}
                 </div>
                 <div>
-                  <input
+                  <input maxLength={80}
                     ref={nameRef}
                     className={`input ${missing.name ? 'border-rose-400 ring-1 ring-rose-300' : ''}`}
                     placeholder={`${t('cart.yourName')} *`}
@@ -231,7 +231,7 @@ export default function CartDrawer() {
                   />
                   {missing.name && <p className="mt-1 text-xs text-rose-600">{t('errors.enterName')}</p>}
                 </div>
-                <input
+                <input maxLength={15}
                   className="input"
                   placeholder={t('cart.phone')}
                   value={cart.customer.phone}
@@ -240,7 +240,7 @@ export default function CartDrawer() {
                   onChange={(e) => cart.setCustomer({ ...cart.customer, phone: e.target.value.slice(0, 20) })}
                 />
                 <div>
-                  <textarea
+                  <textarea maxLength={300}
                     ref={addressRef}
                     className={`input resize-none ${missing.address ? 'border-rose-400 ring-1 ring-rose-300' : ''}`}
                     rows={2}

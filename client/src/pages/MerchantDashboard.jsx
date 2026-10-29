@@ -9,12 +9,12 @@ import ServicesPanel from '../merchant/ServicesPanel.jsx';
 import SpecialistsPanel from '../merchant/SpecialistsPanel.jsx';
 import ProductForm from '../merchant/ProductForm.jsx';
 import CsvImport from '../merchant/CsvImport.jsx';
-import MessageImport from '../merchant/MessageImport.jsx';
 import OrdersPanel from '../merchant/OrdersPanel.jsx';
 import StoreSettings from '../merchant/StoreSettings.jsx';
 import AccountPanel from '../merchant/AccountPanel.jsx';
 import StoreStatusCard, { StatusPill } from '../merchant/StoreStatusCard.jsx';
 import OnboardingWizard from '../merchant/OnboardingWizard.jsx';
+import PushOptIn from '../merchant/PushOptIn.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import { LoadingScreen } from '../components/StatusScreens.jsx';
 import { useSession } from '../context/SessionContext.jsx';
@@ -173,7 +173,7 @@ export default function MerchantDashboard() {
       <header className="sticky top-0 z-20 border-b border-stone-200 bg-white">
         {/* Row 1: logo · name (full, wraps) · actions. Row 2: the status pill, which may run under the actions. */}
         <div className="mx-auto grid max-w-5xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 pt-3 pb-2">
-          <SmartImage src={store.logo_url} alt="" width={80} className="row-span-2 h-11 w-11 rounded-xl object-cover" />
+          <SmartImage src={store.logo_url} alt={store.name} kind={isAppt ? 'appointments' : 'shop'} hint={store.category} width={80} className="row-span-2 h-11 w-11 rounded-xl object-cover" />
           <p className="self-end text-base leading-tight font-bold break-words">{store.name}</p>
           <div className="flex items-center gap-0.5 self-center">
             {/* Phones: icon-only, so the store name and status keep their room. */}
@@ -222,6 +222,7 @@ export default function MerchantDashboard() {
       ) : (
       <main className="mx-auto max-w-5xl space-y-4 p-4">
         <StoreStatusCard store={store} onChange={(s) => setStore(s)} />
+        <PushOptIn store={store} />
         {store.closed_now && (
           <button
             onClick={() => setTab('settings')}
@@ -264,13 +265,18 @@ export default function MerchantDashboard() {
               existingSkus={existingSkus}
               onSave={saveProduct}
               onCancel={() => setEditing(null)}
+              canUpload={store.plan !== 'free'}
+              onBulk={() => {
+                setEditing(null);
+                setTab('import');
+              }}
             />
           ) : (
             <>
               <div className="flex gap-2">
                 <label className="relative flex-1">
                   <Search size={18} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-                  <input className="input ps-10" placeholder={t('merchant.searchProducts')} value={query} onChange={(e) => setQuery(e.target.value)} />
+                  <input maxLength={60} className="input ps-10" placeholder={t('merchant.searchProducts')} value={query} onChange={(e) => setQuery(e.target.value)} />
                 </label>
                 <button onClick={() => setEditing('new')} disabled={atLimit} className="btn-brand" title={atLimit ? t('merchant.limitReachedShort') : ''}>
                   <Plus size={16} /> {t('merchant.addProduct')}
@@ -283,21 +289,11 @@ export default function MerchantDashboard() {
                   })}
                 </p>
               )}
-              {!products.loading && (
-                <MessageImport
-                  defaultOpen={!products.items.length}
-                  currency={cur}
-                  onCreated={async ({ created, updated }) => {
-                    await loadAll();
-                    flash(t('msgimp.done', { created, updated }));
-                  }}
-                />
-              )}
               {products.error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{products.error}</p>}
               <ul className="card divide-y divide-stone-100">
                 {filtered.map((p) => (
                   <li key={p.id} className={`flex items-center gap-3 p-3 ${p.status === 'archived' ? 'opacity-50' : ''}`}>
-                    <SmartImage src={p.images[0]} alt={p.name} width={120} className="h-14 w-14 flex-none rounded-lg object-cover" />
+                    <SmartImage src={p.images[0]} alt={p.name} hint={store.category} width={120} className="h-14 w-14 flex-none rounded-lg object-cover" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{p.name}</p>
                       <p className="truncate text-xs text-stone-500">
@@ -352,7 +348,7 @@ export default function MerchantDashboard() {
         {tab === 'orders' && <OrdersPanel currency={cur} onChange={refreshStats} />}
         {tab === 'appointments' && <AppointmentsPanel store={store} currency={cur} onChange={refreshStats} />}
         {tab === 'services' && <ServicesPanel currency={cur} onChange={() => { refreshStats(); setTimeout(() => get('/merchant/store').then((r) => setStore(r.store)), 0); }} />}
-        {tab === 'specialists' && <SpecialistsPanel onChange={() => get('/merchant/store').then((r) => setStore(r.store))} />}
+        {tab === 'specialists' && <SpecialistsPanel canUpload={store.plan !== 'free'} onChange={() => get('/merchant/store').then((r) => setStore(r.store))} />}
         {tab === 'import' && (
           <CsvImport
             existingProducts={products.items}

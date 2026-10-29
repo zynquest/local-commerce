@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Clock, Loader2, Pencil, Plus, Scissors, Trash2, X } from 'lucide-react';
+import { Clock, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { del, get, post, put } from '../lib/api.js';
+import SmartImage from '../components/SmartImage.jsx';
 import { formatMoney } from '../lib/format.js';
 import { useT } from '../i18n/index.jsx';
 
@@ -114,7 +115,7 @@ export default function ServicesPanel({ currency, onChange }) {
       <ul className="card divide-y divide-stone-100">
         {list.items.map((s) => (
           <li key={s.id} className={`flex items-center gap-3 p-3 ${s.active ? '' : 'opacity-50'}`}>
-            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-violet-50 text-violet-600"><Scissors size={18} /></span>
+            <SmartImage alt={s.name} kind="service" className="h-10 w-10 flex-none rounded-xl object-cover" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{s.name}</p>
               <p className="flex flex-wrap items-center gap-x-2 text-xs text-stone-500">

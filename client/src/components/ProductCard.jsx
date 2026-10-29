@@ -22,7 +22,7 @@ export default function ProductCard({ product }) {
       className={`card group flex flex-col overflow-hidden transition hover:shadow-lg ${product.in_stock ? '' : 'opacity-70'}`}
     >
       <div className="relative aspect-square bg-stone-100">
-        <ImageCarousel images={product.images} alt={product.name} width={400} className="h-full" />
+        <ImageCarousel images={product.images} alt={product.name} hint={config?.category} width={400} className="h-full" />
         {off > 0 && (
           <span className="absolute top-2 start-2 rounded-md bg-rose-600 px-1.5 py-0.5 text-[11px] font-bold text-white">
             {t('product.off', { pct: off })}

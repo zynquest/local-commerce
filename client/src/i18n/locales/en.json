@@ -1069,7 +1069,11 @@
     "afterApproval": "Once approved, your store goes live, and Store Settings opens for delivery, opening hours, logo and more.",
     "detailsTitle": "Store details",
     "moreTitle": "More settings (optional)",
-    "confirmRemove": "Remove “{name}”?"
+    "confirmRemove": "Remove “{name}”?",
+    "repLabel": "Sales rep ID",
+    "repHint": "If someone from Vocal For Local helped you set up, enter their 6-character ID. Otherwise leave it empty.",
+    "repInvalid": "A sales rep ID is 6 letters or digits",
+    "repUnknown": "No sales rep has this ID. Check it, or leave it empty."
   },
   "myqr": {
     "title": "My store QR code",

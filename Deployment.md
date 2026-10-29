@@ -1001,3 +1001,17 @@ Generate the keys only once. New keys mean every owner has to turn notifications
 - **Android and desktop:** works in Chrome, Edge and Firefox, in the browser or the installed app.
 - **iPhone (iOS 16.4+):** works only in the app added to the Home Screen. The card explains this when opened in Safari.
 - **Clean-up:** phones that uninstall or revoke permission are removed automatically when a send fails with "gone".
+
+## B25. Staff (sales reps) and rep approvals
+
+The platform admin (the account made with `npm run admin:create`) adds staff in **/motiveboss → Staff**:
+
+1. Enter a username, plus an optional name and mobile number, then press **Create staff login**.
+2. The password and a 6-character **sales rep ID** (capital letters and digits, not editable) are generated. The password is shown only once: use **Copy details** or **Send on WhatsApp**. **Reset password** makes a new one and signs the rep out. **Delete** removes the login.
+3. Reps sign in at `https://sonsari.in/motiveboss/login` with that username and password.
+
+When an owner gets help from a rep, they type the rep's ID in **Sales rep ID (optional)** on the last setup step, just before **Submit for approval**. An unknown ID is refused.
+
+A signed-in rep sees only the stores submitted with their ID: "Waiting for my approval" and "All my stores". They can open a store and **Approve** or **Reject with remarks**, nothing else. Stats, QR codes, staff, plans, store-detail edits, suspensions and other stores stay with the platform admin, and the server enforces all of it. The admin sees each store's rep on the store list and in the store details. The review history names whoever approved or rejected.
+
+Migration `017_staff_sales_reps.sql` adds the staff fields and `stores.sales_rep_code`. It applies on deploy.

@@ -84,11 +84,17 @@ export async function requireCustomer(req, _res, next) {
   next();
 }
 
-/** Requires the platform-admin session (separate cookie, 12-hour lifetime). */
+/**
+ * Requires an admin-console session (separate cookie, 12-hour lifetime): the platform admin, or a staff member
+ * (sales rep, role 'staff', limited to their own stores' approvals; see routes/platform.js).
+ */
 export async function requireAdmin(req, _res, next) {
   const adminId = await lookup(req, 'admin');
   if (!adminId) throw unauthorized('Admin login required');
-  const { rows } = await query(`SELECT id, username FROM users WHERE id = $1 AND role = 'platform_admin'`, [adminId]);
+  const { rows } = await query(
+    `SELECT id, username, role, rep_code, staff_name FROM users WHERE id = $1 AND role IN ('platform_admin', 'staff')`,
+    [adminId],
+  );
   if (!rows[0]) throw unauthorized('Admin login required');
   req.admin = rows[0];
   next();

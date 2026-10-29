@@ -2,10 +2,11 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom';
 import {
   BadgeCheck, Check, ExternalLink, Inbox, Loader2, LogOut, MapPin, Pencil, Phone, RefreshCw, RotateCcw, Search, ShieldCheck,
-  QrCode, ShieldOff, Sprout, Store, Trash2, UserCheck, X,
+  QrCode, ShieldOff, Sprout, Store, Trash2, UserCheck, Users, X,
 } from 'lucide-react';
 
 const AdminQrCodes = lazy(() => import('./AdminQrCodes.jsx'));
+const AdminStaff = lazy(() => import('./AdminStaff.jsx'));
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
@@ -28,6 +29,12 @@ const FILTERS = [
   ['seed', 'Seeded (unclaimed)'],
   ['seed_claimed', 'Seeds claimed'],
   ['all', 'All'],
+];
+
+// A sales rep's console: their approval queue, and every store submitted with their ID.
+const STAFF_FILTERS = [
+  ['pending_review', 'Waiting for my approval'],
+  ['all', 'All my stores'],
 ];
 
 const SEED_SOURCE = { osm: 'OpenStreetMap', google_places: 'Google Places', manual: 'Field survey / manual' };
@@ -126,7 +133,8 @@ function EditDetails({ store, onSaved }) {
   );
 }
 
-function StoreDetail({ id, onClose, onChanged }) {
+/** isStaff: a sales rep's view (approve / reject only; no plan, seed, suspension or detail edits). */
+function StoreDetail({ id, onClose, onChanged, isStaff = false }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [remarks, setRemarks] = useState('');
@@ -253,7 +261,7 @@ function StoreDetail({ id, onClose, onChanged }) {
               {s.description && <p className="border-t border-stone-100 px-4 py-3 text-sm text-stone-700">{s.description}</p>}
             </div>
 
-            {s.origin === 'seed' && (
+            {s.origin === 'seed' && !isStaff && (
               <div className="card space-y-3 border-2 border-lime-300 p-4">
                 <p className="flex items-center gap-2 font-semibold">
                   <Sprout size={18} className="text-lime-700" /> Seeded listing
@@ -303,22 +311,40 @@ function StoreDetail({ id, onClose, onChanged }) {
               </div>
               <div><p className="label">Products</p><p className="font-semibold">{data.counts.products}</p></div>
               <div><p className="label">Orders</p><p className="font-semibold">{data.counts.orders}</p></div>
+              <div>
+                <p className="label">Sales rep</p>
+                <p className="font-semibold">
+                  {s.sales_rep_code ? (
+                    <>
+                      <span className="font-mono tracking-wider">{s.sales_rep_code}</span>
+                      {!isStaff && <span className="font-normal text-stone-500"> · {s.sales_rep_name || s.sales_rep_username || 'removed staff member'}</span>}
+                    </>
+                  ) : (
+                    '—'
+                  )}
+                </p>
+              </div>
               <div><p className="label">Fees</p><p>Min {formatMoney(s.minimum_order)} · Delivery {s.delivery_fee > 0 ? `${formatMoney(s.delivery_fee)}${s.free_delivery_above != null ? ` (free above ${formatMoney(s.free_delivery_above)})` : ''}` : 'free'}</p></div>
             </div>
 
-            <EditDetails
-              key={`${s.id}:${s.name}:${s.slug}:${s.category}:${s.business_type}:${s.whatsapp_number}`}
-              store={s}
-              onSaved={async () => {
-                await load();
-                onChanged();
-              }}
-            />
+            {!isStaff && (
+              <EditDetails
+                key={`${s.id}:${s.name}:${s.slug}:${s.category}:${s.business_type}:${s.whatsapp_number}`}
+                store={s}
+                onSaved={async () => {
+                  await load();
+                  onChanged();
+                }}
+              />
+            )}
 
             {/* Decision */}
             <div className="card space-y-3 p-4">
               <h3 className="font-bold">Decision</h3>
-              <textarea maxLength={1000}
+              {isStaff && s.status !== 'pending_review' && (
+                <p className="text-sm text-stone-600">Already decided. Only the platform admin can change it now.</p>
+              )}
+              {(!isStaff || s.status === 'pending_review') && <textarea maxLength={1000}
                 className="input"
                 rows={3}
                 value={remarks}
@@ -330,7 +356,7 @@ function StoreDetail({ id, onClose, onChanged }) {
                       ? 'Reason for suspension (required)'
                       : 'Remarks (optional)'
                 }
-              />
+              />}
               <div className="flex flex-wrap gap-2">
                 {s.status === 'pending_review' && (
                   <>
@@ -347,12 +373,12 @@ function StoreDetail({ id, onClose, onChanged }) {
                     </button>
                   </>
                 )}
-                {s.status === 'approved' && (
+                {s.status === 'approved' && !isStaff && (
                   <button onClick={() => act('suspend')} disabled={!!busy} className="btn bg-rose-600 text-white hover:bg-rose-700">
                     <ShieldOff size={16} /> Suspend store
                   </button>
                 )}
-                {s.status === 'suspended' && (
+                {s.status === 'suspended' && !isStaff && (
                   <button onClick={() => act('reinstate')} disabled={!!busy} className="btn-brand">
                     <RotateCcw size={16} /> Reinstate
                   </button>
@@ -374,7 +400,7 @@ function StoreDetail({ id, onClose, onChanged }) {
             </div>
 
             {/* Plan */}
-            <div className="card flex flex-wrap items-end gap-2 p-4">
+            {!isStaff && <div className="card flex flex-wrap items-end gap-2 p-4">
               <div>
                 <label className="label" htmlFor="plan">Plan</label>
                 <select id="plan" className="input" value={plan.plan} onChange={(e) => setPlan({ plan: e.target.value, sku_limit: e.target.value === 'free' ? 50 : Math.max(plan.sku_limit, 500) })}>
@@ -389,7 +415,7 @@ function StoreDetail({ id, onClose, onChanged }) {
                 </div>
               )}
               <button onClick={savePlan} disabled={!!busy} className="btn-ghost">{busy === 'plan' ? <Loader2 size={16} className="animate-spin" /> : 'Save plan'}</button>
-            </div>
+            </div>}
 
             {/* Products */}
             <div className="card p-4">
@@ -478,7 +504,7 @@ function RecentOrders({ onClose, onOpenStore }) {
 
 export default function AdminConsole() {
   const { admin, loadAdmin, logoutAdmin } = useSession();
-  const [section, setSection] = useState('stores'); // 'stores' | 'qr'
+  const [section, setSection] = useState('stores'); // 'stores' | 'qr' | 'staff' (platform admin only)
   const [filter, setFilter] = useState('pending_review');
   const [sort, setSort] = useState(''); // 'products' from the Active products tile
   const [ordersOpen, setOrdersOpen] = useState(false);
@@ -494,16 +520,21 @@ export default function AdminConsole() {
     if (admin === undefined) loadAdmin();
   }, [admin, loadAdmin]);
 
+  // Sales reps (role 'staff') see only the stores submitted with their rep ID, and no platform stats.
+  const isStaff = admin?.role === 'staff';
   const load = useCallback(async () => {
     setList((l) => ({ ...l, loading: true }));
     try {
-      const [r, st] = await Promise.all([get(`/platform/stores?status=${filter}&q=${encodeURIComponent(q)}${sort ? `&sort=${sort}` : ''}`), get('/platform/stats')]);
+      const [r, st] = await Promise.all([
+        get(`/platform/stores?status=${filter}&q=${encodeURIComponent(q)}${sort ? `&sort=${sort}` : ''}`),
+        isStaff ? Promise.resolve(null) : get('/platform/stats'),
+      ]);
       setList({ loading: false, stores: r.stores, error: '' });
       setStats(st);
     } catch (err) {
       setList({ loading: false, stores: [], error: err.message });
     }
-  }, [filter, q, sort]);
+  }, [filter, q, sort, isStaff]);
 
   useEffect(() => {
     if (admin) load();
@@ -527,9 +558,18 @@ export default function AdminConsole() {
     <div className="min-h-screen bg-stone-100">
       <header className="sticky top-0 z-20 bg-stone-900 text-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <p className="flex items-center gap-2 font-bold"><ShieldCheck size={20} className="text-emerald-400" /> Platform Admin</p>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="hidden text-stone-400 sm:inline">{admin.username}</span>
+          <p className="flex min-w-0 items-center gap-2 font-bold">
+            <ShieldCheck size={20} className="flex-none text-emerald-400" />
+            {isStaff ? (
+              <span className="min-w-0 truncate">
+                Sales rep · {admin.name || admin.username} <span className="ms-1 rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs tracking-widest">{admin.rep_code}</span>
+              </span>
+            ) : (
+              'Platform Admin'
+            )}
+          </p>
+          <div className="flex flex-none items-center gap-3 text-sm">
+            {!isStaff && <span className="hidden text-stone-400 sm:inline">{admin.username}</span>}
             <button onClick={logoutAdmin} className="flex items-center gap-1 rounded-lg px-2 py-1 hover:bg-white/10"><LogOut size={16} /> Sign out</button>
           </div>
         </div>
@@ -537,26 +577,32 @@ export default function AdminConsole() {
 
       <main className="mx-auto max-w-6xl space-y-4 p-4">
         {/* Stores (approval, seeded listings, …) and printed QR codes */}
-        <div className="flex gap-1 rounded-full bg-white p-1 shadow-sm ring-1 ring-stone-200 sm:w-fit" role="tablist">
+        {isStaff && (
+          <p className="rounded-2xl bg-white px-4 py-3 text-sm text-stone-600 shadow-sm ring-1 ring-stone-200">
+            Stores whose owners entered your ID <b className="font-mono tracking-wider">{admin.rep_code}</b> when submitting. Check each one, then approve it or send it back with remarks.
+          </p>
+        )}
+        {!isStaff && <div className="flex gap-1 rounded-full bg-white p-1 shadow-sm ring-1 ring-stone-200 sm:w-fit" role="tablist">
           {[
             ['stores', 'Stores', Store],
             ['qr', 'QR codes', QrCode],
+            ['staff', 'Staff', Users],
           ].map(([k, label, Icon]) => (
             <button
               key={k}
               role="tab"
               aria-selected={section === k}
               onClick={() => setSection(k)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold sm:flex-none ${section === k ? 'bg-stone-900 text-white' : 'text-stone-700 hover:bg-stone-100'}`}
+              className={`flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold sm:flex-none sm:px-4 ${section === k ? 'bg-stone-900 text-white' : 'text-stone-700 hover:bg-stone-100'}`}
             >
               <Icon size={15} /> {label}
             </button>
           ))}
-        </div>
+        </div>}
 
-        {section === 'qr' ? (
+        {!isStaff && section !== 'stores' ? (
           <Suspense fallback={<Loader2 className="mx-auto mt-10 animate-spin text-stone-400" />}>
-            <AdminQrCodes />
+            {section === 'qr' ? <AdminQrCodes /> : <AdminStaff />}
           </Suspense>
         ) : (
           <>
@@ -580,7 +626,7 @@ export default function AdminConsole() {
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="no-scrollbar flex flex-1 gap-1.5 overflow-x-auto">
-            {FILTERS.map(([k, label]) => (
+            {(isStaff ? STAFF_FILTERS : FILTERS).map(([k, label]) => (
               <button
                 key={k}
                 onClick={() => {
@@ -592,7 +638,7 @@ export default function AdminConsole() {
                 }`}
               >
                 {k === 'pending_review' && <Inbox size={14} />} {label}
-                <span className={`rounded-full px-1.5 text-[11px] ${filter === k ? 'bg-white/20' : 'bg-stone-100'}`}>{count(k)}</span>
+                {!isStaff && <span className={`rounded-full px-1.5 text-[11px] ${filter === k ? 'bg-white/20' : 'bg-stone-100'}`}>{count(k)}</span>}
               </button>
             ))}
           </div>
@@ -634,6 +680,11 @@ export default function AdminConsole() {
                     <span className="text-[11px] text-stone-400">
                       {s.status === 'pending_review' ? `submitted ${ago(s.submitted_at)}` : s.claimed_at ? `claimed ${ago(s.claimed_at)}` : `added ${ago(s.created_at)}`}
                     </span>
+                    {!isStaff && s.sales_rep_code && (
+                      <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-800">
+                        Rep {s.sales_rep_name || s.sales_rep_username || 'removed'} · <span className="font-mono">{s.sales_rep_code}</span>
+                      </span>
+                    )}
                   </p>
                 </div>
               </button>
@@ -642,7 +693,7 @@ export default function AdminConsole() {
           {!list.loading && !list.stores.length && (
             <li className="p-10 text-center text-sm text-stone-500">
               <Store size={32} className="mx-auto mb-2 text-stone-300" />
-              {filter === 'pending_review' ? 'The approval queue is empty. 🎉' : 'No stores here.'}
+              {filter === 'pending_review' ? (isStaff ? 'No stores are waiting for your approval. 🎉' : 'The approval queue is empty. 🎉') : 'No stores here.'}
             </li>
           )}
         </ul>
@@ -650,7 +701,7 @@ export default function AdminConsole() {
         )}
       </main>
 
-      {openId && <StoreDetail id={openId} onClose={() => setOpenId(null)} onChanged={load} />}
+      {openId && <StoreDetail id={openId} onClose={() => setOpenId(null)} onChanged={load} isStaff={isStaff} />}
       {ordersOpen && !openId && <RecentOrders onClose={() => setOrdersOpen(false)} onOpenStore={(id) => setOpenId(id)} />}
     </div>
   );

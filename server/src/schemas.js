@@ -87,7 +87,18 @@ export const customerAuth = z.object({
 // Printed QR codes (admin): how many to generate, and the store to link one to ("/s/<link>", the link or a URL).
 export const qrGenerate = z.object({ count: z.coerce.number().int().min(1, 'At least 1').max(500, 'At most 500 at a time') });
 export const qrAssign = z.object({ store: z.string().trim().min(1, 'Enter the store name').max(300) });
-export const submitForReview = z.object({ note: optText(500).optional(), whatsapp_number: mobile10.optional() });
+// Sales rep (staff) ID: 6 capital letters/digits; typed in any case, spaces ignored. null/'' clears it.
+export const repCode = z.preprocess(
+  (v) => (v == null || v === '' ? null : String(v).replace(/\s+/g, '').toUpperCase()),
+  z.string().regex(/^[A-Z0-9]{6}$/, 'A sales rep ID is 6 letters or digits').nullable(),
+);
+export const submitForReview = z.object({ note: optText(500).optional(), whatsapp_number: mobile10.optional(), sales_rep_code: repCode.optional() });
+// Staff (sales reps), created by the platform admin; the password and rep ID are generated.
+export const staffCreate = z.object({
+  username: z.string().trim().regex(/^[A-Za-z0-9_.-]{3,32}$/, 'Username: 3–32 letters, digits, dot, dash or underscore'),
+  name: optText(60),
+  phone: z.preprocess((v) => (v === '' || v == null ? undefined : v), mobile10.optional()),
+});
 export const whatsappSet = z.object({ phone: mobile10 });
 // A browser's web push subscription (PushSubscription.toJSON()) + the owner's app language for the texts.
 export const pushSubscribe = z.object({

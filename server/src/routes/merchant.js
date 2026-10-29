@@ -143,7 +143,11 @@ async function setWhatsApp(client, store, ownerId, phone) {
  * that number, and approval marks the number verified.
  */
 merchantRouter.post('/store/submit', async (req, res) => {
-  const { note, whatsapp_number } = parse(S.submitForReview, req.body ?? {});
+  const { note, whatsapp_number, sales_rep_code } = parse(S.submitForReview, req.body ?? {});
+  if (sales_rep_code) {
+    const rep = await query(`SELECT 1 FROM users WHERE role = 'staff' AND rep_code = $1`, [sales_rep_code]);
+    if (!rep.rowCount) throw badRequest('No sales rep has this ID. Check it, or leave it empty.', { sales_rep_code: 'No sales rep has this ID. Check it, or leave it empty.' });
+  }
   await tx(async (client) => {
     const { rows } = await client.query('SELECT * FROM stores WHERE id = $1 FOR UPDATE', [req.user.store_id]);
     const store = rows[0];
@@ -153,7 +157,13 @@ merchantRouter.post('/store/submit', async (req, res) => {
     if (whatsapp_number) await setWhatsApp(client, store, req.user.id, whatsapp_number);
     const missing = (await reviewChecklist(store)).filter((c) => !c.done);
     if (missing.length) throw badRequest(`Please complete: ${missing.map((m) => m.label).join(', ')}`);
-    await client.query(`UPDATE stores SET status = 'pending_review', submitted_at = now(), updated_at = now() WHERE id = $1`, [store.id]);
+    // sales_rep_code: sent = set (or cleared with null); left out (e.g. resubmitting after a suspension) = kept.
+    await client.query(
+      `UPDATE stores SET status = 'pending_review', submitted_at = now(), updated_at = now(),
+              sales_rep_code = CASE WHEN $2 THEN $3 ELSE sales_rep_code END
+        WHERE id = $1`,
+      [store.id, sales_rep_code !== undefined, sales_rep_code ?? null],
+    );
     await client.query(`INSERT INTO store_reviews (store_id, action, remarks, actor_id) VALUES ($1, 'submitted', $2, $3)`, [
       store.id,
       note || null,

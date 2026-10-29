@@ -1,11 +1,13 @@
 // Platform admin API (/api/platform). The single admin account is created from the CLI only
-// (npm run admin:create); there is no sign-up route.
+// (npm run admin:create); there is no sign-up route. The admin creates staff (sales reps) here; staff sign in the
+// same way but may only list, open, approve and reject the stores submitted with their rep ID (see staffGate).
+import crypto from 'node:crypto';
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { createSession, destroySession, requireAdmin, verifyPassword } from '../auth.js';
+import { createSession, destroySession, destroyAllSessions, hashPassword, requireAdmin, verifyPassword } from '../auth.js';
 import { clientKey } from '../clientIp.js';
 import { query, tx } from '../db.js';
-import { conflict, notFound, parse, unauthorized } from '../errors.js';
+import { conflict, forbidden, notFound, parse, unauthorized } from '../errors.js';
 import * as S from '../schemas.js';
 import { PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
 import { claimSeedStore, removeSeedStore } from '../seed/stores.js';
@@ -23,13 +25,19 @@ const adminLoginLimiter = rateLimit({
   message: { error: 'Too many attempts. Try again in 15 minutes.' },
 });
 
+/** What the console needs to know about who is signed in. */
+const me = (u) => ({ username: u.username, role: u.role, rep_code: u.rep_code || null, name: u.staff_name || null });
+
 platformRouter.post('/login', adminLoginLimiter, async (req, res) => {
   const { username, password } = parse(S.login, req.body);
-  const { rows } = await query(`SELECT id, password_hash FROM users WHERE username = $1 AND role = 'platform_admin'`, [username]);
+  const { rows } = await query(
+    `SELECT id, username, role, rep_code, staff_name, password_hash FROM users WHERE username = $1 AND role IN ('platform_admin', 'staff')`,
+    [username],
+  );
   if (!(await verifyPassword(password, rows[0]?.password_hash))) throw unauthorized('Incorrect username or password');
   await query('UPDATE users SET last_login_at = now() WHERE id = $1', [rows[0].id]);
   await createSession(res, 'admin', rows[0].id);
-  res.json({ admin: { username } });
+  res.json({ admin: me(rows[0]) });
 });
 
 platformRouter.post('/logout', async (req, res) => {
@@ -39,7 +47,31 @@ platformRouter.post('/logout', async (req, res) => {
 
 platformRouter.use(requireAdmin);
 
-platformRouter.get('/me', (req, res) => res.json({ admin: { username: req.admin.username } }));
+platformRouter.get('/me', (req, res) => res.json({ admin: me(req.admin) }));
+
+const isStaff = (req) => req.admin.role === 'staff';
+
+/**
+ * Staff may only reach these routes, and only for stores submitted with their rep ID (checked in each handler).
+ * Everything else under /api/platform is for the platform admin alone.
+ */
+const STAFF_ROUTES = [
+  ['GET', /^\/stores\/?$/],
+  ['GET', /^\/stores\/[0-9a-f-]{36}\/?$/],
+  ['POST', /^\/stores\/[0-9a-f-]{36}\/(approve|reject)\/?$/],
+];
+function staffGate(req, _res, next) {
+  if (!isStaff(req) || STAFF_ROUTES.some(([m, re]) => m === req.method && re.test(req.path))) return next();
+  next(forbidden('Only the platform admin can do this'));
+}
+platformRouter.use(staffGate);
+
+/** For staff: the store must have been submitted with their rep ID (else it doesn't exist for them). */
+async function assertStaffStore(req, storeId, client = { query }) {
+  if (!isStaff(req)) return;
+  const { rows } = await client.query('SELECT 1 FROM stores WHERE id = $1 AND sales_rep_code = $2', [storeId, req.admin.rep_code]);
+  if (!rows[0]) throw notFound('Store not found');
+}
 
 platformRouter.get('/stats', async (_req, res) => {
   const { rows } = await query(
@@ -60,7 +92,7 @@ platformRouter.get('/stats', async (_req, res) => {
 
 const STORE_LIST_COLUMNS = `s.id, s.slug, s.name, s.status, s.plan, s.sku_limit, s.category, s.city, s.logo_url, s.business_type, s.lat,
   s.whatsapp_number, s.whatsapp_verified, s.submitted_at, s.reviewed_at, s.review_remarks, s.created_at,
-  s.origin, s.claimed_at, s.locality, s.seed_phone,
+  s.origin, s.claimed_at, s.locality, s.seed_phone, s.sales_rep_code, rep.staff_name AS sales_rep_name, rep.username AS sales_rep_username,
   u.username AS owner_username, u.phone AS owner_phone, u.email AS owner_email,
   (SELECT count(*)::int FROM products p WHERE p.store_id = s.id AND p.status = 'active') AS product_count`;
 
@@ -69,7 +101,9 @@ const STORE_LIST_COLUMNS = `s.id, s.slug, s.name, s.status, s.plan, s.sku_limit,
  * unclaimed seeded listings (kept out of every other tab, "Live" included, since there can be thousands).
  */
 platformRouter.get('/stores', async (req, res) => {
-  const raw = typeof req.query.status === 'string' ? req.query.status : 'all';
+  // Staff: their approval queue by default, or every store submitted with their rep ID (status=all).
+  const asked = typeof req.query.status === 'string' ? req.query.status : isStaff(req) ? 'pending_review' : 'all';
+  const raw = isStaff(req) && !['pending_review', 'all'].includes(asked) ? 'pending_review' : asked;
   const status = ['all', 'seed', 'seed_claimed'].includes(raw) ? null : raw;
   const unclaimedSeed = `(s.origin = 'seed' AND s.claimed_at IS NULL)`;
   const seedFilter =
@@ -82,13 +116,15 @@ platformRouter.get('/stores', async (req, res) => {
   const { rows } = await query(
     `SELECT ${STORE_LIST_COLUMNS}
        FROM stores s JOIN users u ON u.id = s.owner_id
+       LEFT JOIN users rep ON rep.role = 'staff' AND rep.rep_code = s.sales_rep_code
       WHERE ($1::text IS NULL OR s.status = $1) ${seedFilter}
+        AND ($3::text IS NULL OR s.sales_rep_code = $3)
         AND ($2 = '' OR s.name ILIKE '%' || $2 || '%' OR s.slug ILIKE '%' || $2 || '%' OR u.phone LIKE '%' || $2 || '%'
              OR s.locality ILIKE '%' || $2 || '%' OR s.seed_phone LIKE '%' || $2 || '%' OR u.email ILIKE '%' || $2 || '%'
              OR s.whatsapp_number LIKE '%' || $2 || '%')
       ORDER BY ${byProducts ? 'product_count DESC,' : ''} CASE WHEN s.status = 'pending_review' THEN s.submitted_at END ASC NULLS LAST, s.created_at DESC
       LIMIT 200`,
-    [status, q],
+    [status, q, isStaff(req) ? req.admin.rep_code : null],
   );
   res.json({ stores: rows });
 });
@@ -153,10 +189,14 @@ platformRouter.get('/orders', async (req, res) => {
 });
 
 platformRouter.get('/stores/:id', async (req, res) => {
+  await assertStaffStore(req, req.params.id);
   const { rows } = await query(
     `SELECT s.*, u.username AS owner_username, u.phone AS owner_phone, u.created_at AS owner_since,
-            u.email AS owner_email, u.email_verified_at AS owner_email_verified_at, u.phone_verified_at AS owner_phone_verified_at
-       FROM stores s JOIN users u ON u.id = s.owner_id WHERE s.id = $1`,
+            u.email AS owner_email, u.email_verified_at AS owner_email_verified_at, u.phone_verified_at AS owner_phone_verified_at,
+            rep.staff_name AS sales_rep_name, rep.username AS sales_rep_username
+       FROM stores s JOIN users u ON u.id = s.owner_id
+       LEFT JOIN users rep ON rep.role = 'staff' AND rep.rep_code = s.sales_rep_code
+      WHERE s.id = $1`,
     [req.params.id],
   );
   if (!rows[0]) throw notFound('Store not found');
@@ -216,6 +256,7 @@ for (const [action, t] of Object.entries(TRANSITIONS)) {
   platformRouter.post(`/stores/:id/${action}`, async (req, res) => {
     const { remarks } = parse(t.remarks, req.body ?? {});
     const store = await tx(async (client) => {
+      await assertStaffStore(req, req.params.id, client);
       const { rows } = await client.query('SELECT id, status FROM stores WHERE id = $1 FOR UPDATE', [req.params.id]);
       if (!rows[0]) throw notFound('Store not found');
       if (!t.from.includes(rows[0].status)) throw conflict(`Cannot ${action} a store that is ${rows[0].status.replace('_', ' ')}`);
@@ -256,6 +297,65 @@ platformRouter.patch('/stores/:id/plan', async (req, res) => {
   );
   if (!rows[0]) throw notFound('Store not found');
   res.json({ store: rows[0] });
+});
+
+// ---------------------------------------------------------------------------
+// Staff (sales reps): the platform admin creates and deletes them; each gets a username, a generated password
+// (shown once) and a 6-character rep ID that shop owners enter when submitting for approval.
+// ---------------------------------------------------------------------------
+
+// Capital letters and digits, without the look-alikes 0/O and 1/I so an ID is easy to read out and type.
+const REP_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const PASSWORD_ALPHABET = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const randomFrom = (alphabet, n) => Array.from({ length: n }, () => alphabet[crypto.randomInt(alphabet.length)]).join('');
+export const newRepCode = () => randomFrom(REP_ALPHABET, 6);
+const newPassword = () => `${randomFrom(PASSWORD_ALPHABET, 4)}-${randomFrom(PASSWORD_ALPHABET, 4)}-${randomFrom(PASSWORD_ALPHABET, 4)}`;
+
+const STAFF_COLUMNS = `u.id, u.username, u.staff_name AS name, u.staff_phone AS phone, u.rep_code, u.created_at, u.last_login_at,
+  (SELECT count(*)::int FROM stores s WHERE s.sales_rep_code = u.rep_code) AS stores,
+  (SELECT count(*)::int FROM stores s WHERE s.sales_rep_code = u.rep_code AND s.status = 'pending_review') AS pending`;
+
+platformRouter.get('/staff', async (_req, res) => {
+  const { rows } = await query(`SELECT ${STAFF_COLUMNS} FROM users u WHERE u.role = 'staff' ORDER BY u.created_at DESC`);
+  res.json({ staff: rows });
+});
+
+platformRouter.post('/staff', async (req, res) => {
+  const { username, name, phone } = parse(S.staffCreate, req.body ?? {});
+  const taken = await query('SELECT 1 FROM users WHERE username = $1', [username]);
+  if (taken.rowCount) throw conflict('That username is taken', { username: 'That username is taken' });
+  const password = newPassword();
+  const hash = await hashPassword(password);
+  for (let attempt = 0; attempt < 8; attempt++) {
+    try {
+      const { rows } = await query(
+        `INSERT INTO users (username, password_hash, role, staff_name, staff_phone, rep_code) VALUES ($1, $2, 'staff', $3, $4, $5) RETURNING id`,
+        [username, hash, name || null, phone || null, newRepCode()],
+      );
+      const staff = (await query(`SELECT ${STAFF_COLUMNS} FROM users u WHERE u.id = $1`, [rows[0].id])).rows[0];
+      return res.status(201).json({ staff, password });
+    } catch (err) {
+      if (err.code !== '23505' || !/rep_code/.test(err.constraint || '')) throw err; // rep ID collision: draw again
+    }
+  }
+  throw conflict('Could not create a unique ID, please try again');
+});
+
+/** New generated password (shown once); signs the staff member out everywhere. */
+platformRouter.post('/staff/:id/reset-password', async (req, res) => {
+  const password = newPassword();
+  const { rowCount } = await query(`UPDATE users SET password_hash = $2 WHERE id = $1 AND role = 'staff'`, [req.params.id, await hashPassword(password)]);
+  if (!rowCount) throw notFound('Staff member not found');
+  await destroyAllSessions('admin', req.params.id);
+  res.json({ password });
+});
+
+/** Deletes the account and its sessions. Stores keep the rep ID they were submitted with (shown as a removed rep). */
+platformRouter.delete('/staff/:id', async (req, res) => {
+  const { rowCount } = await query(`DELETE FROM users WHERE id = $1 AND role = 'staff'`, [req.params.id]);
+  if (!rowCount) throw notFound('Staff member not found');
+  await destroyAllSessions('admin', req.params.id);
+  res.json({ ok: true });
 });
 
 /**

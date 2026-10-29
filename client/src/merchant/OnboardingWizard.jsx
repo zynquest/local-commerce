@@ -88,6 +88,7 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
     maps_url: store.maps_url || '',
     place_id: store.place_id || '',
     note: '',
+    rep: store.sales_rep_code || '',
   }));
   const [item, setItem] = useState(EMPTY_ITEM);
   const [member, setMember] = useState(EMPTY_MEMBER);
@@ -277,10 +278,12 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
     );
 
   const submit = async () => {
+    const rep = form.rep.replace(/\s+/g, '').toUpperCase();
+    if (rep && !/^[A-Z0-9]{6}$/.test(rep)) return setErrors({ sales_rep_code: t('setup.repInvalid') });
     // WhatsApp is opened from the click itself (phones block pop-ups opened later), then pointed at the message.
     const win = window.open('', '_blank');
     const ok = await save(async () => {
-      const { store: s } = await post('/merchant/store/submit', { note: form.note.trim() || undefined, whatsapp_number: form.whatsapp || undefined });
+      const { store: s } = await post('/merchant/store/submit', { note: form.note.trim() || undefined, whatsapp_number: form.whatsapp || undefined, sales_rep_code: rep || null });
       onStoreChange(s);
       const url = approvalLink(s);
       if (win) {
@@ -544,6 +547,23 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
                   </div>
                 ))}
               </dl>
+              <Field id="wz-rep" label={`${t('setup.repLabel')} (${t('common.optional')})`} error={errors.sales_rep_code} hint={t('setup.repHint')}>
+                <input
+                  id="wz-rep"
+                  className="input font-mono tracking-[0.25em] uppercase"
+                  value={form.rep}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, rep: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6) }));
+                    setErrors((x) => ({ ...x, sales_rep_code: undefined }));
+                  }}
+                  maxLength={6}
+                  placeholder="AB12CD"
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  spellCheck={false}
+                  dir="ltr"
+                />
+              </Field>
               <Field id="wz-note" label={`${t('setup.noteLabel')} (${t('common.optional')})`}>
                 <textarea maxLength={500}
                   id="wz-note"

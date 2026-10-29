@@ -81,6 +81,8 @@ const EXACT = {
   'Store not found': 'status.storeNotFound',
   'That file could not be read as an image': 'errors.badImage',
   'That store link is already taken': 'errors.slugTaken',
+  'No sales rep has this ID. Check it, or leave it empty.': 'setup.repUnknown',
+  'A sales rep ID is 6 letters or digits': 'setup.repInvalid',
   'Photo upload is on the paid plan. Paste an image link (https://…) instead.': 'pf.uploadPaid',
   'The reopening date must be after today': 'closure.dateAfterToday',
   'This business is temporarily closed and not taking bookings right now.': 'closure.bannerBookings',

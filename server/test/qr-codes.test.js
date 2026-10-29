@@ -133,6 +133,23 @@ describe('printed QR codes', () => {
     assert.equal((await admin('POST', `/api/platform/qr/${a}/assign`, { store: slug })).status, 200, 'can be linked again');
   });
 
+  test("the owner sees their store's linked codes (for printing and sharing); admins see the business type", async () => {
+    const [a, b] = made;
+    const token = crypto.randomBytes(32).toString('base64url');
+    await query(`INSERT INTO sessions (token_hash, subject_type, subject_id, expires_at) VALUES ($1, 'user', $2, now() + interval '1 hour')`, [
+      crypto.createHash('sha256').update(token).digest('hex'),
+      ownerId,
+    ]);
+    const owner = client({ vfl_owner: token });
+    const mine = await owner('GET', '/api/merchant/qr');
+    assert.equal(mine.status, 200, JSON.stringify(mine.body));
+    assert.deepEqual(mine.body.codes.map((c) => c.code).sort(), [a, b].sort());
+    assert.equal(mine.body.base, 'https://sonsari.in');
+    assert.equal((await anon('GET', '/api/merchant/qr')).status, 401);
+    const linked = await admin('GET', `/api/platform/qr?filter=assigned&q=${a}`);
+    assert.equal(linked.body.codes[0].store_business_type, 'shop');
+  });
+
   test('deleting a store frees its codes', async () => {
     const [, b] = made;
     await query('DELETE FROM stores WHERE owner_id = $1', [ownerId]);

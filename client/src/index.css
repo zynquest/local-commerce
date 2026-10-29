@@ -104,9 +104,10 @@
   body > *:not(.qr-print) { display: none !important; }
   .qr-print { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 0; background: #fff; }
   .qr-tile { break-inside: avoid; height: 68mm; border: 0.3mm dashed #a8a29e; padding: 4mm 3mm; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #000; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-  .qr-brand { margin: 0 0 2mm; font-size: 13pt; font-weight: 800; color: #15803d; }
-  .qr-img { width: 38mm; height: 38mm; }
+  .qr-brand { margin: 0 0 1.5mm; font-size: 12pt; font-weight: 800; color: #15803d; }
+  .qr-tile > * { flex-shrink: 0; }
+  .qr-name { margin: -1mm 0 1.5mm; font-size: 9pt; font-weight: 700; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .qr-img { width: 35mm; height: 35mm; }
   .qr-cta { margin: 2mm 0 0; font-size: 8.5pt; font-weight: 600; }
   .qr-site { margin: 0.5mm 0 0; font-size: 10pt; font-weight: 800; }
-  .qr-code { margin: 0.5mm 0 0; font-size: 8pt; letter-spacing: 0.5mm; color: #57534e; font-family: ui-monospace, monospace; }
 }

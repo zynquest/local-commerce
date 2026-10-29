@@ -8,6 +8,8 @@ import { uploadImage } from '../services/imageService.js';
 import { useT } from '../i18n/index.jsx';
 import { LANGUAGES } from '../i18n/languages.js';
 import { SupportNote } from './OnboardingWizard.jsx';
+import MyStoreQr from './MyStoreQr.jsx';
+import TemporaryClosure from './TemporaryClosure.jsx';
 
 // Optional settings, filled with these until the owner changes them.
 const DEFAULTS = { opening_hours: '09:00-21:00', closed_days: 'Sun', minimum_order: 0, theme_color: '#15803d', delivery_fee: 0 };
@@ -134,6 +136,9 @@ export default function StoreSettings({ store, onSaved }) {
   );
 
   return (
+    <div className="space-y-4">
+    <TemporaryClosure store={store} onSaved={onSaved} />
+    <MyStoreQr store={store} />
     <form onSubmit={submit} className="space-y-4" noValidate>
       <Section title={t('setup.detailsTitle')}>
         <dl className="grid gap-4 sm:grid-cols-2">
@@ -242,5 +247,6 @@ export default function StoreSettings({ store, onSaved }) {
         {status.saved ? t('common.saved') : t('settings.save')}
       </button>
     </form>
+    </div>
   );
 }

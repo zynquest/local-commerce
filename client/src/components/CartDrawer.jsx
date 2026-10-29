@@ -59,9 +59,11 @@ export default function CartDrawer() {
   const minOrder = Number(config.minimum_order) || 0;
   const belowMin = hasItems && subtotal < minOrder;
   const status = getOpenStatus(config.opening_hours, config.closed_days);
-  const canOrder = (hasItems || hasNotes) && !belowMin && !!config.whatsapp_number;
+  const closedTemp = Boolean(config.temporarily_closed); // owner's holiday: no orders until it reopens
+  const canOrder = (hasItems || hasNotes) && !belowMin && !!config.whatsapp_number && !closedTemp;
 
   const placeOrder = () => {
+    if (closedTemp) return;
     // Name and delivery address are required: point at the first one that's empty instead of opening WhatsApp.
     const need = { name: !cart.customer.name.trim(), address: !cart.customer.address.trim() };
     if (need.name || need.address) {
@@ -301,6 +303,9 @@ export default function CartDrawer() {
               )}
               {!config.whatsapp_number && (
                 <p className="text-xs text-rose-600">{t('cart.notAccepting')}</p>
+              )}
+              {closedTemp && (
+                <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{t('closure.cartClosed')}</p>
               )}
               <button onClick={placeOrder} disabled={!canOrder} className="btn-whatsapp w-full py-3.5 text-base">
                 <WhatsAppIcon size={20} /> {t('cart.placeOrder')}

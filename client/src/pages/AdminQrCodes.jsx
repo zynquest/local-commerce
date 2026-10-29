@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
-import QRCode from 'qrcode';
-import { Link2, Link2Off, Loader2, Printer, QrCode, RefreshCw, Search } from 'lucide-react';
+import { Link2, Link2Off, Loader2, Printer, QrCode, RefreshCw, Search, Share2 } from 'lucide-react';
+import { PrintSheet, QrImage, ShareQrButton, ctaFor, hostOf as host, prettyCode as pretty, scanUrl } from '../components/QrSticker.jsx';
 import { get, post } from '../lib/api.js';
 import { useDebounce } from '../lib/hooks.js';
 
@@ -10,45 +9,13 @@ const FILTERS = [
   ['free', 'Free'],
   ['assigned', 'Linked'],
 ];
-const pretty = (code) => `${code.slice(0, 4)} ${code.slice(4)}`;
-const host = (base) => base.replace(/^https?:\/\//, '');
 
-// QR images are drawn in the browser and cached per URL.
-const svgCache = new Map();
-function useQrSvg(url) {
-  const [svg, setSvg] = useState(() => svgCache.get(url) || '');
-  useEffect(() => {
-    if (svgCache.has(url)) return setSvg(svgCache.get(url));
-    let live = true;
-    QRCode.toString(url, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: '#000000', light: '#ffffff' } }).then((s) => {
-      svgCache.set(url, s);
-      if (live) setSvg(s);
-    });
-    return () => {
-      live = false;
-    };
-  }, [url]);
-  return svg;
-}
+/** WhatsApp text for a linked code: invites customers to the store (or to book, for appointment businesses). */
+const shareText = (name, link, businessType) =>
+  businessType === 'appointments' ? `Book an appointment at ${name} on Vocal For Local: ${link}` : `Visit my store ${name} on Vocal For Local: ${link}`;
 
-function QrImage({ url, className }) {
-  const svg = useQrSvg(url);
-  // The SVG comes from the qrcode library (never from user input), so injecting it is safe.
-  return <span className={`block [&>svg]:h-full [&>svg]:w-full ${className}`} aria-label={`QR code for ${url}`} role="img" dangerouslySetInnerHTML={{ __html: svg }} />;
-}
-
-/** One printed tile: brand, QR, call to action, site, code. Sized in mm for A4 sheets (3 × 4 per page). */
-function PrintTile({ code, base }) {
-  return (
-    <div className="qr-tile">
-      <p className="qr-brand">Vocal For Local</p>
-      <QrImage url={`${base}/q/${code}`} className="qr-img" />
-      <p className="qr-cta">Scan to order from this shop</p>
-      <p className="qr-site">{host(base)}</p>
-      <p className="qr-code">{pretty(code)}</p>
-    </div>
-  );
-}
+/** What a sticker shows: linked codes carry the store's name and the matching call to action. */
+const stickerOf = (qr) => (qr.store_id ? { code: qr.code, name: qr.store_name, cta: ctaFor(qr.store_business_type) } : { code: qr.code });
 
 /** Store name box with suggestions from the admin store search. Picking one fills in the exact store. */
 function StorePicker({ code, value, onChange, onPick, onSubmit }) {
@@ -179,8 +146,8 @@ function Row({ qr, base, selected, onToggle, onChanged }) {
     // Phones: checkbox, QR and code on top, the store line full width below. Wider: the store line sits beside the QR.
     <li className="grid grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 p-3">
       <input type="checkbox" className="mt-1 h-4 w-4 accent-brand sm:row-span-2" checked={selected} onChange={onToggle} aria-label={`Select QR ${qr.code}`} />
-      <a href={`${base}/q/${qr.code}`} target="_blank" rel="noreferrer" className="rounded-lg border border-stone-200 bg-white p-1.5 sm:row-span-2" title="Open the scan link">
-        <QrImage url={`${base}/q/${qr.code}`} className="h-14 w-14 sm:h-16 sm:w-16" />
+      <a href={scanUrl(base, qr.code)} target="_blank" rel="noreferrer" className="rounded-lg border border-stone-200 bg-white p-1.5 sm:row-span-2" title="Open the scan link">
+        <QrImage url={scanUrl(base, qr.code)} className="h-14 w-14 sm:h-16 sm:w-16" />
       </a>
       <p className="flex flex-wrap items-baseline gap-x-2 self-center font-mono text-base font-bold tracking-wide sm:self-start">
         {pretty(qr.code)}
@@ -198,7 +165,15 @@ function Row({ qr, base, selected, onToggle, onChanged }) {
               {qr.store_name}
             </a>
             {qr.store_status !== 'approved' && <span className="text-xs text-amber-700">· store not live yet</span>}
-            <button onClick={remove} disabled={!!busy} className="ms-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50">
+            <ShareQrButton
+              sticker={{ ...stickerOf(qr), base }}
+              text={shareText(qr.store_name, `${base}/s/${qr.store_slug}`, qr.store_business_type)}
+              onError={(err) => setError(err.message)}
+              className="ms-auto flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+            >
+              <Share2 size={13} /> Share
+            </ShareQrButton>
+            <button onClick={remove} disabled={!!busy} className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50">
               {busy === 'remove' ? <Loader2 size={13} className="animate-spin" /> : <Link2Off size={13} />} Remove
             </button>
           </div>
@@ -233,13 +208,15 @@ function Row({ qr, base, selected, onToggle, onChanged }) {
 export default function AdminQrCodes() {
   const [filter, setFilter] = useState('all');
   const [query, setQuery] = useState('');
-  const q = useDebounce(query.trim(), 250);
+  // A scanned sticker link (…/q/12345678) finds its code: stickers don't print the code, the QR carries it.
+  const q = useDebounce(query.trim().match(/\/q\/([1-9]\d{7})/)?.[1] || query.trim(), 250);
   const [data, setData] = useState({ loading: true, codes: [], counts: null, base: 'https://sonsari.in', error: '' });
   const [count, setCount] = useState(12);
   const [generating, setGenerating] = useState(false);
   const [notice, setNotice] = useState('');
   const [selected, setSelected] = useState(() => new Set());
-  const [printCodes, setPrintCodes] = useState(null);
+  const [printing, setPrinting] = useState(null); // stickers being printed
+  const stopPrinting = useCallback(() => setPrinting(null), []);
 
   const load = useCallback(async () => {
     setData((d) => ({ ...d, loading: true }));
@@ -254,18 +231,6 @@ export default function AdminQrCodes() {
   useEffect(() => {
     load();
   }, [load]);
-
-  // Print once the sheet is in the page, then take it away again.
-  useEffect(() => {
-    if (!printCodes) return;
-    const done = () => setPrintCodes(null);
-    window.addEventListener('afterprint', done, { once: true });
-    const timer = setTimeout(() => window.print(), 300); // let the QR images draw first
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('afterprint', done);
-    };
-  }, [printCodes]);
 
   const generate = async (e) => {
     e.preventDefault();
@@ -305,7 +270,7 @@ export default function AdminQrCodes() {
           )}
         </div>
         <p className="text-sm text-stone-600">
-          Each code opens <b>{host(data.base)}/q/&lt;code&gt;</b>, which takes the shopper to the store it's linked to. Print a batch first, then type the shop's name against a code when you put the sticker up; you can move a code to another store any time.
+          Each code opens <b>{host(data.base)}/q/&lt;code&gt;</b>, which takes the shopper to the store it's linked to. Print a batch first, then type the shop's name against a code when you put the sticker up; you can move a code to another store any time. Stickers don't show the code: to find one, scan it with your phone and paste the link into the search.
         </p>
         <form onSubmit={generate} className="flex flex-wrap items-end gap-2">
           <label className="text-sm">
@@ -331,7 +296,7 @@ export default function AdminQrCodes() {
         ))}
         <label className="relative w-full sm:ms-auto sm:w-64">
           <Search size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-          <input className="input ps-9" placeholder="Search code or store" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input className="input ps-9" placeholder="Search code, store or scanned link" value={query} onChange={(e) => setQuery(e.target.value)} />
         </label>
         <button onClick={load} className="btn-ghost px-3" aria-label="Refresh"><RefreshCw size={16} className={data.loading ? 'animate-spin' : ''} /></button>
       </div>
@@ -343,7 +308,11 @@ export default function AdminQrCodes() {
         {selected.size > 0 && (
           <button onClick={() => setSelected(new Set())} className="text-xs font-semibold text-stone-600 underline">Clear selection</button>
         )}
-        <button onClick={() => setPrintCodes([...selected])} disabled={!selected.size} className="btn-brand ms-auto py-1.5 text-sm">
+        <button
+          onClick={() => setPrinting([...selected].map((code) => { const qr = data.codes.find((c) => c.code === code); return qr ? stickerOf(qr) : { code }; }))}
+          disabled={!selected.size}
+          className="btn-brand ms-auto py-1.5 text-sm"
+        >
           <Printer size={16} /> Print selected ({selected.size})
         </button>
       </div>
@@ -362,13 +331,7 @@ export default function AdminQrCodes() {
       </ul>
       {data.codes.length >= 500 && <p className="text-center text-xs text-stone-500">Showing the newest 500. Use search or the filters to find others.</p>}
 
-      {printCodes &&
-        createPortal(
-          <div className="qr-print" aria-hidden="true">
-            {printCodes.map((code) => <PrintTile key={code} code={code} base={data.base} />)}
-          </div>,
-          document.body,
-        )}
+      {printing && <PrintSheet items={printing} base={data.base} onDone={stopPrinting} />}
     </div>
   );
 }

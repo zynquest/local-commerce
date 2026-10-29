@@ -154,6 +154,17 @@ export const storeSettings = z
     theme_color: z.preprocess((v) => (v ? v : null), z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable()),
     order_language: z.enum(['auto', ...LANGUAGE_CODES]), // auto = the customer's language
     business_type: z.enum(BUSINESS_TYPES), // only until the store is approved (see LOCKED_AFTER_APPROVAL)
+    // Temporary closure (holiday): no orders or bookings until reopens_on (India date), or until switched off.
+    temp_closed: z.boolean(),
+    reopens_on: z.preprocess(
+      (v) => (v === '' || v == null ? null : v),
+      z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date')
+        .refine((d) => d > new Date(Date.now() + 5.5 * 3600_000).toISOString().slice(0, 10), 'The reopening date must be after today')
+        .nullable(),
+    ),
+    closure_message: optText(200),
     // Map pin (from Google Maps search, the phone's GPS or dragging the pin). Both or neither.
     lat: z.preprocess((v) => (v === '' || v == null ? null : v), z.coerce.number().min(-90).max(90).nullable()),
     lng: z.preprocess((v) => (v === '' || v == null ? null : v), z.coerce.number().min(-180).max(180).nullable()),

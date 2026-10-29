@@ -123,7 +123,8 @@ publicRouter.get('/stores/:slug', async (req, res) => {
   }
 
   // b2: payload shape version (appointment stores added services/specialists) so old device caches refetch.
-  const version = `${store.id}-${new Date(store.updated_at).getTime()}-${store.status}-b2`;
+  // The closure state is part of it: a holiday ends on its own on the reopening date, without a store update.
+  const version = `${store.id}-${new Date(store.updated_at).getTime()}-${store.status}-${store.closed_now ? 'c' : 'o'}-b2`;
   const etag = `"${version}"`;
   res.set('ETag', etag);
   res.set('Cache-Control', 'no-cache');

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import {
-  Archive, ArchiveRestore, CalendarDays, ExternalLink, FileUp, Loader2, LogOut, Package, Pencil, Plus, ReceiptText, Scissors, Search,
+  Archive, ArchiveRestore, CalendarDays, DoorClosed, ExternalLink, FileUp, Loader2, LogOut, Package, Pencil, Plus, ReceiptText, Scissors, Search,
   Settings, Share2, Trash2, UserCog, Users,
 } from 'lucide-react';
 import AppointmentsPanel from '../merchant/AppointmentsPanel.jsx';
@@ -22,7 +22,7 @@ import { del, get, patch, post, put } from '../lib/api.js';
 import { formatMoney } from '../lib/format.js';
 import { useDebounce } from '../lib/hooks.js';
 import { useSeo } from '../lib/seo.js';
-import { rich, useT } from '../i18n/index.jsx';
+import { rich, useI18n } from '../i18n/index.jsx';
 import { PLATFORM } from '../config.js';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 
@@ -57,7 +57,7 @@ export default function MerchantDashboard() {
   const [editing, setEditing] = useState(null); // null | 'new' | product
   const [toast, setToast] = useState('');
 
-  const t = useT();
+  const { t, formatDay } = useI18n();
   useSeo({ title: t('merchant.seoTitle'), noindex: true });
 
   useEffect(() => {
@@ -222,6 +222,20 @@ export default function MerchantDashboard() {
       ) : (
       <main className="mx-auto max-w-5xl space-y-4 p-4">
         <StoreStatusCard store={store} onChange={(s) => setStore(s)} />
+        {store.closed_now && (
+          <button
+            onClick={() => setTab('settings')}
+            className="flex w-full items-center gap-2 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-start text-sm font-semibold text-amber-900"
+          >
+            <DoorClosed size={18} className="flex-none text-amber-700" />
+            <span className="flex-1">
+              {store.reopens_on
+                ? t('closure.ownerBannerUntil', { date: formatDay(store.reopens_on, { weekday: 'long', day: 'numeric', month: 'long' }) })
+                : t('closure.ownerBanner')}
+            </span>
+            <span className="flex-none text-xs underline">{t('closure.reopenNow')}</span>
+          </button>
+        )}
 
         {stats && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

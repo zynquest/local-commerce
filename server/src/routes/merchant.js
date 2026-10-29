@@ -12,7 +12,8 @@ import { badRequest, conflict, notFound, parse } from '../errors.js';
 import { MAX_MESSAGE_ITEMS, parseCatalogMessage } from '../catalog/messageParser.js';
 import { verifyOtp } from '../otp/otp.js';
 import * as S from '../schemas.js';
-import { PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
+import { CLOSED_NOW_SQL, PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
+import { qrBase } from '../qr.js';
 
 export const merchantRouter = Router();
 merchantRouter.use(requireOwner);
@@ -81,7 +82,7 @@ export async function reviewChecklist(store) {
 }
 
 async function storeWithReview(storeId) {
-  const { rows } = await query('SELECT * FROM stores WHERE id = $1', [storeId]);
+  const { rows } = await query(`SELECT s.*, ${CLOSED_NOW_SQL} AS closed_now FROM stores s WHERE s.id = $1`, [storeId]);
   const store = rows[0];
   const [usage, reviews, checklist] = await Promise.all([
     query(`SELECT count(*)::int AS used FROM products WHERE store_id = $1 AND status = 'active'`, [storeId]),
@@ -206,6 +207,15 @@ merchantRouter.put('/store', async (req, res) => {
   const sets = entries.map(([k], i) => `${k} = $${i + 2}`).join(', ');
   await query(`UPDATE stores SET ${sets}, updated_at = now() WHERE id = $1`, [req.user.store_id, ...entries.map(([, v]) => v)]);
   res.json({ store: await storeWithReview(req.user.store_id) });
+});
+
+/** The printed QR stickers the platform team linked to this store (see /api/platform/qr), for printing and sharing. */
+merchantRouter.get('/qr', async (req, res) => {
+  const { rows } = await query(
+    'SELECT code, scans, last_scanned_at, assigned_at FROM qr_codes WHERE store_id = $1 ORDER BY assigned_at, code',
+    [req.user.store_id],
+  );
+  res.json({ codes: rows, base: qrBase() });
 });
 
 merchantRouter.get('/stats', async (req, res) => {

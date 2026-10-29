@@ -9,6 +9,7 @@ import { clientKey } from '../clientIp.js';
 import { query, tx } from '../db.js';
 import { badRequest, conflict, notFound, parse } from '../errors.js';
 import * as S from '../schemas.js';
+import { CLOSED_NOW_SQL } from '../serialize.js';
 import { addDays, appointmentCode, computeSlots, hasHours, istDate, istToMs, normaliseSchedule } from '../appointments/slots.js';
 
 export const publicAppointmentsRouter = Router();
@@ -51,7 +52,7 @@ export async function publicBookingCatalog(storeId) {
 
 /** The bookable store (approved; owners and the admin may preview their own unapproved store). */
 async function bookingStore(req, slug) {
-  const { rows } = await query(`SELECT * FROM stores WHERE slug = $1`, [slug]);
+  const { rows } = await query(`SELECT s.*, ${CLOSED_NOW_SQL} AS closed_now FROM stores s WHERE s.slug = $1`, [slug]);
   const store = rows[0];
   if (!store || store.business_type !== 'appointments') throw notFound('Store not found');
   if (store.status !== 'approved') {
@@ -142,6 +143,7 @@ publicAppointmentsRouter.post('/stores/:slug/appointments', bookingLimiter, opti
   const store = await bookingStore(req, req.params.slug);
   if (store.preview) throw badRequest('This business is not taking bookings yet');
   bookingWindow(store, b.date);
+  if (store.closed_now) throw conflict('This business is temporarily closed and not taking bookings right now.');
   // At most 3 pending requests per customer at one business, recognised by their number or their account.
   // (Anonymous requests have no number to count by; the per-device booking rate limit above covers them.)
   if (b.phone || req.customer?.id) {

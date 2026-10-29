@@ -103,7 +103,7 @@ platformRouter.get('/qr', async (req, res) => {
   const { rows } = await query(
     `SELECT q.code, q.batch, q.scans, q.last_scanned_at, q.created_at,
             CASE WHEN s.id IS NULL THEN NULL ELSE q.assigned_at END AS assigned_at,
-            s.id AS store_id, s.name AS store_name, s.slug AS store_slug, s.status AS store_status
+            s.id AS store_id, s.name AS store_name, s.slug AS store_slug, s.status AS store_status, s.business_type AS store_business_type
        FROM qr_codes q LEFT JOIN stores s ON s.id = q.store_id
       WHERE ($1 = 'all' OR ($1 = 'free') = (s.id IS NULL))
         AND ($2 = '' OR q.code LIKE '%' || $2 || '%' OR s.name ILIKE '%' || $2 || '%' OR s.slug ILIKE '%' || $2 || '%')

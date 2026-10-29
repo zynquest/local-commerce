@@ -66,7 +66,7 @@ export default function Storefront() {
           </p>
         </div>
       )}
-      {!config.accepting_orders && !config.preview && (
+      {!config.accepting_orders && !config.preview && !config.temporarily_closed && (
         <div className="mx-auto mt-2 max-w-6xl px-4">
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
             {t('store.notAccepting')}

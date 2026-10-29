@@ -31,7 +31,8 @@ export default function BookingStorefront() {
     for (const s of services) map.set(s.category || 'Other', [...(map.get(s.category || 'Other') || []), s]);
     return [...map.entries()];
   }, [services]);
-  const canBook = !config.preview && services.length > 0 && specialists.length > 0;
+  // No bookings while the owner has the business temporarily closed (holiday).
+  const canBook = !config.preview && !config.temporarily_closed && services.length > 0 && specialists.length > 0;
 
   return (
     <div className="min-h-screen">

@@ -571,6 +571,28 @@ describe('appointments: services, specialists, slots, WhatsApp bookings', () => 
     assert.ok(list.body.appointments.some((a) => a.customer_name === `No Phone ${run}` && a.customer_phone === null));
   });
 
+  test('temporary closure: the store shows as closed, bookings are refused, and it reopens', async () => {
+    const ist = (days) => new Date(Date.now() + 5.5 * 3600_000 + days * 86_400_000).toISOString().slice(0, 10);
+    assert.equal((await pro('PUT', '/api/merchant/store', { temp_closed: true, reopens_on: ist(0) })).status, 400, 'reopening date must be after today');
+    const closed = await pro('PUT', '/api/merchant/store', { temp_closed: true, reopens_on: ist(3), closure_message: 'On leave for a wedding' });
+    assert.equal(closed.status, 200, JSON.stringify(closed.body));
+    assert.equal(closed.body.store.closed_now, true);
+    assert.equal(closed.body.store.reopens_on, ist(3), 'dates come back as plain YYYY-MM-DD');
+    const pub = await shopper('GET', `/api/stores/${apSlug}`);
+    assert.equal(pub.body.store.temporarily_closed, true);
+    assert.equal(pub.body.store.reopens_on, ist(3));
+    assert.equal(pub.body.store.closure_message, 'On leave for a wedding');
+    const book = await shopper('POST', `/api/stores/${apSlug}/appointments`, { service_id: spa.id, date: tomorrow(), time: '12:00', name: 'Closed Test', language: 'en' });
+    assert.equal(book.status, 409);
+    assert.match(book.body.error, /temporarily closed/);
+    // No end date: closed until switched off.
+    assert.equal((await pro('PUT', '/api/merchant/store', { temp_closed: true, reopens_on: null })).body.store.closed_now, true);
+    const reopened = await pro('PUT', '/api/merchant/store', { temp_closed: false, reopens_on: null, closure_message: null });
+    assert.equal(reopened.body.store.closed_now, false);
+    const after = await shopper('GET', `/api/stores/${apSlug}`);
+    assert.deepEqual([after.body.store.temporarily_closed, after.body.store.reopens_on, after.body.store.closure_message], [false, null, null]);
+  });
+
   test('directory: only businesses within 5 km of the shopper (plus demo stores)', async () => {
     const near = await shopper('GET', '/api/stores?lat=12.9716&lng=77.5946');
     const hit = near.body.stores.find((s) => s.slug === apSlug);

@@ -1120,5 +1120,40 @@
     "detailsTitle": "Store details",
     "moreTitle": "More settings (optional)",
     "confirmRemove": "Remove “{name}”?"
+  },
+  "myqr": {
+    "title": "My store QR code",
+    "hint": "Customers scan it to open your store. Print it, or share it on WhatsApp.",
+    "empty": "No QR sticker is linked to your store yet. Message us to get one.",
+    "askMsg": "Hi, please send a QR sticker for my store \"{name}\" ({link}).",
+    "share": "Share",
+    "print": "Print",
+    "printAll": "Print all",
+    "scans": "Scans: {count}",
+    "shareShop": "Visit my store {name} on Vocal For Local: {link}",
+    "shareAppt": "Book an appointment at {name} on Vocal For Local: {link}"
+  },
+  "closure": {
+    "title": "Temporary closure",
+    "hint": "Going on holiday or closing for a few days? Customers can still see your store, but can't order or book until you reopen.",
+    "toggle": "Temporarily closed",
+    "reopensOn": "Reopening on (optional)",
+    "reopensHint": "Leave empty to stay closed until you switch this off.",
+    "message": "Message for customers (optional)",
+    "messagePlaceholder": "e.g. Closed for Diwali, back on Monday",
+    "closeNow": "Close store temporarily",
+    "reopenNow": "Reopen now",
+    "savedClosed": "Your store is now temporarily closed",
+    "savedOpen": "Your store is open again",
+    "ownerBanner": "Your store is temporarily closed. Customers can't order or book.",
+    "ownerBannerUntil": "Your store is temporarily closed and reopens on {date}. Customers can't order or book until then.",
+    "bannerTitle": "Temporarily closed",
+    "bannerReopens": "Reopens on {date}",
+    "bannerOrders": "Not taking orders right now. You can still browse.",
+    "bannerBookings": "Not taking bookings right now. You can still see the services.",
+    "statusClosed": "Temporarily closed",
+    "statusUntil": "Temporarily closed · reopens {date}",
+    "cartClosed": "This store is temporarily closed and isn't taking orders right now.",
+    "dateAfterToday": "The reopening date must be after today"
   }
 }

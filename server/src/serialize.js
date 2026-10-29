@@ -13,10 +13,14 @@ export const slugify = (s) =>
     .replace(/^-+|-+$/g, '')
     .slice(0, 50) || 'store';
 
+/** True while the owner's temporary closure is on (India date before reopens_on, or no date set). */
+export const CLOSED_NOW_SQL = `(s.temp_closed AND (s.reopens_on IS NULL OR s.reopens_on > (now() AT TIME ZONE 'Asia/Kolkata')::date))`;
+
 export const PUBLIC_STORE_COLUMNS = `s.id, s.slug, s.name, s.whatsapp_number, s.instagram_handle, s.logo_url, s.banner_url,
   s.address_text, s.maps_url, s.description, s.category, s.city, s.currency_symbol, s.minimum_order,
   s.delivery_fee, s.free_delivery_above, s.opening_hours, s.closed_days, s.theme_color, s.verified, s.order_language, s.is_demo, s.updated_at,
-  s.business_type, s.lat, s.lng, s.slot_minutes, s.booking_days, s.min_notice_minutes, s.origin, s.claimed_at, s.locality, s.seed_source`;
+  s.business_type, s.lat, s.lng, s.slot_minutes, s.booking_days, s.min_notice_minutes, s.origin, s.claimed_at, s.locality, s.seed_source,
+  s.reopens_on, s.closure_message, ${CLOSED_NOW_SQL} AS closed_now`;
 
 export const PRODUCT_COLUMNS = `p.id, p.sku_id, p.name, p.category, p.mrp, p.offer_price, p.images, p.description,
   p.specs, p.tags, p.rating, p.review_count, p.in_stock, p.status, p.position, p.updated_at`;
@@ -49,6 +53,10 @@ export const publicStore = (s) => ({
   ...(s.business_type === 'appointments' ? { slot_minutes: s.slot_minutes, booking_days: s.booking_days, min_notice_minutes: s.min_notice_minutes } : {}),
   order_language: s.order_language || 'auto',
   accepting_orders: Boolean(s.is_demo || s.whatsapp_number),
+  // Owner's temporary closure: the store can be browsed, but ordering and booking are off until it reopens.
+  temporarily_closed: Boolean(s.closed_now),
+  reopens_on: s.closed_now ? s.reopens_on || null : null,
+  closure_message: s.closed_now ? s.closure_message || null : null,
   // Listed by the platform from public data and not yet claimed by its owner: browse-only, no orders.
   is_seed: isUnclaimedSeed(s),
   // Where an unclaimed listing's details came from (OpenStreetMap data needs attribution on the page).

@@ -3,6 +3,8 @@ import { config } from './config.js';
 
 // Return NUMERIC columns as JS numbers (prices fit comfortably in a double).
 pg.types.setTypeParser(1700, (v) => (v === null ? null : Number(v)));
+// DATE columns stay plain 'YYYY-MM-DD' strings (a JS Date would shift them by the server's time zone).
+pg.types.setTypeParser(1082, (v) => v);
 
 export const pool = new pg.Pool({ connectionString: config.databaseUrl, max: 10 });
 

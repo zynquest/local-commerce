@@ -85,6 +85,8 @@ const EXACT = {
   'Store not found': 'status.storeNotFound',
   'That file could not be read as an image': 'errors.badImage',
   'That store link is already taken': 'errors.slugTaken',
+  'The reopening date must be after today': 'closure.dateAfterToday',
+  'This business is temporarily closed and not taking bookings right now.': 'closure.bannerBookings',
   'That username is taken': 'errors.usernameTaken',
   'This code was issued for a different store': 'errors.codeOtherStore',
   'This is already your WhatsApp number for orders': 'errors.sameWhatsApp',

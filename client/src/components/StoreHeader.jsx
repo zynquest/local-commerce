@@ -1,19 +1,24 @@
 import { Link } from 'react-router-dom';
-import { BadgeCheck, Clock, FlaskConical, Home, MapPin, Navigation, RefreshCw, Sprout } from 'lucide-react';
+import { BadgeCheck, Clock, DoorClosed, FlaskConical, Home, MapPin, Navigation, RefreshCw, Sprout } from 'lucide-react';
 import { PLATFORM } from '../config.js';
 import SmartImage from './SmartImage.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { getOpenStatus, mapsLink } from '../lib/format.js';
-import { useT } from '../i18n/index.jsx';
+import { useI18n } from '../i18n/index.jsx';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
 import { whatsappLink } from '../services/whatsappService.js';
 
 /** Store header: banner, logo, name, verified badge, open/closed status, address + Maps shortcut. */
 export default function StoreHeader() {
-  const t = useT();
+  const { t, formatDay } = useI18n();
   const { store: config, refreshing, basePath } = useStore();
   if (!config) return null;
-  const status = getOpenStatus(config.opening_hours, config.closed_days);
+  const closedTemp = Boolean(config.temporarily_closed);
+  const reopens = config.reopens_on ? formatDay(config.reopens_on, { weekday: 'long', day: 'numeric', month: 'long' }) : null;
+  // A temporary closure (holiday) overrides the usual opening hours.
+  const status = closedTemp
+    ? { open: false, key: reopens ? 'closure.statusUntil' : 'closure.statusClosed', vars: { date: reopens } }
+    : getOpenStatus(config.opening_hours, config.closed_days);
   const maps = mapsLink(config.maps_url, config.address_text);
 
   return (
@@ -88,6 +93,16 @@ export default function StoreHeader() {
             )}
           </div>
         </div>
+        {closedTemp && (
+          <div className="mt-3 flex gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" role="status">
+            <DoorClosed size={20} className="mt-0.5 flex-none text-amber-700" />
+            <div className="min-w-0 space-y-0.5">
+              <p className="font-bold">{t('closure.bannerTitle')}{reopens && <span className="font-semibold"> · {t('closure.bannerReopens', { date: reopens })}</span>}</p>
+              {config.closure_message && <p className="break-words">{config.closure_message}</p>}
+              <p className="text-xs text-amber-800">{t(config.business_type === 'appointments' ? 'closure.bannerBookings' : 'closure.bannerOrders')}</p>
+            </div>
+          </div>
+        )}
         {config.description && <p className="mt-3 text-sm text-stone-600">{config.description}</p>}
         {config.address_text && (
           <div className="mt-3 flex items-start gap-2 text-sm text-stone-600">

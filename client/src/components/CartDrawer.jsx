@@ -26,7 +26,7 @@ export default function CartDrawer() {
   const addressRef = useRef(null);
   const cur = config?.currency_symbol || '₹';
   const money = (n) => formatMoney(n, cur);
-  const { subtotal, savings, deliveryFee, freeDelivery, freeDeliveryGap, total } = cart.totals;
+  const { subtotal, mrpSubtotal, savings, deliveryFee, freeDelivery, freeDeliveryGap, total } = cart.totals;
 
   // Prefill blank delivery fields from the shopper's account.
   useEffect(() => {
@@ -265,8 +265,14 @@ export default function CartDrawer() {
                 <dl className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <dt className="text-stone-500">{t('cart.subtotal')}</dt>
-                    <dd>{money(subtotal)}</dd>
+                    <dd>{money(mrpSubtotal)}</dd>
                   </div>
+                  {savings > 0 && (
+                    <div className="flex justify-between text-emerald-700">
+                      <dt>{t('cart.youSave')}</dt>
+                      <dd dir="ltr">−{money(savings)}</dd>
+                    </div>
+                  )}
                   {deliveryFee > 0 && (
                     <div className="flex justify-between">
                       <dt className="text-stone-500">{t('cart.deliveryFee')}</dt>
@@ -277,12 +283,6 @@ export default function CartDrawer() {
                     <div className="flex justify-between text-emerald-700">
                       <dt>{t('cart.deliveryFee')}</dt>
                       <dd>{t('cart.freeDelivery')}</dd>
-                    </div>
-                  )}
-                  {savings > 0 && (
-                    <div className="flex justify-between text-emerald-700">
-                      <dt>{t('cart.youSave')}</dt>
-                      <dd dir="ltr">−{money(savings)}</dd>
                     </div>
                   )}
                   <div className="flex justify-between border-t border-dashed border-stone-200 pt-1 text-base font-bold">

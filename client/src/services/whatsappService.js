@@ -12,9 +12,11 @@ export function generateOrderId() {
 
 export function computeTotals(cartItems, storeConfig) {
   let subtotal = 0;
+  let mrpSubtotal = 0;
   let savings = 0;
   for (const item of cartItems) {
     subtotal += item.offer_price * item.quantity;
+    mrpSubtotal += Math.max(Number(item.mrp) || 0, item.offer_price) * item.quantity;
     if (item.mrp > item.offer_price) savings += (item.mrp - item.offer_price) * item.quantity;
   }
   const hasItems = cartItems.length > 0;
@@ -25,7 +27,8 @@ export function computeTotals(cartItems, storeConfig) {
   const freeDelivery = fee > 0 && threshold != null && subtotal >= threshold;
   const deliveryFee = freeDelivery ? 0 : fee;
   return {
-    subtotal,
+    subtotal, // at the selling price: minimum order and free delivery go by this
+    mrpSubtotal: round2(mrpSubtotal), // shown as "Subtotal": the MRP total, before "You save"
     savings: round2(savings),
     deliveryFee,
     freeDelivery, // fee waived by the threshold rule
@@ -68,11 +71,11 @@ export function buildOrderMessage(storeConfig, cartItems, unlistedNotes, custome
       m += `\n\n`;
     });
     m += `${DIVIDER}\n`;
-    m += `💵 *${t('wa.subtotal')}:* ${money(totals.subtotal)}\n`;
+    m += `💵 *${t('wa.subtotal')}:* ${money(totals.mrpSubtotal)}\n`;
+    if (totals.savings > 0) m += `🎉 *${t('wa.totalSavings')}:* −${money(totals.savings)}\n`;
     if (totals.deliveryFee > 0) m += `🛵 *${t('wa.deliveryFee')}:* ${money(totals.deliveryFee)}\n`;
     else if (totals.freeDelivery) m += `🛵 *${t('wa.deliveryFee')}:* ${t('wa.free')}\n`;
     m += `💰 *${t('wa.total')}: ${money(totals.total)}*\n`;
-    if (totals.savings > 0) m += `🎉 *${t('wa.totalSavings')}: ${money(totals.savings)}*\n`;
     m += `${DIVIDER}\n\n`;
   }
 

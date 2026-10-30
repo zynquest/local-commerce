@@ -120,7 +120,27 @@ export function dedupeRows(rows) {
   return out;
 }
 
-/** Bounding boxes [south, west, north, east] of cities we seed. */
+/**
+ * Bounding boxes [south, west, north, east] of cities we seed. Boxes are rectangles and cities aren't, so where two
+ * cities touch (Delhi, Noida, Gurugram), `exclude` drops shops that fall in the neighbour's box: each shop is listed
+ * under one city only.
+ */
 export const CITY_BBOX = {
   bengaluru: { name: 'Bengaluru', bbox: [12.83, 77.46, 13.14, 77.78] },
+  noida: { name: 'Noida', bbox: [28.46, 77.3, 28.63, 77.5] },
+  pune: { name: 'Pune', bbox: [18.42, 73.73, 18.68, 74.0] },
+  mumbai: { name: 'Mumbai', bbox: [18.89, 72.77, 19.28, 72.99] },
+  delhi: { name: 'Delhi', bbox: [28.4, 76.84, 28.89, 77.34], exclude: ['noida', 'gurugram'] },
+  hyderabad: { name: 'Hyderabad', bbox: [17.25, 78.3, 17.56, 78.62] },
+  chennai: { name: 'Chennai', bbox: [12.9, 80.12, 13.24, 80.32] },
+  gurugram: { name: 'Gurugram', bbox: [28.36, 76.93, 28.51, 77.12] },
 };
+
+/** True when the point lies inside a [south, west, north, east] box. */
+export const inBox = ([s, w, n, e], lat, lng) => lat >= s && lat <= n && lng >= w && lng <= e;
+
+/** Drops rows inside the boxes of the cities this one excludes (see CITY_BBOX). */
+export function excludeNeighbours(rows, key) {
+  const boxes = (CITY_BBOX[key]?.exclude || []).map((k) => CITY_BBOX[k].bbox);
+  return boxes.length ? rows.filter((r) => !boxes.some((b) => inBox(b, Number(r.lat), Number(r.lng)))) : rows;
+}

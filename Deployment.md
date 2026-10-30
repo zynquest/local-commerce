@@ -929,6 +929,51 @@ npm run seed:merchants -- merge --out ../data/seed/blr.csv ../data/seed/blr-osm.
 ```
 Open `data/seed/blr.csv` in a spreadsheet: delete rows you don't want, fix names, add shops (keep the columns). `data/seed/` is git-ignored.
 
+**Other cities** — `--city` is one of `bengaluru`, `noida`, `pune`, `mumbai`, `delhi`, `hyderabad`, `chennai`, `gurugram`, one file per city. Import each file with the **same** `--city`: it sets the city name on every listing, and without it they are all labelled Bengaluru.
+
+Delhi's box overlaps Noida and Gurugram, so the Delhi file leaves out shops inside those two boxes (each shop is listed under one city). Near a border a few shops can still land under the neighbouring city's name.
+
+1. Fetch on your laptop (from `server/`). If it ends with *"N tiles could not be fetched"*, run the same line again later: finished tiles come from the cache.
+   ```bash
+   npm run seed:merchants -- fetch-osm --city noida     --out ../data/seed/noida-osm.csv
+   npm run seed:merchants -- fetch-osm --city pune      --out ../data/seed/pune-osm.csv
+   npm run seed:merchants -- fetch-osm --city mumbai    --out ../data/seed/mumbai-osm.csv
+   npm run seed:merchants -- fetch-osm --city delhi     --out ../data/seed/delhi-osm.csv
+   npm run seed:merchants -- fetch-osm --city hyderabad --out ../data/seed/hyd-osm.csv
+   npm run seed:merchants -- fetch-osm --city chennai   --out ../data/seed/chennai-osm.csv
+   npm run seed:merchants -- fetch-osm --city gurugram  --out ../data/seed/gurugram-osm.csv
+   ```
+2. Deploy the code that knows these cities first (`git push`, then `sudo /opt/vfl/app/deploy/deploy.sh` on the VM, §B11), or the VM's import rejects `--city`.
+3. Copy the files to the VM (from the repo root on your laptop):
+   ```bash
+   ZONE=us-central1-a
+   for f in noida pune mumbai delhi hyd chennai gurugram; do gcloud compute scp --zone=$ZONE data/seed/$f-osm.csv vfl-vm:/tmp/$f-osm.csv; done
+   gcloud compute ssh --zone=$ZONE vfl-vm
+   ```
+4. On the VM, dry-run each city first (prints how many would be created and why any are skipped):
+   ```bash
+   seed() { sudo -u vfl -H bash -c "cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/seed-merchants.js import /tmp/$2-osm.csv --city $1 $3"; }
+   seed noida noida --dry-run
+   seed pune pune --dry-run
+   seed mumbai mumbai --dry-run
+   seed delhi delhi --dry-run
+   seed hyderabad hyd --dry-run
+   seed chennai chennai --dry-run
+   seed gurugram gurugram --dry-run
+   ```
+5. Then import for real (same lines without `--dry-run`), and check the totals:
+   ```bash
+   seed noida noida
+   seed pune pune
+   seed mumbai mumbai
+   seed delhi delhi
+   seed hyderabad hyd
+   seed chennai chennai
+   seed gurugram gurugram
+   sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/seed-merchants.js stats'
+   rm /tmp/*-osm.csv
+   ```
+
 **Import (on the VM)**
 ```bash
 gcloud compute scp --zone=$ZONE data/seed/blr.csv vfl-vm:/tmp/blr.csv

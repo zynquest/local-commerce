@@ -3,6 +3,7 @@
 //
 // Pipeline (files under data/seed/, which is git-ignored):
 //   npm run seed:merchants -- fetch-osm    --city bengaluru --out ../data/seed/blr-osm.csv
+//   (cities: bengaluru, noida, pune, mumbai, delhi, hyderabad, chennai, gurugram; import with the same --city)
 //   npm run seed:merchants -- fetch-places --city bengaluru --out ../data/seed/blr-places.csv [--max-requests 300] [--yes]
 //   npm run seed:merchants -- merge        --out ../data/seed/blr.csv ../data/seed/blr-osm.csv ../data/seed/blr-places.csv
 //   (review / edit the CSV: delete rows, fix names, add shops you walked past — source "manual")
@@ -25,7 +26,7 @@ import { importSeeds } from '../seed/importer.js';
 import { fetchOsm } from '../seed/osm.js';
 import { USD_PER_1000, fetchPlaces, grid } from '../seed/places.js';
 import { removeSeedStore } from '../seed/stores.js';
-import { CITY_BBOX, dedupeRows, readCsv, writeCsv } from '../seed/util.js';
+import { CITY_BBOX, dedupeRows, excludeNeighbours, readCsv, writeCsv } from '../seed/util.js';
 
 const argv = process.argv.slice(2);
 const cmd = argv[0];
@@ -56,10 +57,10 @@ function area() {
     const km = Number(flag('radius-km', 2));
     const dLat = km / 111;
     const dLng = km / (111 * Math.cos((lat * Math.PI) / 180));
-    return { city: city.name, bbox: [lat - dLat, lng - dLng, lat + dLat, lng + dLng].map((v) => +v.toFixed(5)) };
+    return { key, city: city.name, bbox: [lat - dLat, lng - dLng, lat + dLat, lng + dLng].map((v) => +v.toFixed(5)) };
   }
   const bbox = flag('bbox');
-  return { city: city.name, bbox: bbox ? bbox.split(',').map(Number) : city.bbox };
+  return { key, city: city.name, bbox: bbox ? bbox.split(',').map(Number) : city.bbox };
 }
 
 function out(fallback) {
@@ -78,11 +79,13 @@ const summary = (rows) => {
 async function main() {
   switch (cmd) {
     case 'fetch-osm': {
-      const { city, bbox } = area();
+      const { key, city, bbox } = area();
       const file = out('../data/seed/osm.csv');
-      const { rows, failed } = await fetchOsm({
+      const fetched = await fetchOsm({
         bbox, city, tileKm: Number(flag('tile-km', 4)), includeChains: has('include-chains'), cacheDir: path.resolve('../data/seed/.cache/osm'),
       });
+      const { failed } = fetched;
+      const rows = excludeNeighbours(fetched.rows, key);
       writeCsv(file, rows);
       console.log(`[osm] ${summary(rows)} → ${file}`);
       if (failed) {
@@ -95,7 +98,7 @@ async function main() {
     case 'fetch-places': {
       const apiKey = process.env.GOOGLE_PLACES_API_KEY;
       if (!apiKey) throw new Error('Set GOOGLE_PLACES_API_KEY (a server key with "Places API (New)" enabled; Deployment.md §B21).');
-      const { city, bbox } = area();
+      const { key, city, bbox } = area();
       const spacingKm = Number(flag('spacing-km', 1.5));
       const maxRequests = Number(flag('max-requests', 200));
       const points = grid(bbox, spacingKm).length * 3;
@@ -105,7 +108,10 @@ async function main() {
         return;
       }
       const file = out('../data/seed/places.csv');
-      const rows = await fetchPlaces({ bbox, city, apiKey, spacingKm, maxRequests, includeChains: has('include-chains'), cacheDir: path.resolve('../data/seed/.cache/places') });
+      const rows = excludeNeighbours(
+        await fetchPlaces({ bbox, city, apiKey, spacingKm, maxRequests, includeChains: has('include-chains'), cacheDir: path.resolve('../data/seed/.cache/places') }),
+        key,
+      );
       writeCsv(file, rows);
       console.log(`[places] ${summary(rows)} → ${file}`);
       return;

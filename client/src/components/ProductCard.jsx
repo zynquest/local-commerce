@@ -41,7 +41,8 @@ export default function ProductCard({ product }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3">
-        <h3 className="line-clamp-2 min-h-[2.5rem] text-sm leading-tight font-medium text-stone-800">{product.name}</h3>
+        {/* Up to 3 lines; the minimum height is exactly 2 lines, so a clipped line never peeks out under the "…". */}
+        <h3 className="line-clamp-3 min-h-[2.75em] text-sm leading-snug font-medium break-words text-stone-800">{product.name}</h3>
         {product.rating > 0 && (
           <div className="flex items-center gap-1 text-[11px] text-stone-500">
             <Star size={12} className="fill-amber-400 text-amber-400" />

@@ -95,6 +95,63 @@ curl -s http://localhost:4000/s/demo | grep '<title>'
 
 ---
 
+## Server details (production)
+
+Values were recorded on 2026-11-03. Each row has the command that shows the current value. Run the "Mac" commands on your Mac with the `gcloud` project set to `vfl-sonsari` (`gcloud config set project vfl-sonsari`). Run the "VM" commands after `gcloud compute ssh --zone=asia-south1-a vfl-vm-in`.
+
+### Google Cloud
+
+| Item | Value | Command (Mac) |
+|---|---|---|
+| Project | `vfl-sonsari` ("Vocal For Local") | `gcloud config get-value project` |
+| VM name / status | `vfl-vm-in`, RUNNING | `gcloud compute instances list` |
+| Zone / region | `asia-south1-a` / `asia-south1` (Mumbai) | same as above |
+| Machine type | `e2-medium` (2 shared vCPUs, 4 GB RAM) | `gcloud compute instances describe vfl-vm-in --zone=asia-south1-a --format='value(machineType.basename())'` |
+| Public IP (static) | `35.207.218.224` (`vfl-ip-in`, STANDARD tier) | `gcloud compute addresses list` |
+| Internal IP | `10.160.0.2` | `gcloud compute instances describe vfl-vm-in --zone=asia-south1-a --format='value(networkInterfaces[0].networkIP)'` |
+| Boot disk | `vfl-vm-in`, 30 GB `pd-balanced` | `gcloud compute disks list` |
+| Service account | `629992295927-compute@developer.gserviceaccount.com`, with `storage.objectAdmin` on the backup bucket only | `gcloud compute instances describe vfl-vm-in --zone=asia-south1-a --format='yaml(serviceAccounts)'` |
+| Network tags | `http-server`, `https-server` | `gcloud compute instances describe vfl-vm-in --zone=asia-south1-a --format='value(tags.items)'` |
+| Firewall (inbound) | 22 (SSH), 80, 443 and ICMP from anywhere; 3389 (RDP) from the default rules, which is unused on Linux | `gcloud compute firewall-rules list` |
+| Backup bucket | `gs://vfl-sonsari-backups-in` (`ASIA-SOUTH1`, copies deleted after 14 days) | `gcloud storage ls -l gs://vfl-sonsari-backups-in` |
+| Created | 2026-11-03 | `gcloud compute instances describe vfl-vm-in --zone=asia-south1-a --format='value(creationTimestamp)'` |
+
+### Domain and HTTPS
+
+| Item | Value | Command (Mac) |
+|---|---|---|
+| Domain | `sonsari.in` (GoDaddy DNS): `A @ → 35.207.218.224`, `CNAME www → sonsari.in` | `dig +short sonsari.in; dig +short www.sonsari.in` |
+| Certificate | Let's Encrypt for `sonsari.in` and `www.sonsari.in`, expires 2027-01-13 and renews automatically | `echo \| openssl s_client -connect sonsari.in:443 -servername sonsari.in 2>/dev/null \| openssl x509 -noout -subject -enddate` (VM: `sudo certbot certificates`) |
+| Health | `{"ok":true}` | `curl -s https://sonsari.in/api/health` |
+
+### On the VM
+
+| Item | Value | Command (VM) |
+|---|---|---|
+| OS | Ubuntu 24.04.5 LTS, time zone UTC | `. /etc/os-release; echo $PRETTY_NAME; timedatectl \| grep 'Time zone'` |
+| CPU / RAM / swap | 2 vCPUs / 3.8 GiB / 2 GB `/swapfile` | `nproc; free -h; swapon --show` |
+| Disk | 29 GB, about 21% used | `df -h /` |
+| Node.js / npm | v20.20.2 / 10.8.2 | `node -v; npm -v` |
+| PostgreSQL | 16.15, `localhost:5432` only, `shared_buffers` 1 GB | `psql --version; sudo -u postgres psql -Atc 'SHOW shared_buffers'` |
+| Nginx / Certbot | 1.24.0 / 2.9.0 | `nginx -v; certbot --version` |
+| Database | `vocal_for_local`, owned by role `vfl`, about 89 MB | `sudo -u postgres psql -Atc "SELECT pg_size_pretty(pg_database_size('vocal_for_local'))"` |
+| Store / product counts | 11,209 stores, 149,484 products | `sudo -u postgres psql vocal_for_local -Atc "SELECT (SELECT count(*) FROM stores), (SELECT count(*) FROM products)"` |
+| Services | `vfl-api` (Node, user `vfl`), `nginx`, `postgresql` | `sudo systemctl status vfl-api nginx postgresql --no-pager` |
+| Listening ports | 80/443 Nginx, 22 SSH, 4000 Node, 5432 Postgres (localhost) | `sudo ss -ltnp` |
+| Node memory limit | `--max-old-space-size=768` (drop-in `/etc/systemd/system/vfl-api.service.d/memory.conf`) | `systemctl show vfl-api -p Environment --value` |
+| Postgres tuning | `/etc/postgresql/16/main/conf.d/zz-e2-medium.conf` (B6) | `cat /etc/postgresql/16/main/conf.d/zz-e2-medium.conf` |
+| Code | `/opt/vfl/app` (GitHub `zynquest/local-commerce`, branch `main`) | `sudo -u vfl git -C /opt/vfl/app log -1 --oneline` |
+| Uploads / backups | `/var/lib/vfl/uploads` (about 2 MB), `/var/lib/vfl/backups` (root-only, 7 days) | `sudo du -sh /var/lib/vfl/uploads /var/lib/vfl/backups; sudo ls -lt /var/lib/vfl/backups \| head` |
+| Environment file | `/etc/vfl/env` (`root:vfl`, 640). It holds the secrets, so never paste its contents anywhere. | Names only: `sudo grep -oE '^[A-Z_]+' /etc/vfl/env` |
+| Nginx site | `/etc/nginx/sites-available/sonsari.in` (from `deploy/nginx/sonsari.in.conf`) | `sudo nginx -T \| grep server_name` |
+| Cron (root) | 02:30 IST backup to the bucket; health check every 5 minutes | `sudo crontab -l` |
+| Logs | API: journald `vfl-api`; Nginx: `/var/log/nginx/`; backups: `/var/log/vfl-backup.log`; failed health checks: `/var/log/vfl-health.log` | `sudo journalctl -u vfl-api -n 50 --no-pager` |
+| Overall health | all checks ✓ | `sudo /opt/vfl/app/deploy/healthcheck.sh` |
+
+Port 4000 isn't reachable from the internet, because the firewall only allows 22, 80 and 443 in. Nginx proxies to Node locally.
+
+---
+
 ## B1. Prerequisites
 
 - A Google Cloud account with billing enabled.

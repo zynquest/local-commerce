@@ -8,6 +8,7 @@ import GoogleSignIn from '../components/GoogleSignIn.jsx';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 import { useSession } from '../context/SessionContext.jsx';
 import { rich, useI18n, useT } from '../i18n/index.jsx';
+import { storeNameError } from '../i18n/errors.js';
 import { PLATFORM } from '../config.js';
 import { useSeo } from '../lib/seo.js';
 
@@ -123,7 +124,7 @@ function EmailOwnerAuth({ mode }) {
       if (r.needsStore) {
         submitted.current = false;
         setNeedsStore(true);
-        if (isRegister) setFields({ storeName: form.storeName.trim().length < 2 ? t('errors.storeNameShort') : undefined, businessType: form.businessType ? undefined : t('biz.pickType') });
+        if (isRegister) setFields({ storeName: storeNameError(t, form.storeName), businessType: form.businessType ? undefined : t('biz.pickType') });
         return;
       }
       navigate(r.created ? '/merchant?welcome=1' : '/merchant', { replace: true });
@@ -144,7 +145,7 @@ function EmailOwnerAuth({ mode }) {
   const submit = async (e) => {
     e.preventDefault();
     if (needsStore && !form.businessType) return setFields({ businessType: t('biz.pickType') });
-    if (needsStore && form.storeName.trim().length < 2) return setFields({ storeName: t('errors.storeNameShort') });
+    if (needsStore && storeNameError(t, form.storeName)) return setFields({ storeName: storeNameError(t, form.storeName) });
     if (googleCredential) return run(() => authOwnerGoogle({ credential: googleCredential, ...storeBody() }));
     if (!isEmail(form.email)) return setFields({ email: t('errors.validEmail') });
     // On /register the store fields are filled first; they're only used if the email is new.
@@ -252,7 +253,7 @@ function MobileOwnerAuth({ mode }) {
     setError('');
     setFields({});
     if (isRegister && !form.businessType) return setFields({ businessType: t('biz.pickType') });
-    if (isRegister && form.storeName.trim().length < 2) return setFields({ storeName: t('errors.storeNameShort') });
+    if (isRegister && storeNameError(t, form.storeName)) return setFields({ storeName: storeNameError(t, form.storeName) });
     if (!isMobile10(form.phone)) return setFields({ phone: t('errors.validMobile10') });
     setBusy(true);
     submitted.current = true;

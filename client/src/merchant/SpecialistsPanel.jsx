@@ -9,6 +9,47 @@ export const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 export const DEFAULT_SCHEDULE = Object.fromEntries(DAYS.map((d) => [d, d === 'sun' ? [] : [['10:00', '19:00']]]));
 const EMPTY = { name: '', title: '', photo_url: null, schedule: DEFAULT_SCHEDULE, service_ids: [], active: true };
 
+const toMin = (hhmm) => {
+  const m = /^(\d{2}):(\d{2})$/.exec(hhmm || '');
+  return m ? Number(m[1]) * 60 + Number(m[2]) : NaN;
+};
+const fromMin = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+
+/** A day's problem as a locale key (the server's checks): a range that doesn't end after it starts, or ranges that overlap. */
+function dayError(ranges) {
+  const mins = ranges.map(([s, e]) => [toMin(s), toMin(e)]).sort((a, b) => a[0] - b[0]);
+  for (let i = 0; i < mins.length; i++) {
+    const [s, e] = mins[i];
+    if (Number.isNaN(s) || Number.isNaN(e) || e <= s) return 'appt.hoursEndAfterStart';
+    if (i > 0 && s < mins[i - 1][1]) return 'appt.hoursOverlap';
+  }
+  return null;
+}
+
+/** First problem in a weekly schedule, so it can be shown before saving: { day, key } or null. */
+export function scheduleError(schedule) {
+  for (const day of DAYS) {
+    const key = dayError(schedule?.[day] || []);
+    if (key) return { day, key };
+  }
+  return null;
+}
+
+/**
+ * The day's hours with a one-hour break in the middle (10:00–19:00 → 10:00–14:00 and 15:00–19:00), so the
+ * second range never overlaps the first. A short day gets the second range an hour after it instead.
+ */
+function withBreak([start, end]) {
+  const s = toMin(start);
+  const e = toMin(end);
+  if (Number.isNaN(s) || Number.isNaN(e) || e <= s) return [[start, end], ['16:00', '20:00']];
+  if (e - s >= 180) {
+    const b = s + Math.floor((e - s - 60) / 60) * 30;
+    return [[start, fromMin(b)], [fromMin(b + 60), end]];
+  }
+  return [[start, end], [fromMin(Math.min(e + 60, 22 * 60)), fromMin(Math.min(e + 120, 23 * 60 + 59))]];
+}
+
 /** Weekly working hours: each day off or up to two time ranges (e.g. 10:00–13:00 and 14:00–19:00). */
 export function ScheduleEditor({ value, onChange }) {
   const { t, dayName } = useI18n();
@@ -18,6 +59,7 @@ export function ScheduleEditor({ value, onChange }) {
       {DAYS.map((day) => {
         const ranges = value[day] || [];
         const open = ranges.length > 0;
+        const problem = dayError(ranges);
         return (
           <div key={day} className="flex flex-wrap items-center gap-2 rounded-xl bg-stone-50 p-2">
             <label className="flex w-28 flex-none items-center gap-2 text-sm font-semibold">
@@ -38,8 +80,9 @@ export function ScheduleEditor({ value, onChange }) {
               </span>
             ))}
             {open && ranges.length < 2 && (
-              <button type="button" onClick={() => setDay(day, [...ranges, ['16:00', '20:00']])} className="text-xs font-semibold text-brand">{t('appt.addBreak')}</button>
+              <button type="button" onClick={() => setDay(day, withBreak(ranges[0]))} className="text-xs font-semibold text-brand">{t('appt.addBreak')}</button>
             )}
+            {problem && <p role="alert" className="w-full text-xs font-medium text-rose-600">{t(problem, { day: dayName(day) })}</p>}
           </div>
         );
       })}
@@ -55,7 +98,7 @@ export function ScheduleEditor({ value, onChange }) {
 }
 
 function SpecialistForm({ specialist, services, onSave, onCancel, canUpload = true }) {
-  const { t } = useI18n();
+  const { t, dayName } = useI18n();
   const [form, setForm] = useState(() => (specialist ? { ...EMPTY, ...specialist } : { ...EMPTY, service_ids: services.map((s) => s.id) }));
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -81,6 +124,8 @@ function SpecialistForm({ specialist, services, onSave, onCancel, canUpload = tr
   const submit = async (e) => {
     e.preventDefault();
     if (!form.service_ids.length) return setError(t('appt.pickServices'));
+    const badHours = scheduleError(form.schedule);
+    if (badHours) return setError(t(badHours.key, { day: dayName(badHours.day) }));
     setBusy(true);
     setError('');
     try {

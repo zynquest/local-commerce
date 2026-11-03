@@ -582,6 +582,7 @@
     "explainReason": "Please explain the reason (min 5 characters)",
     "pleaseLogIn": "Please log in",
     "tooLarge": "Request too large",
+    "storeNameRequired": "Store name is required",
     "storeNameShort": "Store name is too short",
     "badImage": "That file could not be read as an image",
     "slugTaken": "That store link is already taken",
@@ -993,7 +994,9 @@
     "msg": {
       "confirmed": "Hi {name}, your appointment {code} for {service} with {specialist} on {date} at {time} is confirmed. See you soon! – {store}",
       "cancelled": "Hi {name}, sorry, we have to cancel your appointment {code} for {service} on {date} at {time}. Please book another time here: {link} – {store}"
-    }
+    },
+    "hoursOverlap": "{day}: the time ranges overlap. Start the second range after the first one ends.",
+    "hoursEndAfterStart": "{day}: the end time must be after the start time."
   },
   "book": {
     "title": "Book an appointment",

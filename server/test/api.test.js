@@ -96,6 +96,9 @@ describe('owner registration + login (10-digit mobile + OTP only)', () => {
   test('register needs store name, mobile and OTP; WhatsApp defaults to the (verified) mobile', async () => {
     const mobile = phoneA.slice(2);
     assert.equal((await owner('POST', '/api/auth/register', { storeName: `Gupta Kirana ${run}`, phone: mobile, code: '123' })).status, 400);
+    // An empty name says it's required; "too short" is only for one character.
+    assert.equal((await owner('POST', '/api/auth/register', { storeName: '   ', phone: mobile, code: '123456' })).body.fields.storeName, 'Store name is required');
+    assert.equal((await owner('POST', '/api/auth/register', { storeName: 'A', phone: mobile, code: '123456' })).body.fields.storeName, 'Store name is too short');
     const code = await otpFor(owner, mobile, 'owner_register', { name: `Gupta Kirana ${run}` });
     const wrong = code === '000000' ? '111111' : '000000';
     assert.equal((await owner('POST', '/api/auth/register', { storeName: `Gupta Kirana ${run}`, phone: mobile, code: wrong })).status, 400);

@@ -77,6 +77,7 @@ const EXACT = {
   'Product not found': 'product.notFound',
   'Request too large': 'errors.tooLarge',
   'Something went wrong': 'errors.generic',
+  'Store name is required': 'errors.storeNameRequired',
   'Store name is too short': 'errors.storeNameShort',
   'Store not found': 'status.storeNotFound',
   'That file could not be read as an image': 'errors.badImage',
@@ -128,4 +129,11 @@ export function translateFields(t, fields) {
     else out[k] = translateMessage(t, v);
   }
   return out;
+}
+
+/** Client-side store name check, worded like the server's: empty → required, then too short. */
+export function storeNameError(t, name) {
+  const n = String(name || '').trim();
+  if (!n) return t('errors.storeNameRequired');
+  return n.length < 2 ? t('errors.storeNameShort') : undefined;
 }

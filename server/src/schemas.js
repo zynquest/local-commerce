@@ -39,7 +39,7 @@ export const phone = z.preprocess(normalizePhone, z.string().regex(/^[1-9]\d{9,1
 export const mobile10 = z.preprocess(normalizePhone, z.string().regex(/^91[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number'));
 
 export const email = z.string().trim().toLowerCase().max(120).regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/, 'Enter a valid email address');
-const storeName = z.preprocess(cleanText, z.string().min(2, 'Store name is too short').max(60, 'Max 60 characters'));
+const storeName = z.preprocess(cleanText, z.string().min(1, 'Store name is required').min(2, 'Store name is too short').max(60, 'Max 60 characters'));
 const otpCode = z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit code');
 
 export const BUSINESS_TYPES = ['shop', 'appointments'];
@@ -112,7 +112,7 @@ export const pushUnsubscribe = z.object({ endpoint: z.string().max(1000) });
 // Admin correction of the details owners can't change after approval (name, link, type, store type, WhatsApp).
 export const storeDetailsFix = z
   .object({
-    name: z.preprocess(cleanText, z.string().min(2, 'Store name is too short').max(60)),
+    name: z.preprocess(cleanText, z.string().min(1, 'Store name is required').min(2, 'Store name is too short').max(60)),
     slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Lowercase letters, numbers and single hyphens only').max(60),
     category: z.preprocess(cleanText, z.string().min(1, 'Store type is required').max(40)),
     business_type: z.enum(BUSINESS_TYPES),

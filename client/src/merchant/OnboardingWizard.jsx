@@ -10,10 +10,11 @@ import { categoriesFor, slugify } from '../businessCategories.js';
 import { PLATFORM } from '../config.js';
 import { LANGUAGES } from '../i18n/languages.js';
 import { useI18n } from '../i18n/index.jsx';
+import { storeNameError } from '../i18n/errors.js';
 import { del, get, post, put } from '../lib/api.js';
 import { formatMoney } from '../lib/format.js';
 import { whatsappLink } from '../services/whatsappService.js';
-import { DAYS, DEFAULT_SCHEDULE, ScheduleEditor } from './SpecialistsPanel.jsx';
+import { DAYS, DEFAULT_SCHEDULE, ScheduleEditor, scheduleError } from './SpecialistsPanel.jsx';
 
 const national = (n) => (n ? String(n).replace(/^91(?=\d{10}$)/, '') : '');
 const pretty = (n) => (n ? `+91 ${national(n).slice(0, 5)} ${national(n).slice(5)}` : '—');
@@ -184,6 +185,8 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
     if (key === 'product' && (!item.name.trim() || item.mrp === '' || item.offer_price === '')) return setErrors({ _: t('setup.needProduct') }), false;
     if (key === 'services' && (!item.name.trim() || item.price === '')) return setErrors({ _: t('setup.needService') }), false;
     if (key === 'team' && (!member.name.trim() || !Object.values(member.schedule).some((r) => r.length))) return setErrors({ _: t('setup.needTeam') }), false;
+    const badHours = key === 'team' && scheduleError(member.schedule);
+    if (badHours) return setErrors({ _: t(badHours.key, { day: dayName(badHours.day) }) }), false;
     const isNew = editing === 'new';
     return save(async () => {
       if (key === 'product') {
@@ -231,7 +234,7 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
     if (key === 'business' && locked) return go(step + 1);
     if (key === 'business') {
       if (!form.category.trim()) e.category = t('setup.pickCategory');
-      if (form.name.trim().length < 2) e.name = t('errors.storeNameShort');
+      if (storeNameError(t, form.name)) e.name = storeNameError(t, form.name);
       if (Object.keys(e).length) return setErrors(e);
       const ok = await save(() => saveStore({ business_type: form.business_type, category: form.category.trim(), name: form.name.trim() }));
       if (ok) go(step + 1);
@@ -509,6 +512,8 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
                       <div>
                         <p className="label">{t('appt.workingHours')} <span className="text-rose-500">*</span></p>
                         <ScheduleEditor value={member.schedule} onChange={(schedule) => setMember({ ...member, schedule })} />
+                        {/* The server reports schedule problems as a field error; the team form has no other place for it. */}
+                        {errors.schedule && <p className="mt-1 text-xs text-rose-600">{errors.schedule}</p>}
                       </div>
                       {editing === 'new' && <p className="text-[11px] text-stone-500">{t('setup.teamAllServices')}</p>}
                     </>

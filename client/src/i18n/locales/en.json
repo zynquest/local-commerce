@@ -349,6 +349,15 @@
       "p2": "Live in 10 min",
       "p3": "Own your customers"
     },
+    "video": {
+      "title": "Watch how it works",
+      "subtitle": "A two-minute video for shop owners and shoppers.",
+      "owners": "For shop owners",
+      "shoppers": "For shoppers",
+      "language": "Video language",
+      "audience": "Who the video is for",
+      "play": "Play video: {title}"
+    },
     "useCases": {
       "title": "Built for every local business",
       "subtitle": "Shops, restaurants, salons and clinics run on the same free tools. Open a demo to see it live.",

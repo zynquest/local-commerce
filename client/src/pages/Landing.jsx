@@ -7,6 +7,7 @@ import {
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import InstagramIcon from '../components/InstagramIcon.jsx';
 import SiteHeader from '../components/SiteHeader.jsx';
+import HomeVideos from '../components/HomeVideos.jsx';
 import { useSeo } from '../lib/seo.js';
 import { NearbyBar, StoreList } from './StoreDirectory.jsx';
 import { PLATFORM } from '../config.js';
@@ -286,6 +287,8 @@ export default function Landing() {
           <PhoneMockup />
         </div>
       </section>
+
+      <HomeVideos />
 
       {/* Use cases */}
       <section className="bg-stone-50 py-16" aria-labelledby="use-cases">

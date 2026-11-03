@@ -54,8 +54,9 @@ export function createApp() {
           scriptSrc: ["'self'", 'https://maps.googleapis.com', 'https://maps.gstatic.com', 'https://accounts.google.com'],
           connectSrc: ["'self'", 'https://maps.googleapis.com', 'https://places.googleapis.com', 'https://*.googleapis.com', 'https://maps.gstatic.com', 'https://accounts.google.com'],
           fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
-          // Home page embeds a Google Map of Sonsari (keyless maps.google.com/maps?output=embed iframe).
-          frameSrc: ["'self'", 'https://maps.google.com', 'https://www.google.com', 'https://accounts.google.com'],
+          // Home page embeds a Google Map of Sonsari (keyless maps.google.com/maps?output=embed iframe)
+          // and the explainer videos (youtube-nocookie player, loaded on tap).
+          frameSrc: ["'self'", 'https://maps.google.com', 'https://www.google.com', 'https://accounts.google.com', 'https://www.youtube-nocookie.com'],
         },
       },
       // The Google sign-in popup must be able to report back to this page.

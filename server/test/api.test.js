@@ -137,6 +137,11 @@ describe('owner registration + login (10-digit mobile + OTP only)', () => {
     const r = await owner('POST', '/api/merchant/products', product('X1'), { Origin: 'https://evil.example' });
     assert.equal(r.status, 403);
   });
+
+  test("home page CSP lets the explainer videos' YouTube player frame load", async () => {
+    const csp = (await fetch(`${base}/`)).headers.get('content-security-policy');
+    assert.match(csp, /frame-src[^;]*https:\/\/www\.youtube-nocookie\.com/);
+  });
 });
 
 describe('WhatsApp number change requires OTP', () => {

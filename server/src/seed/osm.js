@@ -6,7 +6,12 @@ import path from 'node:path';
 import { OSM_KIND_TO_CATEGORY } from './catalogs.js';
 import { distanceKm, isChain, simpleHours } from './util.js';
 
-const SERVERS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+const SERVERS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+];
 const UA = 'sonsari-merchant-seed/1.0 (+https://sonsari.in)';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

@@ -3,7 +3,7 @@
 This guide has two parts:
 
 - **Part A — Local development** on your Mac.
-- **Part B — Production on Google Cloud.** One free-tier VM runs **Nginx + Node.js + PostgreSQL** natively (no Docker, no Cloudflare). Code is deployed from **GitHub** with `git pull` and served at **https://sonsari.in** (domain at GoDaddy).
+- **Part B — Production on Google Cloud.** One VM in Mumbai (`asia-south1`) runs **Nginx + Node.js + PostgreSQL** natively (no Docker, no Cloudflare). Code is deployed from **GitHub** with `git pull` and served at **https://sonsari.in** (domain at GoDaddy).
 
 ---
 
@@ -59,8 +59,8 @@ curl -s http://localhost:4000/s/demo | grep '<title>'
 
 ```
                       ┌─────────────────────────────────────────────────┐
-                      │   GCP Compute Engine — e2-micro (Always Free)   │
-                      │   Ubuntu 24.04 · 30 GB standard disk · 2 GB swap │
+                      │   GCP Compute Engine — e2-medium, asia-south1   │
+                      │   Ubuntu 24.04 · 30 GB balanced disk · 2 GB swap │
  Shoppers ──HTTPS──►  │                                                 │
  (sonsari.in →        │   Nginx :80/:443  (Let's Encrypt TLS, gzip)     │
   static IPv4)        │     ├─ /assets/*, icons    → client/dist         │
@@ -78,25 +78,26 @@ curl -s http://localhost:4000/s/demo | grep '<title>'
 
 | Item | Choice | Monthly cost |
 |---|---|---|
-| VM | 1 × `e2-micro` in `us-central1`, `us-east1` or `us-west1` | **Free** (Always Free) |
-| Disk | 30 GB **`pd-standard`** (the default `pd-balanced` is *not* free) | **Free** |
-| Outbound data | **Standard network tier**: first 200 GiB/month free (Premium tier only gives 1 GB) | **Free** at normal traffic |
-| Public IPv4 (static) | Required so visitors can reach the VM without a proxy | **≈ $3.65 (≈ ₹310)**. Google charges $0.005/hour for an external IPv4, even on the free e2-micro. |
+| VM | 1 × `e2-medium` (2 shared vCPUs, 4 GB RAM) in `asia-south1` (Mumbai) | **≈ $28–30** |
+| Disk | 30 GB **`pd-balanced`** | **≈ $3–4** |
+| Outbound data | **Standard network tier** (cheaper per GB than Premium) | Small at normal traffic |
+| Public IPv4 (static) | Required so visitors can reach the VM without a proxy | **≈ $3.65**. Google charges $0.005/hour for an external IPv4. |
 | TLS certificate | Let's Encrypt via Certbot | Free |
-| Backups (optional) | Cloud Storage bucket in the same US region, ≤ 5 GB | Free |
+| Backups | Cloud Storage bucket in `asia-south1` | A few cents |
 | Domain | `sonsari.in` at GoDaddy | Your renewal only |
 
-**The only charge is the IPv4 address, about ₹310/month.** There's no way around it without a proxy such as Cloudflare. New Google Cloud accounts get **$300 of free-trial credit for 90 days**, which covers it at first. Set the budget alert in B3 regardless.
+**Expected spend is about $35–40 (≈ ₹3,000–3,400) a month**, almost all of it the VM. Check current prices in the [pricing calculator](https://cloud.google.com/products/calculator); a 1-year committed-use discount takes about 37% off the VM. Set the budget alert in B3.
 
 **Things to know:**
-- **Speed:** the free VMs exist only in US regions, so pages take about 250 ms longer to respond from India. The PWA caches the app on phones after the first visit.
-- **Capacity:** an e2-micro (2 shared vCPUs, 1 GB RAM) comfortably runs many small stores. In tests, Node and Postgres used about 50 MB at idle.
+- **Speed:** the VM is in Mumbai, close to the shoppers. The PWA also caches the app on phones after the first visit.
+- **Capacity:** 4 GB RAM leaves plenty of room for Node and Postgres with 11,000+ stores and 150,000 products. After the B6 tuning, memory use is under 20%.
+- **History:** production ran on a free `e2-micro` in `us-central1` (project `zmoneyplus-506717`) until November 2026. `Migration-asia-south1.md` records how it was moved.
 
 ---
 
 ## B1. Prerequisites
 
-- A Google Cloud account with billing enabled. Free-tier use still needs a billing account with a card.
+- A Google Cloud account with billing enabled.
 - The `gcloud` CLI (A1), authenticated:
 
   ```bash
@@ -151,41 +152,41 @@ gcloud config set project vfl-sonsari
 3. Create a budget alert:
    - Go to **Billing → Budgets & alerts → Create budget**.
    - Scope it to project `vfl-sonsari`.
-   - Set the amount to **₹500**, with alerts at 50%, 90% and 100%.
-   - Expected spend is about ₹310/month (the IPv4 address); anything more means something isn't free.
+   - Set the amount to **₹3,500**, with alerts at 50%, 90% and 100%.
+   - Expected spend is about ₹3,000–3,400/month (B0); anything more means something unexpected is running.
 
 ---
 
-## B4. Static IP, firewall and the free VM
+## B4. Static IP, firewall and the VM
+
+Production runs as **`vfl-vm-in`** (static IP **`vfl-ip-in`**, currently `35.207.218.224`) in zone `asia-south1-a` of project `vfl-sonsari`. To build it again from scratch:
 
 ```bash
-REGION=us-central1
-ZONE=us-central1-a
+REGION=asia-south1
+ZONE=asia-south1-a
 
-# 1. Reserve a static IPv4 on the STANDARD network tier (200 GiB/month free egress)
-gcloud compute addresses create vfl-ip --region=$REGION --network-tier=STANDARD
-gcloud compute addresses describe vfl-ip --region=$REGION --format='get(address)'
-#    → note this IP (e.g. 34.1.2.3) — it goes into GoDaddy DNS
+# 1. Reserve a static IPv4 on the STANDARD network tier
+gcloud compute addresses create vfl-ip-in --region=$REGION --network-tier=STANDARD
+gcloud compute addresses describe vfl-ip-in --region=$REGION --format='get(address)'
+#    → note this IP — it goes into GoDaddy DNS
 
 # 2. Firewall: HTTP + HTTPS from anywhere (the default network already allows SSH on 22)
 gcloud compute firewall-rules create vfl-allow-http  --network=default --direction=INGRESS --allow=tcp:80  --target-tags=http-server
 gcloud compute firewall-rules create vfl-allow-https --network=default --direction=INGRESS --allow=tcp:443 --target-tags=https-server
 
-# 3. The VM — every flag below matters for staying in the free tier
-gcloud compute instances create vfl-vm \
+# 3. The VM. --scopes must include storage-rw, or nightly backups can't upload to Cloud Storage (B12);
+#    access scopes can only be changed while the VM is stopped.
+gcloud compute instances create vfl-vm-in \
   --zone=$ZONE \
-  --machine-type=e2-micro \
+  --machine-type=e2-medium \
   --image-family=ubuntu-2404-lts-amd64 --image-project=ubuntu-os-cloud \
-  --boot-disk-size=30GB --boot-disk-type=pd-standard \
-  --network-tier=STANDARD --address=vfl-ip \
+  --boot-disk-size=30GB --boot-disk-type=pd-balanced \
+  --network-tier=STANDARD --address=vfl-ip-in \
   --scopes=storage-rw,logging-write,monitoring-write \
   --tags=http-server,https-server
 ```
 
-**Free-tier rules:**
-- `e2-micro` in `us-central1`, `us-east1` or `us-west1`
-- `pd-standard` disk of at most 30 GB
-- only **one** such VM per billing account
+If the project has no `default` network (check with `gcloud compute networks list`), create it first with `gcloud compute networks create default --subnet-mode=auto`, then allow SSH with `gcloud compute firewall-rules create default-allow-ssh --network=default --direction=INGRESS --allow=tcp:22`.
 
 **Optional SSH hardening:** the `default-allow-ssh` rule allows port 22 from anywhere. To accept SSH only through Google's IAP proxy, restrict it and then add `--tunnel-through-iap` to every `gcloud compute ssh` / `scp` command:
 
@@ -226,16 +227,16 @@ gcloud compute firewall-rules update default-allow-ssh --source-ranges=35.235.24
 From your Mac, in the project folder:
 
 ```bash
-gcloud compute scp --zone=$ZONE deploy/setup-vm.sh vfl-vm:~/
-gcloud compute ssh --zone=$ZONE vfl-vm
+gcloud compute scp --zone=$ZONE deploy/setup-vm.sh vfl-vm-in:~/
+gcloud compute ssh --zone=$ZONE vfl-vm-in
 # ── now on the VM ──
 sudo bash setup-vm.sh
 ```
 
 What `setup-vm.sh` does (safe to re-run):
-- adds a **2 GB swap** file (needed for `npm ci` and the build on 1 GB RAM);
+- adds a **2 GB swap** file (a safety margin for `npm ci` and the build);
 - installs Git, **Nginx**, **Certbot**, **PostgreSQL 16** and **Node.js 20**, and turns on automatic security updates. It works on Ubuntu 24.04/22.04 and Debian 12/11; if the OS doesn't ship PostgreSQL 16, it adds PostgreSQL's official apt repository;
-- tunes Postgres for 1 GB RAM and makes it listen on `localhost` only;
+- tunes Postgres for a 1 GB VM (raised for 4 GB below) and makes it listen on `localhost` only;
 - creates the system user **`vfl`** and these directories:
   - `/opt/vfl` — the code
   - `/var/lib/vfl/uploads` — product photos
@@ -268,6 +269,24 @@ Save the database password from `DATABASE_URL` in your password manager.
 
 ```bash
 sudo nano /etc/vfl/env
+```
+
+**Tune for the e2-medium's 4 GB RAM.** `setup-vm.sh` and the committed systemd unit are sized for a 1 GB VM. Override them with files that re-running `setup-vm.sh` or `deploy.sh` leaves alone. Postgres reads `conf.d` in alphabetical order, so `zz-` loads last and wins:
+
+```bash
+sudo tee /etc/postgresql/16/main/conf.d/zz-e2-medium.conf >/dev/null <<'PG'
+shared_buffers = 1GB
+effective_cache_size = 3GB
+work_mem = 8MB
+maintenance_work_mem = 128MB
+max_connections = 40
+PG
+sudo systemctl restart postgresql
+
+# Node heap: the unit sets 256 MB; this drop-in raises it.
+sudo mkdir -p /etc/systemd/system/vfl-api.service.d
+printf '[Service]\nEnvironment=NODE_OPTIONS=--max-old-space-size=768\n' | sudo tee /etc/systemd/system/vfl-api.service.d/memory.conf
+sudo systemctl daemon-reload
 ```
 
 ---
@@ -314,7 +333,7 @@ The deploy script:
 4. sets `/opt/vfl` to `711` and checks that Nginx (`www-data`) can read `client/dist`. If it can't, the deploy stops instead of putting live a page whose CSS and JS return 404 ([fix](#unstyled-page-cssjs-404));
 5. installs the **systemd** unit `vfl-api` (`deploy/systemd/vfl-api.service`), restarts it, and waits for `/api/health`.
 
-The API applies **database migrations automatically on start**. The first run takes about 2 minutes on the e2-micro.
+The API applies **database migrations automatically on start**. The first run on an empty database takes under a minute.
 
 ```bash
 sudo systemctl status vfl-api --no-pager
@@ -452,7 +471,7 @@ git add -A && git commit -m "…" && git push
 On the VM:
 
 ```bash
-gcloud compute ssh --zone=$ZONE vfl-vm
+gcloud compute ssh --zone=asia-south1-a vfl-vm-in
 sudo /opt/vfl/app/deploy/deploy.sh        # git pull → npm ci → build → restart → health check → reload nginx
 ```
 
@@ -501,31 +520,41 @@ sudo ls -la /var/lib/vfl/backups
 
 Each run saves a Postgres dump (`vfl-*.dump`) and the product photos (`uploads-*.tgz`).
 
-**Off-VM copy (recommended; free up to 5 GB in the same region):**
+**Off-VM copy (production uses `gs://vfl-sonsari-backups-in` in `asia-south1`):**
 
 ```bash
-gcloud storage buckets create gs://vfl-sonsari-backups --location=us-central1 --uniform-bucket-level-access
+gcloud storage buckets create gs://vfl-sonsari-backups-in --location=asia-south1 --uniform-bucket-level-access
 ```
 
 Then:
-1. Edit the crontab (`sudo crontab -e`) so the job sets the bucket:
+1. Let the VM's service account write to the bucket. In `vfl-sonsari` the default compute service account has no project roles, so without this grant the upload fails with "does not have permission":
+
+   ```bash
+   SA=$(gcloud compute instances describe vfl-vm-in --zone=asia-south1-a --format='value(serviceAccounts[0].email)')
+   gcloud storage buckets add-iam-policy-binding gs://vfl-sonsari-backups-in --member="serviceAccount:$SA" --role=roles/storage.objectAdmin
+   ```
+
+   If the error says "Provided scope(s) are not authorized" instead, the VM was created without `--scopes=storage-rw` (B4).
+
+2. Edit the crontab (`sudo crontab -e`) so the job sets the bucket:
 
    ```
-   0 21 * * * BACKUP_BUCKET=gs://vfl-sonsari-backups /opt/vfl/app/deploy/backup.sh >> /var/log/vfl-backup.log 2>&1
+   0 21 * * * BACKUP_BUCKET=gs://vfl-sonsari-backups-in /opt/vfl/app/deploy/backup.sh >> /var/log/vfl-backup.log 2>&1
    ```
 
-2. Optionally, delete copies older than 14 days automatically:
+3. Delete copies older than 14 days automatically:
 
    ```bash
    echo '{"rule":[{"action":{"type":"Delete"},"condition":{"age":14}}]}' > /tmp/lc.json
-   gcloud storage buckets update gs://vfl-sonsari-backups --lifecycle-file=/tmp/lc.json
+   gcloud storage buckets update gs://vfl-sonsari-backups-in --lifecycle-file=/tmp/lc.json
    ```
 
 **Restore:**
 
 ```bash
 sudo systemctl stop vfl-api
-sudo -u postgres pg_restore --clean --if-exists -d vocal_for_local /var/lib/vfl/backups/vfl-YYYYMMDD-HHMM.dump
+# The backups folder is root-only and pg_restore runs as postgres, so pipe the file in:
+sudo cat /var/lib/vfl/backups/vfl-YYYYMMDD-HHMM.dump | sudo -u postgres pg_restore --clean --if-exists -d vocal_for_local
 sudo tar xzf /var/lib/vfl/backups/uploads-YYYYMMDD-HHMM.tgz -C /var/lib/vfl && sudo chown -R vfl:vfl /var/lib/vfl/uploads
 sudo systemctl start vfl-api
 ```
@@ -533,7 +562,7 @@ sudo systemctl start vfl-api
 To copy a backup to your Mac:
 
 ```bash
-gcloud compute scp --zone=$ZONE vfl-vm:/var/lib/vfl/backups/<file> .
+gcloud compute scp --zone=asia-south1-a vfl-vm-in:/var/lib/vfl/backups/<file> .
 ```
 
 The file is root-only, so on the VM first run `sudo cp` to your home directory and `sudo chown` it to yourself.
@@ -750,18 +779,18 @@ sudo chmod -R o+rX /opt/vfl/app/client/dist
 
 ## B18. Cost checklist
 
-- [ ] VM is `e2-micro` in `us-central1`, `us-east1` or `us-west1`, and it's the only one.
-- [ ] Boot disk is **`pd-standard` ≤ 30 GB**.
+- [ ] The only VFL VM is `vfl-vm-in` (`e2-medium`, `asia-south1-a`, project `vfl-sonsari`). The old `vfl-vm` in `zmoneyplus-506717` is deleted (`Migration-asia-south1.md`, Phase 4).
+- [ ] Boot disk is **`pd-balanced` 30 GB**.
 - [ ] Network tier is **STANDARD** for both the VM and the static IP.
-- [ ] Exactly **one** static IP, **attached** to the VM. An unattached reserved IP costs twice as much: `gcloud compute addresses list`.
+- [ ] Exactly **one** static IP, **attached** to the VM. An unattached reserved IP still costs money: `gcloud compute addresses list`, and check `zmoneyplus-506717` too.
 - [ ] No snapshots, load balancers, Cloud NAT or Cloud SQL.
-- [ ] Backup bucket (if any) is in the same US region and under 5 GB.
-- [ ] Budget alert is configured; expected spend is about ₹310/month for the IPv4 address.
+- [ ] Backup bucket is `gs://vfl-sonsari-backups-in` in `asia-south1`, with the 14-day delete rule.
+- [ ] Budget alert is configured; expected spend is about ₹3,000–3,400/month.
 - [ ] Google Maps (if enabled, [B19](#b19-google-maps-address-search-and-near-me)): key restricted to your domain and the 3 APIs, daily quota caps set.
 - [ ] SMS OTPs (if `OTP_PROVIDER=sms`, [B14](#b14-login-otps-email-relay-whatsapp-or-sms-via-fast2sms)): Fast2SMS wallet is prepaid, so the only exposure is the balance you top up. Keep a low-balance alert on in the Fast2SMS panel.
 
 Pricing references:
-- https://cloud.google.com/free/docs/free-cloud-features#compute
+- https://cloud.google.com/compute/vm-instance-pricing
 - https://cloud.google.com/vpc/network-pricing
 
 ---
@@ -946,9 +975,9 @@ Delhi's box overlaps Noida and Gurugram, so the Delhi file leaves out shops insi
 2. Deploy the code that knows these cities first (`git push`, then `sudo /opt/vfl/app/deploy/deploy.sh` on the VM, §B11), or the VM's import rejects `--city`.
 3. Copy the files to the VM (from the repo root on your laptop):
    ```bash
-   ZONE=us-central1-a
-   for f in noida pune mumbai delhi hyd chennai gurugram; do gcloud compute scp --zone=$ZONE data/seed/$f-osm.csv vfl-vm:/tmp/$f-osm.csv; done
-   gcloud compute ssh --zone=$ZONE vfl-vm
+   ZONE=asia-south1-a
+   for f in noida pune mumbai delhi hyd chennai gurugram; do gcloud compute scp --zone=$ZONE data/seed/$f-osm.csv vfl-vm-in:/tmp/$f-osm.csv; done
+   gcloud compute ssh --zone=$ZONE vfl-vm-in
    ```
 4. On the VM, dry-run each city first (prints how many would be created and why any are skipped):
    ```bash
@@ -976,8 +1005,9 @@ Delhi's box overlaps Noida and Gurugram, so the Delhi file leaves out shops insi
 
 **Import (on the VM)**
 ```bash
-gcloud compute scp --zone=$ZONE data/seed/blr.csv vfl-vm:/tmp/blr.csv
-gcloud compute ssh --zone=$ZONE vfl-vm
+ZONE=asia-south1-a
+gcloud compute scp --zone=$ZONE data/seed/blr.csv vfl-vm-in:/tmp/blr.csv
+gcloud compute ssh --zone=$ZONE vfl-vm-in
 sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/seed-merchants.js import /tmp/blr.csv --dry-run'
 sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/seed-merchants.js import /tmp/blr.csv'
 ```

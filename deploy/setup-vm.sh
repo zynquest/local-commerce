@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-time VM bootstrap for a GCP e2-micro (1 GB RAM, free tier). Works on Ubuntu 22.04/24.04 and Debian 11/12
+# One-time bootstrap for the production VM (GCP e2-medium, 4 GB RAM, asia-south1). Works on Ubuntu 22.04/24.04 and Debian 11/12
 # (PostgreSQL 16 comes from the official apt.postgresql.org repo when the OS doesn't ship it).
 # Installs PostgreSQL 16, Node.js 20, Nginx and Certbot natively (no Docker) and prepares
 # a dedicated "vfl" user, directories and /etc/vfl/env.
@@ -16,7 +16,7 @@ case "${ID:-}" in
   *) echo "Unsupported OS '${PRETTY_NAME:-unknown}'. Create the VM from an Ubuntu 24.04 LTS or Debian 12 image."; exit 1 ;;
 esac
 
-echo "==> 2 GB swap (npm install + Vite build need more than 1 GB RAM)"
+echo "==> 2 GB swap (safety margin for npm ci + the Vite build)"
 if ! swapon --show | grep -q /swapfile; then
   fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
   echo '/swapfile none swap sw 0 0' >> /etc/fstab
@@ -53,7 +53,9 @@ if ! command -v node >/dev/null || ! node -v | grep -q '^v20'; then
 fi
 node -v
 
-echo "==> PostgreSQL tuned for 1 GB RAM, local connections only"
+# Conservative defaults that fit a 1 GB VM. Production (4 GB) raises them in conf.d/zz-e2-medium.conf, which
+# loads after this file and survives re-runs (Deployment.md §B6).
+echo "==> PostgreSQL baseline tuning, local connections only"
 mkdir -p /etc/postgresql/16/main/conf.d
 cat > /etc/postgresql/16/main/conf.d/vfl.conf <<'PG'
 listen_addresses = 'localhost'
@@ -119,4 +121,4 @@ else
 fi
 
 echo
-echo "Done. Next: clone the repo into /opt/vfl/app as the vfl user (see Deployment.md §4)."
+echo "Done. Next: clone the repo into /opt/vfl/app as the vfl user (Deployment.md §B7), then apply the 4 GB tuning (§B6)."

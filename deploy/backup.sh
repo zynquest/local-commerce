@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Nightly backup (root cron): Postgres dump + uploaded photos. Keeps 7 days locally and optionally
-# copies to a Cloud Storage bucket (5 GB/month free in us-central1/us-east1/us-west1).
+# copies to a Cloud Storage bucket (production: gs://vfl-sonsari-backups-in in asia-south1, Deployment.md §B12).
 #   0 21 * * * BACKUP_BUCKET=gs://your-bucket /opt/vfl/app/deploy/backup.sh >> /var/log/vfl-backup.log 2>&1
 set -euo pipefail
 umask 077  # backups contain customer data: root-only

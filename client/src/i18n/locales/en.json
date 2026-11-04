@@ -84,6 +84,11 @@
     "seedNotice": "Listed by {brand} from public information. This shop doesn't take online orders yet; prices are indicative.",
     "seedClaimLinks": "Own this shop? <claim>Claim it free</claim> or <remove>ask us to remove it</remove>",
     "seedRemoveMsg": "Hi, please remove the listing of {name} ({link}) from {brand}.",
+    "seedAboutTitle": "About this listing",
+    "seedAbout": "{brand} listed this shop from public OpenStreetMap data, only to make it easier for its owner to come online. {brand} has no other connection with this shop, and the details may be out of date. If you own it, claim it free, or ask us to remove it from {brand}.",
+    "seedAboutPublic": "{brand} listed this shop from public information, only to make it easier for its owner to come online. {brand} has no other connection with this shop, and the details may be out of date. If you own it, claim it free, or ask us to remove it from {brand}.",
+    "seedClaimCta": "Claim this shop free",
+    "seedRemoveCta": "Ask us to remove it",
     "seedBadge": "Not taking orders yet"
   },
   "cart": {

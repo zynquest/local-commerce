@@ -1,4 +1,4 @@
-import { MapPin } from 'lucide-react';
+import { MapPin, Sprout } from 'lucide-react';
 import InstagramIcon from './InstagramIcon.jsx';
 import { Link } from 'react-router-dom';
 import WhatsAppIcon from './WhatsAppIcon.jsx';
@@ -18,6 +18,24 @@ export default function StoreFooter() {
   return (
     <footer className="mt-10 border-t border-stone-200 bg-white pb-28">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-8 text-center">
+        {/* Unclaimed seeded listing: where it came from, why it's here, and how the owner takes it over or removes it. */}
+        {config.is_seed && (
+          <div className="w-full max-w-xl rounded-2xl border border-lime-200 bg-lime-50 p-4 text-start text-sm text-lime-950" role="note">
+            <p className="flex items-center gap-1.5 font-bold"><Sprout size={16} className="flex-none" /> {t('store.seedAboutTitle')}</p>
+            <p className="mt-1">{t(config.seed_source === 'osm' ? 'store.seedAbout' : 'store.seedAboutPublic', { brand: PLATFORM.name })}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link to={`/register?claim=${encodeURIComponent(config.slug)}`} className="btn-brand px-4 py-2 text-sm">{t('store.seedClaimCta')}</Link>
+              <a
+                href={whatsappLink(PLATFORM.whatsappNumber, t('store.seedRemoveMsg', { name: config.name, link: `${window.location.origin}${basePath}`, brand: PLATFORM.name }))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost px-4 py-2 text-sm"
+              >
+                <WhatsAppIcon size={16} /> {t('store.seedRemoveCta')}
+              </a>
+            </div>
+          </div>
+        )}
         <p className="font-bold">{config.name}</p>
         <div className="flex gap-3">
           {config.whatsapp_number && (

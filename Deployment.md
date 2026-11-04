@@ -1015,7 +1015,7 @@ npm run seed:merchants -- merge --out ../data/seed/blr.csv ../data/seed/blr-osm.
 ```
 Open `data/seed/blr.csv` in a spreadsheet: delete rows you don't want, fix names, add shops (keep the columns). `data/seed/` is git-ignored.
 
-**Other cities** — `--city` is one of `bengaluru`, `noida`, `pune`, `mumbai`, `delhi`, `hyderabad`, `chennai`, `gurugram`, one file per city. Import each file with the **same** `--city`: it sets the city name on every listing, and without it they are all labelled Bengaluru.
+**Other cities** — `--city` is one of `bengaluru`, `noida`, `pune`, `mumbai`, `delhi`, `hyderabad`, `chennai`, `gurugram`, or one of the top-100 keys in `server/src/seed/cities.js` (see *India's top 100 cities* below), one file per city. Import each file with the **same** `--city`: it sets the city name on every listing, and without it they are all labelled Bengaluru.
 
 Delhi's box overlaps Noida and Gurugram, so the Delhi file leaves out shops inside those two boxes (each shop is listed under one city). Near a border a few shops can still land under the neighbouring city's name.
 
@@ -1059,6 +1059,32 @@ Delhi's box overlaps Noida and Gurugram, so the Delhi file leaves out shops insi
    sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/seed-merchants.js stats'
    rm /tmp/*-osm.csv
    ```
+
+**India's top 100 cities (from the OpenStreetMap extract)** — the other 92 of the 100 largest cities are in `server/src/seed/cities.js`. Don't fetch them through Overpass. Its public servers ask automated, high-volume users to run their own instance. Use Geofabrik's daily India extract instead. It's one 1.7 GB download, then every city is read locally in minutes. The rows match `fetch-osm`'s, so re-imports update listings instead of duplicating them. A city leaves out shops inside the boxes of cities listed before it, for example Thane leaves out Mumbai's box and Howrah leaves out Kolkata's.
+
+1. On your laptop (from `server/`), download the extract, install osmium and write one file per city into `data/seed/top100/`:
+   ```bash
+   mkdir -p ../data/seed/.cache/pbf
+   curl -L -o ../data/seed/.cache/pbf/india-latest.osm.pbf https://download.geofabrik.de/asia/india-latest.osm.pbf
+   brew install osmium-tool
+   npm run seed:merchants -- extract-osm --more --out-dir ../data/seed/top100
+   tar czf ../data/seed/top100.tgz -C ../data/seed top100
+   ```
+   For a fresher copy later, download the extract again and re-run `extract-osm`. The filtered copy next to it is rebuilt when the extract is newer.
+2. Deploy first (`git push`, then `sudo /opt/vfl/app/deploy/deploy.sh` on the VM, §B11), so the VM knows these cities.
+3. Copy the bundle (from the repo root on your laptop) and log in:
+   ```bash
+   gcloud compute scp --zone=asia-south1-a data/seed/top100.tgz vfl-vm-in:/tmp/top100.tgz
+   gcloud compute ssh --zone=asia-south1-a vfl-vm-in
+   ```
+4. On the VM, unpack, dry-run one city, then import all of them in the background. The import keeps going if SSH drops. Each file's name is its `--city`:
+   ```bash
+   tar xzf /tmp/top100.tgz -C /tmp
+   sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && node src/cli/seed-merchants.js import /tmp/top100/jaipur-osm.csv --city jaipur --dry-run' | tail -3
+   nohup sudo -u vfl -H bash -c 'cd /opt/vfl/app/server && set -a && . /etc/vfl/env && set +a && for f in /tmp/top100/*-osm.csv; do k=$(basename $f -osm.csv); echo "== $k"; node src/cli/seed-merchants.js import $f --city $k; done; echo ALL DONE' > /tmp/seed-top100.log 2>&1 &
+   tail -f /tmp/seed-top100.log
+   ```
+5. When the log says `ALL DONE`, check `seed-merchants.js stats` (as in step 5 above), then `rm -r /tmp/top100 /tmp/top100.tgz /tmp/seed-top100.log`.
 
 **Import (on the VM)**
 ```bash

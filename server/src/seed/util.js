@@ -1,6 +1,7 @@
 // Helpers for the merchant seeding pipeline: CSV in/out, name matching, distances, phone normalisation.
 import fs from 'node:fs';
 import { CHAIN_NAMES } from './catalogs.js';
+import { MORE_CITIES } from './cities.js';
 
 /** Columns of the seed CSV (the hand-editable file between fetching and importing). */
 export const SEED_COLUMNS = ['source', 'source_ref', 'name', 'category', 'locality', 'address', 'pincode', 'lat', 'lng', 'phone', 'hours'];
@@ -135,6 +136,13 @@ export const CITY_BBOX = {
   chennai: { name: 'Chennai', bbox: [12.9, 80.12, 13.24, 80.32] },
   gurugram: { name: 'Gurugram', bbox: [28.36, 76.93, 28.51, 77.12] },
 };
+
+const overlap = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+// The rest of India's top 100 (cities.js): each one drops shops inside the boxes of cities listed before it.
+for (const [key, city] of Object.entries(MORE_CITIES)) {
+  const exclude = Object.keys(CITY_BBOX).filter((k) => overlap(CITY_BBOX[k].bbox, city.bbox));
+  CITY_BBOX[key] = { name: city.name, bbox: city.bbox, ...(exclude.length ? { exclude } : {}) };
+}
 
 /** True when the point lies inside a [south, west, north, east] box. */
 export const inBox = ([s, w, n, e], lat, lng) => lat >= s && lat <= n && lng >= w && lng <= e;

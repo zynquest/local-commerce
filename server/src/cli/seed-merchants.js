@@ -3,7 +3,10 @@
 //
 // Pipeline (files under data/seed/, which is git-ignored):
 //   npm run seed:merchants -- fetch-osm    --city bengaluru --out ../data/seed/blr-osm.csv
-//   (cities: bengaluru, noida, pune, mumbai, delhi, hyderabad, chennai, gurugram; import with the same --city)
+//   (cities: bengaluru, noida, pune, mumbai, delhi, hyderabad, chennai, gurugram and India's top 100 in
+//   seed/cities.js; import with the same --city)
+//   npm run seed:merchants -- extract-osm  --more | --cities jaipur,surat [--pbf ../data/seed/.cache/pbf/india-latest.osm.pbf]
+//   (many cities at once from Geofabrik's India extract, no Overpass; writes ../data/seed/<city>-osm.csv)
 //   npm run seed:merchants -- fetch-places --city bengaluru --out ../data/seed/blr-places.csv [--max-requests 300] [--yes]
 //   npm run seed:merchants -- merge        --out ../data/seed/blr.csv ../data/seed/blr-osm.csv ../data/seed/blr-places.csv
 //   (review / edit the CSV: delete rows, fix names, add shops you walked past — source "manual")
@@ -24,6 +27,8 @@ import { migrate } from '../migrate.js';
 import { SEED_CATEGORIES } from '../seed/catalogs.js';
 import { importSeeds } from '../seed/importer.js';
 import { fetchOsm } from '../seed/osm.js';
+import { MORE_CITIES } from '../seed/cities.js';
+import { cityRows, filterExtract, readExtract } from '../seed/pbf.js';
 import { USD_PER_1000, fetchPlaces, grid } from '../seed/places.js';
 import { removeSeedStore } from '../seed/stores.js';
 import { CITY_BBOX, dedupeRows, excludeNeighbours, readCsv, writeCsv } from '../seed/util.js';
@@ -35,7 +40,7 @@ const flag = (name, fallback) => {
   return i > 0 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : fallback;
 };
 const has = (name) => argv.includes(`--${name}`);
-const VALUE_FLAGS = new Set(['out', 'city', 'bbox', 'near', 'radius-km', 'tile-km', 'spacing-km', 'max-requests', 'locality', 'reason']);
+const VALUE_FLAGS = new Set(['out', 'out-dir', 'pbf', 'cities', 'city', 'bbox', 'near', 'radius-km', 'tile-km', 'spacing-km', 'max-requests', 'locality', 'reason']);
 /** Arguments after the command that are neither flags nor flag values. */
 function positional() {
   const res = [];
@@ -91,6 +96,27 @@ async function main() {
       if (failed) {
         console.log(`[osm] ${failed} tiles could not be fetched (servers busy). Run the same command again later: finished tiles come from the cache.`);
         process.exitCode = 2;
+      }
+      console.log('[osm] Data © OpenStreetMap contributors (ODbL).');
+      return;
+    }
+    case 'extract-osm': {
+      const keys = has('more') ? Object.keys(MORE_CITIES) : String(flag('cities', flag('city', ''))).toLowerCase().split(',').filter(Boolean);
+      if (!keys.length) throw new Error('Pass --more (the cities in seed/cities.js) or --cities key1,key2');
+      const unknown = keys.filter((k) => !CITY_BBOX[k]);
+      if (unknown.length) throw new Error(`Unknown city: ${unknown.join(', ')} (known: ${Object.keys(CITY_BBOX).join(', ')})`);
+      const pbf = path.resolve(flag('pbf', '../data/seed/.cache/pbf/india-latest.osm.pbf'));
+      if (!fs.existsSync(pbf)) throw new Error(`No extract at ${pbf}. Download https://download.geofabrik.de/asia/india-latest.osm.pbf there.`);
+      const outDir = path.resolve(flag('out-dir', '../data/seed'));
+      fs.mkdirSync(outDir, { recursive: true });
+      const data = await readExtract(filterExtract(pbf));
+      console.log(`[pbf] ${data.shops.length} shops and ${data.places.length} neighbourhood names in the extract`);
+      for (const key of keys) {
+        const { name, bbox } = CITY_BBOX[key];
+        const rows = excludeNeighbours(cityRows(data, { bbox, city: name, includeChains: has('include-chains') }), key);
+        const file = path.join(outDir, `${key}-osm.csv`);
+        writeCsv(file, rows);
+        console.log(`[pbf] ${key}: ${summary(rows)} → ${path.relative(process.cwd(), file)}`);
       }
       console.log('[osm] Data © OpenStreetMap contributors (ODbL).');
       return;
@@ -209,7 +235,7 @@ async function main() {
       return;
     }
     default:
-      console.log(`Usage: npm run seed:merchants -- <fetch-osm|fetch-places|merge|import|export|remove|remove-all|stats> [options]
+      console.log(`Usage: npm run seed:merchants -- <fetch-osm|extract-osm|fetch-places|merge|import|export|remove|remove-all|stats> [options]
 Seeded categories: ${Object.entries(SEED_CATEGORIES).map(([k, c]) => `${k} (${c.label})`).join(', ')}`);
       process.exitCode = cmd ? 1 : 0;
   }

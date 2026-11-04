@@ -15,7 +15,7 @@ const SERVERS = [
 const UA = 'sonsari-merchant-seed/1.0 (+https://sonsari.in)';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const SHOP_KINDS = Object.keys(OSM_KIND_TO_CATEGORY).filter((k) => !['restaurant', 'fast_food'].includes(k));
+export const SHOP_KINDS = Object.keys(OSM_KIND_TO_CATEGORY).filter((k) => !['restaurant', 'fast_food'].includes(k));
 
 async function overpass(ql, log) {
   let lastErr;
@@ -64,7 +64,7 @@ async function localities(bbox, cacheDir, log) {
   return data.elements.map((e) => ({ name: e.tags['name:en'] || e.tags.name, lat: e.lat, lng: e.lon }));
 }
 
-const nearest = (places, lat, lng) => {
+export const nearest = (places, lat, lng) => {
   let best = null;
   for (const p of places) {
     const d = distanceKm(lat, lng, p.lat, p.lng);
@@ -74,10 +74,41 @@ const nearest = (places, lat, lng) => {
 };
 
 /**
+ * One OSM element (Overpass shape: { type, id, tags, lat/lon or center }) → a seed CSV row, or null when it isn't a
+ * shop we seed. Chains (brand:wikidata, or a known chain name) are skipped unless includeChains. Only kinds in
+ * OSM_KIND_TO_CATEGORY are kept: no salons, clinics or pharmacies.
+ */
+export function toRow(el, { city, places, includeChains = false }) {
+  const tg = el.tags || {};
+  const kind = tg.shop || tg.amenity;
+  const category = OSM_KIND_TO_CATEGORY[kind];
+  const lat = el.lat ?? el.center?.lat;
+  const lng = el.lon ?? el.center?.lon;
+  const name = (tg['name:en'] || tg.name || '').trim();
+  if (!category || !name || lat == null || tg.disused || tg['disused:shop']) return null;
+  if (!includeChains && (tg['brand:wikidata'] || isChain(name))) return null;
+  const locality = tg['addr:suburb'] || tg['addr:neighbourhood'] || nearest(places, lat, lng);
+  const street = [tg['addr:housenumber'], tg['addr:street']].filter(Boolean).join(', ');
+  const phone = tg.phone || tg['contact:phone'] || tg.mobile || tg['contact:mobile'] || tg['contact:whatsapp'] || '';
+  return {
+    source: 'osm',
+    source_ref: `osm:${el.type}/${el.id}`,
+    name: name.slice(0, 60),
+    category,
+    locality,
+    address: [street, locality, city, tg['addr:postcode']].filter(Boolean).join(', '),
+    pincode: tg['addr:postcode'] || '',
+    lat: lat.toFixed(6),
+    lng: lng.toFixed(6),
+    phone, // raw value for the field team; the importer derives the claimable mobile from it
+    hours: simpleHours(tg.opening_hours),
+  };
+}
+
+/**
  * Fetches shops in `bbox` and returns { rows, failed } — seed CSV rows, and how many tiles could not be fetched
  * (public Overpass servers are often overloaded; re-run the same command later and only those tiles are fetched).
- * Chains (brand:wikidata, or a known chain name) are skipped unless includeChains. Only kinds in
- * OSM_KIND_TO_CATEGORY are kept: no salons, clinics or pharmacies.
+ * Rows come from toRow. For many cities at once, use the local extract instead (pbf.js).
  */
 export async function fetchOsm({ bbox, city, tileKm = 4, includeChains = false, cacheDir, log = console.log }) {
   if (cacheDir) fs.mkdirSync(cacheDir, { recursive: true });
@@ -100,30 +131,9 @@ export async function fetchOsm({ bbox, city, tileKm = 4, includeChains = false, 
     }
     let kept = 0;
     for (const el of data.elements) {
-      const tg = el.tags || {};
-      const kind = tg.shop || tg.amenity;
-      const category = OSM_KIND_TO_CATEGORY[kind];
-      const lat = el.lat ?? el.center?.lat;
-      const lng = el.lon ?? el.center?.lon;
-      const name = (tg['name:en'] || tg.name || '').trim();
-      if (!category || !name || lat == null || tg.disused || tg['disused:shop']) continue;
-      if (!includeChains && (tg['brand:wikidata'] || isChain(name))) continue;
-      const locality = tg['addr:suburb'] || tg['addr:neighbourhood'] || nearest(places, lat, lng);
-      const street = [tg['addr:housenumber'], tg['addr:street']].filter(Boolean).join(', ');
-      const phone = tg.phone || tg['contact:phone'] || tg.mobile || tg['contact:mobile'] || tg['contact:whatsapp'] || '';
-      rows.set(`osm:${el.type}/${el.id}`, {
-        source: 'osm',
-        source_ref: `osm:${el.type}/${el.id}`,
-        name: name.slice(0, 60),
-        category,
-        locality,
-        address: [street, locality, city, tg['addr:postcode']].filter(Boolean).join(', '),
-        pincode: tg['addr:postcode'] || '',
-        lat: lat.toFixed(6),
-        lng: lng.toFixed(6),
-        phone, // raw value for the field team; the importer derives the claimable mobile from it
-        hours: simpleHours(tg.opening_hours),
-      });
+      const row = toRow(el, { city, places, includeChains });
+      if (!row) continue;
+      rows.set(row.source_ref, row);
       kept++;
     }
     log(`[osm] tile ${i + 1}/${grid.length}: ${kept} shops${cached ? ' (cached)' : ''}`);

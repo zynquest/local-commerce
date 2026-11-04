@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Loader2, Mail, Search, Sprout, Store } from 'lucide-react';
 import BusinessTypePicker from '../components/BusinessTypePicker.jsx';
-import ClaimShop, { ClaimSent } from '../components/ClaimShop.jsx';
+import ClaimShop, { ClaimSent, ShopCard, claimableShop } from '../components/ClaimShop.jsx';
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import OtpField from '../components/OtpField.jsx';
 import GoogleSignIn from '../components/GoogleSignIn.jsx';
@@ -103,6 +103,7 @@ function EmailOwnerAuth({ mode }) {
   const [params] = useSearchParams();
   const claimSlug = params.get('claim') || '';
   const [claimMode, setClaimMode] = useState(Boolean(claimSlug));
+  const [shop, setShop] = useState(null); // the listing picked in the search (before or after signing in)
   const [claim, setClaim] = useState(null); // { claim, fresh }: the request just sent, or one still open
   const [googleEmail, setGoogleEmail] = useState(''); // the Google account's email, for the claim screens
   const emailForm = emailChosen || googleDown || !appConfig.googleClientId;
@@ -112,6 +113,12 @@ function EmailOwnerAuth({ mode }) {
   const submitted = useRef(false);
   const askStore = (isRegister || needsStore) && !claimMode;
   const showGoogleUnavailable = useCallback(() => setGoogleDown(true), []);
+  // Claiming starts with the search; sign-in is asked for once a shop is picked.
+  const browsing = claimMode && !shop && !needsStore;
+
+  useEffect(() => {
+    if (claimSlug) claimableShop(claimSlug).then((s) => s && setShop(s));
+  }, [claimSlug]);
 
   useEffect(() => {
     if (owner === undefined) loadOwner();
@@ -174,13 +181,14 @@ function EmailOwnerAuth({ mode }) {
       </div>
     </>
   );
-  const showSubmit = needsStore ? !claimMode && !claim : emailForm;
+  const showSubmit = needsStore ? !claimMode && !claim : emailForm && !browsing;
   const signedInEmail = googleEmail || form.email.trim().toLowerCase();
   // Back from the claim screens to "create a new store". A claim just sent used up the email code: sign in again.
   const leaveClaim = () => {
     if (claim?.fresh && !googleCredential) setNeedsStore(false);
     setClaim(null);
     setClaimMode(false);
+    setShop(null);
   };
   const claimCallout = (
     <div className="rounded-xl border border-lime-200 bg-lime-50 p-3 text-sm text-lime-950">
@@ -199,7 +207,7 @@ function EmailOwnerAuth({ mode }) {
       title={claimMode || claim ? t('claim.confirmTitle') : undefined}
       subtitle={claimMode || claim ? t('claim.ctaBody', { brand: PLATFORM.name }) : undefined}
       extra={
-        !needsStore && appConfig.googleClientId && !emailForm && (
+        !needsStore && !browsing && appConfig.googleClientId && !emailForm && (
           <button type="button" onClick={() => setEmailChosen(true)} className="btn-ghost w-full py-2.5 text-sm">
             <Mail size={16} /> {t('auth.noGoogle')}
           </button>
@@ -211,7 +219,7 @@ function EmailOwnerAuth({ mode }) {
       ) : needsStore && claimMode ? (
         <ClaimShop
           proof={googleCredential ? { credential: googleCredential } : { email: signedInEmail, code: form.code }}
-          initialSlug={claimSlug}
+          initialShop={shop}
           onClaimed={(c) => {
             setClaim({ claim: c, fresh: true });
             if (!googleCredential) setForm((f) => ({ ...f, code: '' }));
@@ -222,19 +230,23 @@ function EmailOwnerAuth({ mode }) {
         <>
           {needsStore && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{t('owner.newStoreBody')}</p>}
           {(isRegister || needsStore) && !claimMode && claimCallout}
-          {claimMode && (
-            <p className="rounded-lg bg-lime-50 px-3 py-2 text-sm text-lime-950">
-              {t('claim.signInFirst')}{' '}
-              <button type="button" onClick={() => setClaimMode(false)} className="font-semibold underline">{t('claim.newStoreInstead')}</button>
-            </p>
+          {browsing && <ClaimShop onPick={setShop} onNewStore={() => setClaimMode(false)} />}
+          {claimMode && shop && (
+            <>
+              <ShopCard
+                shop={shop}
+                action={<button type="button" onClick={() => setShop(null)} className="self-start text-xs font-semibold text-brand">{t('loc.change')}</button>}
+              />
+              <p className="rounded-lg bg-lime-50 px-3 py-2 text-sm text-lime-950">{t('claim.signInToClaim')}</p>
+            </>
           )}
         </>
       )}
       {askStore && !claim && storeFields}
-      {!needsStore && appConfig.googleClientId && (
+      {!needsStore && !browsing && appConfig.googleClientId && (
         <GoogleSignIn clientId={appConfig.googleClientId} onCredential={onGoogle} onUnavailable={showGoogleUnavailable} lang={lang} />
       )}
-      {!needsStore && emailForm && (
+      {!needsStore && !browsing && emailForm && (
         <>
           <div>
             <label className="label" htmlFor="owner-email">{t('auth.email')}</label>

@@ -1146,7 +1146,7 @@
     "ctaTitle": "Shop already listed?",
     "ctaBody": "{brand} has listed many local shops from public maps. Find yours and claim it free.",
     "ctaButton": "Find my shop",
-    "signInFirst": "Sign in first, then find your shop.",
+    "signInToClaim": "Your shop? Sign in below so we know it’s you, then add your WhatsApp number.",
     "newStoreInstead": "Create a new store instead",
     "findTitle": "Find your shop",
     "findBody": "Unclaimed shops near this location. Search by name or area.",

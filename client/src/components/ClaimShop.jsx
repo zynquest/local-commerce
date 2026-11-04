@@ -21,30 +21,48 @@ export const claimWhatsAppLink = (t, claim, email) =>
 
 const place = (s) => [s.locality, s.city].filter(Boolean).join(', ');
 
+/** An unclaimed listing by its link (a listing's "Claim it free" opens /register?claim=<slug>), or null. */
+export const claimableShop = (slug) =>
+  get(`/stores/${encodeURIComponent(slug)}`)
+    .then(({ store: s }) => (s?.is_seed ? { slug: s.slug, name: s.name, category: s.category, locality: s.locality, city: s.city, logo_url: s.logo_url } : null))
+    .catch(() => null);
+
+/** The listing being claimed: logo, name, type and area, and a link to view it. */
+export function ShopCard({ shop, action }) {
+  const { t } = useI18n();
+  return (
+    <div className="flex gap-3 rounded-xl border border-stone-200 p-3">
+      <SmartImage src={shop.logo_url} alt={shop.name} hint={shop.category} width={96} className="h-12 w-12 flex-none rounded-lg object-cover" />
+      <div className="min-w-0 flex-1">
+        <p className="leading-snug font-bold break-words">{shop.name}</p>
+        <p className="text-xs text-stone-500">{[shop.category, place(shop)].filter(Boolean).join(' · ')}</p>
+        <a href={`/s/${shop.slug}`} target="_blank" rel="noopener" className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand">
+          {t('claim.viewListing')} <ExternalLink size={12} />
+        </a>
+      </div>
+      {action}
+    </div>
+  );
+}
+
 /**
  * A new owner finds their shop among the unclaimed seeded listings near a location and asks for it.
- * `proof` is what signed them in: { email, code } or { credential } (Google). onClaimed(claim) once it's recorded.
+ *   Before sign-in: only the search; picking a shop calls onPick(shop).
+ *   Signed in (`proof`: { email, code } or { credential } from Google): picking a shop (or `initialShop`) asks for
+ *   the WhatsApp number and sends the claim; onClaimed(claim) once it's recorded.
  */
-export default function ClaimShop({ proof, initialSlug = '', onClaimed, onNewStore }) {
+export default function ClaimShop({ proof, initialShop = null, onPick, onClaimed, onNewStore }) {
   const { t, lang } = useI18n();
   const loc = useShopperLocation();
   const [picker, setPicker] = useState(false);
   const [query, setQuery] = useState('');
   const q = useDebounce(query.trim(), 250);
   const [list, setList] = useState({ loading: false, stores: [], error: '' });
-  const [picked, setPicked] = useState(null);
+  const [picked, setPicked] = useState(initialShop);
   const [phone, setPhone] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [fields, setFields] = useState({});
-
-  // Came from a listing's "Claim it free" link: open that shop straight away.
-  useEffect(() => {
-    if (!initialSlug) return;
-    get(`/stores/${encodeURIComponent(initialSlug)}`)
-      .then((r) => r.store?.is_seed && setPicked({ slug: r.store.slug, name: r.store.name, category: r.store.category, locality: r.store.locality, city: r.store.city, logo_url: r.store.logo_url }))
-      .catch(() => {});
-  }, [initialSlug]);
 
   useEffect(() => {
     if (!loc) return;
@@ -75,22 +93,13 @@ export default function ClaimShop({ proof, initialSlug = '', onClaimed, onNewSto
     }
   };
 
-  if (picked)
+  if (picked && proof)
     return (
       <div className="space-y-4">
         <button type="button" onClick={() => setPicked(null)} className="flex items-center gap-1 text-sm font-semibold text-stone-600">
           <ArrowLeft size={16} className="rtl:rotate-180" /> {t('claim.back')}
         </button>
-        <div className="flex gap-3 rounded-xl border border-stone-200 p-3">
-          <SmartImage src={picked.logo_url} alt={picked.name} hint={picked.category} width={96} className="h-12 w-12 flex-none rounded-lg object-cover" />
-          <div className="min-w-0 flex-1">
-            <p className="leading-snug font-bold break-words">{picked.name}</p>
-            <p className="text-xs text-stone-500">{[picked.category, place(picked)].filter(Boolean).join(' · ')}</p>
-            <a href={`/s/${picked.slug}`} target="_blank" rel="noopener" className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand">
-              {t('claim.viewListing')} <ExternalLink size={12} />
-            </a>
-          </div>
-        </div>
+        <ShopCard shop={picked} />
         <MobileInput id="claim-phone" value={phone} onChange={setPhone} label={t('claim.waLabel')} hint={t('claim.waHint')} error={fields.phone} autoFocus />
         <div className="rounded-xl bg-stone-50 p-3 text-sm">
           <p className="font-semibold">{t('claim.proofTitle')}</p>
@@ -113,7 +122,7 @@ export default function ClaimShop({ proof, initialSlug = '', onClaimed, onNewSto
         <h2 className="text-lg font-bold">{t('claim.findTitle')}</h2>
         <p className="text-sm text-stone-600">{t('claim.findBody')}</p>
       </div>
-      <NearbyBar />
+      {loc && <NearbyBar />}
       {loc ? (
         <>
           <label className="relative block">
@@ -132,7 +141,7 @@ export default function ClaimShop({ proof, initialSlug = '', onClaimed, onNewSto
           <ul className="max-h-80 divide-y divide-stone-100 overflow-y-auto rounded-xl border border-stone-200">
             {list.stores.map((s) => (
               <li key={s.slug}>
-                <button type="button" onClick={() => setPicked(s)} className="flex w-full items-center gap-3 p-3 text-start hover:bg-stone-50">
+                <button type="button" onClick={() => (onPick ? onPick(s) : setPicked(s))} className="flex w-full items-center gap-3 p-3 text-start hover:bg-stone-50">
                   <SmartImage src={s.logo_url} alt={s.name} hint={s.category} width={80} className="h-10 w-10 flex-none rounded-lg object-cover" />
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm leading-snug font-semibold break-words">{s.name}</span>

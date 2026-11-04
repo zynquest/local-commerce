@@ -7,6 +7,7 @@ import {
 
 const AdminQrCodes = lazy(() => import('./AdminQrCodes.jsx'));
 const AdminStaff = lazy(() => import('./AdminStaff.jsx'));
+const AdminClaims = lazy(() => import('./AdminClaims.jsx'));
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
@@ -504,7 +505,7 @@ function RecentOrders({ onClose, onOpenStore }) {
 
 export default function AdminConsole() {
   const { admin, loadAdmin, logoutAdmin } = useSession();
-  const [section, setSection] = useState('stores'); // 'stores' | 'qr' | 'staff' (platform admin only)
+  const [section, setSection] = useState('stores'); // 'stores' | 'claims' | 'qr' | 'staff' (platform admin only)
   const [filter, setFilter] = useState('pending_review');
   const [sort, setSort] = useState(''); // 'products' from the Active products tile
   const [ordersOpen, setOrdersOpen] = useState(false);
@@ -582,9 +583,10 @@ export default function AdminConsole() {
             Stores whose owners entered your ID <b className="font-mono tracking-wider">{admin.rep_code}</b> when submitting. Check each one, then approve it or send it back with remarks.
           </p>
         )}
-        {!isStaff && <div className="flex gap-1 rounded-full bg-white p-1 shadow-sm ring-1 ring-stone-200 sm:w-fit" role="tablist">
+        {!isStaff && <div className="no-scrollbar flex gap-1 overflow-x-auto rounded-full bg-white p-1 shadow-sm ring-1 ring-stone-200 sm:w-fit" role="tablist">
           {[
             ['stores', 'Stores', Store],
+            ['claims', 'Claims', Sprout],
             ['qr', 'QR codes', QrCode],
             ['staff', 'Staff', Users],
           ].map(([k, label, Icon]) => (
@@ -593,16 +595,19 @@ export default function AdminConsole() {
               role="tab"
               aria-selected={section === k}
               onClick={() => setSection(k)}
-              className={`flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold sm:flex-none sm:px-4 ${section === k ? 'bg-stone-900 text-white' : 'text-stone-700 hover:bg-stone-100'}`}
+              className={`flex flex-none items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold sm:px-4 ${section === k ? 'bg-stone-900 text-white' : 'text-stone-700 hover:bg-stone-100'}`}
             >
               <Icon size={15} /> {label}
+              {k === 'claims' && stats?.claims_pending > 0 && (
+                <span className={`rounded-full px-1.5 text-[11px] ${section === k ? 'bg-white/20' : 'bg-amber-100 text-amber-800'}`}>{stats.claims_pending}</span>
+              )}
             </button>
           ))}
         </div>}
 
         {!isStaff && section !== 'stores' ? (
           <Suspense fallback={<Loader2 className="mx-auto mt-10 animate-spin text-stone-400" />}>
-            {section === 'qr' ? <AdminQrCodes /> : <AdminStaff />}
+            {section === 'claims' ? <AdminClaims onChanged={load} /> : section === 'qr' ? <AdminQrCodes /> : <AdminStaff />}
           </Suspense>
         ) : (
           <>

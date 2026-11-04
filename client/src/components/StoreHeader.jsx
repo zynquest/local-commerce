@@ -4,7 +4,7 @@ import { PLATFORM } from '../config.js';
 import SmartImage from './SmartImage.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { getOpenStatus, mapsLink } from '../lib/format.js';
-import { useI18n } from '../i18n/index.jsx';
+import { rich, useI18n } from '../i18n/index.jsx';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
 import { whatsappLink } from '../services/whatsappService.js';
 
@@ -33,14 +33,21 @@ export default function StoreHeader() {
         <p className="flex items-center justify-center gap-1.5 font-medium">
           <Sprout size={14} className="flex-none" /> {t('store.seedNotice', { brand: PLATFORM.name })}
         </p>
-        <a
-          href={whatsappLink(PLATFORM.whatsappNumber, t('store.seedClaimMsg', { name: config.name, link: `${window.location.origin}${basePath}` }))}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-0.5 inline-block font-bold text-lime-800 underline"
-        >
-          {t('store.seedClaim')}
-        </a>
+        <p className="mt-0.5">
+          {rich(t('store.seedClaimLinks'), {
+            claim: (x) => <Link to={`/register?claim=${encodeURIComponent(config.slug)}`} className="font-bold text-lime-800 underline">{x}</Link>,
+            remove: (x) => (
+              <a
+                href={whatsappLink(PLATFORM.whatsappNumber, t('store.seedRemoveMsg', { name: config.name, link: `${window.location.origin}${basePath}`, brand: PLATFORM.name }))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-lime-800 underline"
+              >
+                {x}
+              </a>
+            ),
+          })}
+        </p>
       </div>
     )}
     <header className="relative bg-white">

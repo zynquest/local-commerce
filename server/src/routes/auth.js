@@ -10,6 +10,7 @@ import { verifyGoogleIdToken } from '../google.js';
 import { verifyOtp } from '../otp/otp.js';
 import * as S from '../schemas.js';
 import { claimSeedStore, seedForMobile } from '../seed/stores.js';
+import { cancelPendingClaims, pendingClaimFor, requestClaim, searchClaimable } from '../seed/claims.js';
 import { RESERVED_SLUGS, slugify } from '../serialize.js';
 
 export const authRouter = Router();
@@ -62,6 +63,7 @@ async function createOwner({ storeName, phone, businessType = 'shop' }) {
 async function createOwnerByEmail({ storeName, email, businessType = 'shop' }) {
   return tx(async (client) => {
     if ((await client.query('SELECT 1 FROM users WHERE email = $1', [email])).rowCount) throw conflict('An account with this email already exists. Please log in.');
+    await cancelPendingClaims(client, email); // they chose a store of their own over the listing they claimed
     let username = `o${crypto.createHash('sha1').update(email).digest('hex').slice(0, 12)}`; // internal; owners log in by email
     if ((await client.query('SELECT 1 FROM users WHERE username = $1', [username])).rowCount) username = `o${crypto.randomBytes(8).toString('hex')}`;
     const { rows } = await client.query(
@@ -79,7 +81,8 @@ async function createOwnerByEmail({ storeName, email, businessType = 'shop' }) {
 /**
  * OWNER_LOGIN=email: one call for sign-in and sign-up (code from POST /api/otp/request, purpose owner_login).
  *   - email has an account          → log in, { user }
- *   - no account, no storeName sent → 200 { needsStore: true } (the code stays valid for the next call)
+ *   - no account, no storeName sent → 200 { needsStore: true, claim } (the code stays valid for the next call;
+ *     claim is their open request for a seeded listing, or null)
  *   - no account, storeName sent    → create owner + draft store, 201 { user, created: true }
  */
 authRouter.post('/email', async (req, res) => {
@@ -88,7 +91,7 @@ authRouter.post('/email', async (req, res) => {
   const { rows } = await query(`SELECT id FROM users WHERE email = $1 AND role = 'owner'`, [email]);
   if (!rows[0] && !storeName) {
     await verifyOtp({ phone: email, purpose: 'owner_login', code, consume: false });
-    return res.json({ needsStore: true });
+    return res.json({ needsStore: true, claim: await pendingClaimFor(email) });
   }
   await verifyOtp({ phone: email, purpose: 'owner_login', code });
   let userId = rows[0]?.id;
@@ -108,12 +111,33 @@ authRouter.post('/google', async (req, res) => {
   const { credential, storeName, businessType } = parse(S.googleOwnerAuth, req.body);
   const { email } = await verifyGoogleIdToken(credential);
   const { rows } = await query(`SELECT id FROM users WHERE email = $1 AND role = 'owner'`, [email]);
-  if (!rows[0] && !storeName) return res.json({ needsStore: true, email });
+  if (!rows[0] && !storeName) return res.json({ needsStore: true, email, claim: await pendingClaimFor(email) });
   let userId = rows[0]?.id;
   if (userId) await query('UPDATE users SET last_login_at = now(), email_verified_at = coalesce(email_verified_at, now()) WHERE id = $1', [userId]);
   else userId = await createOwnerByEmail({ storeName, email, businessType });
   await createSession(res, 'user', userId);
   res.status(rows[0] ? 200 : 201).json({ user: await ownerProfile(userId), created: !rows[0] });
+});
+
+/** Unclaimed seeded listings near ?lat=&lng= (optionally ?q= name), for a new owner looking for their shop. */
+authRouter.get('/claimable', async (req, res) => {
+  if (!ownersUseEmail()) throw badRequest('Log in with your mobile number');
+  const { q, lat, lng } = parse(S.claimSearch, req.query);
+  res.json({ stores: await searchClaimable({ q, lat, lng }) });
+});
+
+/**
+ * OWNER_LOGIN=email: a new owner asks for a seeded listing. Proof of the email is the same as signing up (the code,
+ * consumed now, or a Google credential). No account yet: once the admin approves, that email logs into the shop.
+ * 201 { claim }: the client then opens WhatsApp to the platform number with the claim code and the proof to send.
+ */
+authRouter.post('/claim', async (req, res) => {
+  if (!ownersUseEmail()) throw badRequest('Log in with your mobile number');
+  const { slug, phone, email: typed, code, credential, language } = parse(S.ownerClaim, req.body);
+  let email = typed;
+  if (credential) ({ email } = await verifyGoogleIdToken(credential));
+  else await verifyOtp({ phone: email, purpose: 'owner_login', code });
+  res.status(201).json({ claim: await requestClaim({ email, slug, phone, language }) });
 });
 
 // Registration (OWNER_LOGIN=mobile): store name + 10-digit mobile verified by OTP (purpose owner_register).

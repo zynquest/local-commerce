@@ -49,7 +49,7 @@ publicRouter.get('/config', (_req, res) => {
 });
 
 // Great-circle distance in km between the store and ($lat, $lng) — fine at city scale, no PostGIS needed.
-const DISTANCE_SQL = (latParam, lngParam) => `(6371 * 2 * asin(sqrt(
+export const DISTANCE_SQL = (latParam, lngParam) => `(6371 * 2 * asin(sqrt(
     power(sin(radians(s.lat - ${latParam}) / 2), 2) +
     cos(radians(${latParam})) * cos(radians(s.lat)) * power(sin(radians(s.lng - ${lngParam}) / 2), 2))))`;
 

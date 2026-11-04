@@ -82,8 +82,8 @@
     "demoBadge": "Demo",
     "demoNotice": "Demo store: try ordering to see how it works. Orders go to the Vocal For Local team on WhatsApp, not a real shop.",
     "seedNotice": "Listed by {brand} from public information. This shop doesn't take online orders yet; prices are indicative.",
-    "seedClaim": "Own this shop? Claim it free, or ask us to remove it",
-    "seedClaimMsg": "Hi, I own {name} ({link}). Please hand this listing over to me, or remove it.",
+    "seedClaimLinks": "Own this shop? <claim>Claim it free</claim> or <remove>ask us to remove it</remove>",
+    "seedRemoveMsg": "Hi, please remove the listing of {name} ({link}) from {brand}.",
     "seedBadge": "Not taking orders yet"
   },
   "cart": {
@@ -1141,5 +1141,36 @@
     "approvedTitle": "Your store is live! 🎉",
     "approvedBody": "{name} is approved. Customers near you can now find it and order on WhatsApp.",
     "approvedBodyAppt": "{name} is approved. Customers near you can now find it and book appointments."
+  },
+  "claim": {
+    "ctaTitle": "Shop already listed?",
+    "ctaBody": "{brand} has listed many local shops from public maps. Find yours and claim it free.",
+    "ctaButton": "Find my shop",
+    "signInFirst": "Sign in first, then find your shop.",
+    "newStoreInstead": "Create a new store instead",
+    "findTitle": "Find your shop",
+    "findBody": "Unclaimed shops near this location. Search by name or area.",
+    "search": "Shop name or area",
+    "none": "No unclaimed shop found here. Check the location, or create a new store.",
+    "back": "Back",
+    "confirmTitle": "Claim this shop",
+    "viewListing": "View listing",
+    "waLabel": "Your WhatsApp number",
+    "waHint": "Orders will come to this number. Send your proof from it.",
+    "proofTitle": "How we check it's your shop",
+    "proofIntro": "Next, you send a WhatsApp message to {brand} with:",
+    "proofPhoto": "A photo of you at the shop, with the name board visible",
+    "proofDoc": "One shop document: GST, Udyam, shop licence, FSSAI or trade licence",
+    "submit": "Send claim request",
+    "sentTitle": "Claim request sent",
+    "pendingTitle": "Your claim is being checked",
+    "sentBody": "Claim {code} for {name}. Send your photo and document on WhatsApp. We usually check it within 1 working day.",
+    "sendWa": "Send proof on WhatsApp",
+    "afterApproval": "Once approved, log in with {email} to manage your shop.",
+    "waMsg": "Hi, I want to claim my shop on {brand}.\nClaim code: {code}\nShop: {name}\nListing: {link}\nLogin email: {email}\nWhatsApp for orders: +{phone}\n\nI'm sending a photo of me at the shop and a shop document.",
+    "emailApprovedSubject": "{name} is now yours on {brand}",
+    "emailApprovedBody": "We checked your claim {code} and handed {name} over to you.\n\nLog in at {url} with {email} to set your prices and start taking orders on WhatsApp.",
+    "emailRejectedSubject": "Your claim for {name} on {brand}",
+    "emailRejectedBody": "We couldn't approve your claim {code} for {name}. If you think this is a mistake, message us on WhatsApp. You can also create a new store at {url}."
   }
 }

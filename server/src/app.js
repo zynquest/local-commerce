@@ -83,7 +83,7 @@ export function createApp() {
   });
   app.use('/api', originGuard);
   app.use(
-    ['/api/auth/login', '/api/auth/register', '/api/auth/email', '/api/auth/google', '/api/customer/auth', '/api/customer/login', '/api/customer/register', '/api/customer/google'],
+    ['/api/auth/login', '/api/auth/register', '/api/auth/email', '/api/auth/google', '/api/auth/claim', '/api/customer/auth', '/api/customer/login', '/api/customer/register', '/api/customer/google'],
     authLimiter,
   );
   app.use('/api/auth', authRouter);

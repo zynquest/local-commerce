@@ -75,6 +75,23 @@ export const ownerEmailAuth = z.object({
   businessType: z.enum(BUSINESS_TYPES).default('shop'),
 });
 export const whatsappVerify = z.object({ phone: mobile10, code: otpCode });
+// Owners, OWNER_LOGIN=email: claim a seeded listing. Same proof as signing up (email + code, or a Google credential)
+// plus the WhatsApp number orders should go to; nothing is created until the platform admin approves.
+export const ownerClaim = z
+  .object({
+    slug: z.string().trim().toLowerCase().max(80).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Store not found'),
+    phone: mobile10,
+    email: email.optional(),
+    code: otpCode.optional(),
+    credential: googleCredential.optional(),
+    language: z.enum(LANGUAGE_CODES).default('en'),
+  })
+  .refine((v) => v.credential || (v.email && v.code), { message: 'Enter the 6-digit code', path: ['code'] });
+export const claimSearch = z.object({
+  q: z.preprocess((v) => (typeof v === 'string' ? v.trim().slice(0, 60) : ''), z.string()),
+  lat: z.coerce.number().min(-90).max(90),
+  lng: z.coerce.number().min(-180).max(180),
+});
 // Shoppers, one flow for sign-in and sign-up: email (CUSTOMER_LOGIN=email) or 10-digit mobile (CUSTOMER_LOGIN=mobile)
 // + code; `name` only when creating the account. The route checks the configured identity.
 export const customerAuth = z.object({

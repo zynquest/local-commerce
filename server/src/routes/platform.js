@@ -11,6 +11,7 @@ import { conflict, forbidden, notFound, parse, unauthorized } from '../errors.js
 import * as S from '../schemas.js';
 import { PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
 import { claimSeedStore, removeSeedStore } from '../seed/stores.js';
+import { approveClaim, listClaims, rejectClaim } from '../seed/claims.js';
 import { assignQrCode, generateQrCodes, isQrCode, qrBase, unassignQrCode } from '../qr.js';
 import { notifyStoreOwner } from '../push.js';
 
@@ -80,6 +81,7 @@ platformRouter.get('/stats', async (_req, res) => {
           WHERE NOT (origin = 'seed' AND claimed_at IS NULL) GROUP BY status) t) AS by_status,
        (SELECT count(*)::int FROM stores WHERE origin = 'seed' AND claimed_at IS NULL) AS seeds_unclaimed,
        (SELECT count(*)::int FROM stores WHERE origin = 'seed' AND claimed_at IS NOT NULL) AS seeds_claimed,
+       (SELECT count(*)::int FROM store_claims WHERE status = 'pending') AS claims_pending,
        -- Real stores' products (seeded listings' starter catalogs would swamp the number)
        (SELECT count(*)::int FROM products p JOIN stores s ON s.id = p.store_id
          WHERE p.status = 'active' AND NOT (s.origin = 'seed' AND s.claimed_at IS NULL)) AS products,
@@ -222,6 +224,23 @@ platformRouter.get('/stores/:id', async (req, res) => {
 platformRouter.post('/stores/:id/claim', async (req, res) => {
   const { email, phone } = parse(S.seedClaim, req.body ?? {});
   await claimSeedStore({ storeId: req.params.id, email, phone, actorId: req.admin.id });
+  res.json({ ok: true });
+});
+
+/** Owners' claim requests for seeded listings (?status=pending|approved|rejected|cancelled|all). Admin only. */
+platformRouter.get('/claims', async (req, res) => {
+  res.json({ claims: await listClaims(String(req.query.status || 'pending')) });
+});
+
+/** Approve after checking the owner's proof on WhatsApp: the listing goes to their email + WhatsApp number. */
+platformRouter.post('/claims/:id/approve', async (req, res) => {
+  await approveClaim({ id: req.params.id, actorId: req.admin.id });
+  res.json({ ok: true });
+});
+
+platformRouter.post('/claims/:id/reject', async (req, res) => {
+  const { remarks } = parse(S.reviewRemarksRequired, req.body ?? {});
+  await rejectClaim({ id: req.params.id, remarks, actorId: req.admin.id });
   res.json({ ok: true });
 });
 

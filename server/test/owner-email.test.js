@@ -127,7 +127,7 @@ describe('owners: WhatsApp number on submission, verified on approval', () => {
     assert.equal(clash.status, 409);
     assert.ok(clash.body.fields?.whatsapp_number);
 
-    const ok = await ownerA('POST', '/api/merchant/store/submit', { whatsapp_number: waA, note: 'Please approve' });
+    const ok = await ownerA('POST', '/api/merchant/store/submit', { whatsapp_number: waA, note: 'Please approve', food_type: 'none' });
     assert.equal(ok.status, 200, JSON.stringify(ok.body));
     assert.equal(ok.body.store.status, 'pending_review');
     assert.equal(ok.body.store.whatsapp_number, `91${waA}`);

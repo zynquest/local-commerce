@@ -10,6 +10,7 @@ import { LANGUAGES } from '../i18n/languages.js';
 import { SupportNote } from './OnboardingWizard.jsx';
 import MyStoreQr from './MyStoreQr.jsx';
 import TemporaryClosure from './TemporaryClosure.jsx';
+import { FoodTypePicker } from '../components/VegMark.jsx';
 
 // Optional settings, filled with these until the owner changes them.
 const DEFAULTS = { opening_hours: '09:00-21:00', closed_days: 'Sun', minimum_order: 0, theme_color: '#15803d', delivery_fee: 0 };
@@ -17,7 +18,7 @@ const APPT_DEFAULTS = { slot_minutes: 30, booking_days: 14, min_notice_minutes: 
 const EDITABLE = [
   'address_text', 'city', 'lat', 'lng', 'maps_url', 'place_id', 'order_language',
   'delivery_fee', 'free_delivery_above', 'logo_url', 'banner_url', 'opening_hours', 'closed_days', 'minimum_order',
-  'instagram_handle', 'theme_color', 'description',
+  'instagram_handle', 'theme_color', 'description', 'food_type',
 ];
 
 const pretty = (p) => (p ? `+91 ${p.slice(-10, -5)} ${p.slice(-5)}` : '—');
@@ -80,6 +81,7 @@ export default function StoreSettings({ store, onSaved }) {
       const payload = { ...form };
       if (!appointments) for (const k of Object.keys(APPT_DEFAULTS)) delete payload[k];
       if (appointments) delete payload.minimum_order;
+      if (appointments) delete payload.food_type;
       if (appointments || freeDelivery) Object.assign(payload, { delivery_fee: 0, free_delivery_above: null });
       const { store: saved } = await put('/merchant/store', payload);
       setStatus({ busy: false, error: '', saved: true });
@@ -162,7 +164,8 @@ export default function StoreSettings({ store, onSaved }) {
   return (
     <div className="space-y-4">
     <TemporaryClosure store={store} onSaved={onSaved} />
-    <MyStoreQr store={store} />
+    {/* With a sticker linked, it has its own "My Store QR" tab; until then this asks the team for one. */}
+    {!(store.qr_count > 0) && <MyStoreQr store={store} />}
     <form onSubmit={submit} className="space-y-4" noValidate>
       <Section title={t('setup.detailsTitle')}>
         <dl className="grid gap-4 sm:grid-cols-2">
@@ -203,6 +206,9 @@ export default function StoreSettings({ store, onSaved }) {
       </Section>
 
       <Section title={t('setup.moreTitle')}>
+        {!appointments && (
+          <FoodTypePicker value={form.food_type} onChange={(v) => setForm((f) => ({ ...f, food_type: v }))} error={fields.food_type} name="st-food-type" />
+        )}
         {!appointments && (
           <div className="space-y-3 rounded-2xl border border-stone-200 p-4">
             <p className="label mb-0">{t('settings.deliveryTitle')}</p>

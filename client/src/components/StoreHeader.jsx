@@ -6,6 +6,7 @@ import { useStore } from '../context/StoreContext.jsx';
 import { getOpenStatus, mapsLink } from '../lib/format.js';
 import { rich, useI18n } from '../i18n/index.jsx';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
+import VegMark from './VegMark.jsx';
 import { whatsappLink } from '../services/whatsappService.js';
 
 /** Store header: banner, logo, name, verified badge, open/closed status, address + Maps shortcut. */
@@ -89,6 +90,7 @@ export default function StoreHeader() {
           <div className="min-w-0 pb-1">
             <h1 className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xl leading-tight font-extrabold break-words sm:text-2xl">
               <span>{config.name}</span>
+              <VegMark type={config.food_type} size={18} />
               {config.verified && <BadgeCheck size={22} className="flex-none fill-sky-500 text-white" aria-label={t('store.verified')} />}
               {config.is_demo && <span className="flex-none rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">{t('store.demoBadge')}</span>}
             </h1>

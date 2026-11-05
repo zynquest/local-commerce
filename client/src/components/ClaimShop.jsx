@@ -9,6 +9,7 @@ import { PLATFORM } from '../config.js';
 import { useI18n } from '../i18n/index.jsx';
 import { get, post } from '../lib/api.js';
 import { useDebounce } from '../lib/hooks.js';
+import { roadKm } from '../lib/format.js';
 import { useShopperLocation } from '../lib/location.js';
 import { whatsappLink } from '../services/whatsappService.js';
 
@@ -147,7 +148,7 @@ export default function ClaimShop({ proof, initialShop = null, onPick, onClaimed
                     <span className="block text-sm leading-snug font-semibold break-words">{s.name}</span>
                     <span className="block text-xs text-stone-500">
                       {[s.category, place(s)].filter(Boolean).join(' · ')}
-                      {s.distance_km != null && <span dir="ltr"> · {t('loc.km', { km: s.distance_km })}</span>}
+                      {s.distance_km != null && <span dir="ltr"> · {t('loc.byRoad', { km: roadKm(s.distance_km) })}</span>}
                     </span>
                   </span>
                 </button>

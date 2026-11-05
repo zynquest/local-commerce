@@ -73,6 +73,7 @@ export async function reviewChecklist(store) {
   const { rows } = await query(`SELECT count(*)::int AS n FROM products WHERE store_id = $1 AND status = 'active'`, [store.id]);
   return [
     ...common,
+    { key: 'food', label: 'Veg or non-veg (or not a food shop)', done: Boolean(store.food_type) },
     {
       key: 'products',
       label: `At least ${config.minProductsForReview} product${config.minProductsForReview > 1 ? 's' : ''}`,
@@ -84,15 +85,17 @@ export async function reviewChecklist(store) {
 async function storeWithReview(storeId) {
   const { rows } = await query(`SELECT s.*, ${CLOSED_NOW_SQL} AS closed_now FROM stores s WHERE s.id = $1`, [storeId]);
   const store = rows[0];
-  const [usage, reviews, checklist] = await Promise.all([
+  const [usage, reviews, checklist, qr] = await Promise.all([
     query(`SELECT count(*)::int AS used FROM products WHERE store_id = $1 AND status = 'active'`, [storeId]),
     query('SELECT action, remarks, created_at FROM store_reviews WHERE store_id = $1 ORDER BY created_at DESC LIMIT 20', [storeId]),
     reviewChecklist(store),
+    query('SELECT count(*)::int AS n FROM qr_codes WHERE store_id = $1', [storeId]),
   ]);
   const { owner_id, sku_seq, ...rest } = store;
   return {
     ...rest,
     sku_used: usage.rows[0].used,
+    qr_count: qr.rows[0].n, // printed QR stickers linked by the team: the dashboard's "My Store QR" tab
     reviews: reviews.rows,
     checklist,
     can_submit: REVIEWABLE.includes(store.status),
@@ -143,7 +146,7 @@ async function setWhatsApp(client, store, ownerId, phone) {
  * that number, and approval marks the number verified.
  */
 merchantRouter.post('/store/submit', async (req, res) => {
-  const { note, whatsapp_number, sales_rep_code } = parse(S.submitForReview, req.body ?? {});
+  const { note, whatsapp_number, sales_rep_code, food_type } = parse(S.submitForReview, req.body ?? {});
   if (sales_rep_code) {
     const rep = await query(`SELECT 1 FROM users WHERE role = 'staff' AND rep_code = $1`, [sales_rep_code]);
     if (!rep.rowCount) throw badRequest('No sales rep has this ID. Check it, or leave it empty.', { sales_rep_code: 'No sales rep has this ID. Check it, or leave it empty.' });
@@ -155,6 +158,10 @@ merchantRouter.post('/store/submit', async (req, res) => {
       throw conflict(store.status === 'pending_review' ? 'Your store is already waiting for review' : 'Your store is already approved');
     }
     if (whatsapp_number) await setWhatsApp(client, store, req.user.id, whatsapp_number);
+    if (food_type && store.business_type !== 'appointments') {
+      await client.query('UPDATE stores SET food_type = $2 WHERE id = $1', [store.id, food_type]);
+      store.food_type = food_type;
+    }
     const missing = (await reviewChecklist(store)).filter((c) => !c.done);
     if (missing.length) throw badRequest(`Please complete: ${missing.map((m) => m.label).join(', ')}`);
     // sales_rep_code: sent = set (or cleared with null); left out (e.g. resubmitting after a suspension) = kept.

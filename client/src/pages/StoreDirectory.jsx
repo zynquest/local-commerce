@@ -6,6 +6,7 @@ import { useSession } from '../context/SessionContext.jsx';
 import { useShopperLocation } from '../lib/location.js';
 import SmartImage from '../components/SmartImage.jsx';
 import { get } from '../lib/api.js';
+import { roadKm } from '../lib/format.js';
 import { useDebounce } from '../lib/hooks.js';
 import { PLATFORM } from '../config.js';
 import SiteHeader from '../components/SiteHeader.jsx';
@@ -107,7 +108,7 @@ export function StoreList({ query = '', limit, type = '' }) {
               <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-stone-500">
                 {s.distance_km != null && (
                   <span className="flex items-center gap-1 font-semibold text-brand">
-                    <Navigation size={11} /> <span dir="ltr">{s.distance_km < 0.1 ? `<${t('loc.km', { km: 0.1 })}` : t('loc.km', { km: s.distance_km })}</span>
+                    <Navigation size={11} /> <span dir="ltr">{t('loc.byRoad', { km: roadKm(s.distance_km) })}</span>
                   </span>
                 )}
                 {(s.locality || s.city) && <span className="flex items-center gap-1"><MapPin size={12} /> {[s.locality, s.city].filter(Boolean).join(', ')}</span>}

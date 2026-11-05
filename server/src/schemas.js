@@ -109,7 +109,14 @@ export const repCode = z.preprocess(
   (v) => (v == null || v === '' ? null : String(v).replace(/\s+/g, '').toUpperCase()),
   z.string().regex(/^[A-Z0-9]{6}$/, 'A sales rep ID is 6 letters or digits').nullable(),
 );
-export const submitForReview = z.object({ note: optText(500).optional(), whatsapp_number: mobile10.optional(), sales_rep_code: repCode.optional() });
+// Shops: pure veg, also non-veg, or not a food shop (shown to shoppers as the green / brown mark).
+export const FOOD_TYPES = ['veg', 'nonveg', 'none'];
+export const submitForReview = z.object({
+  note: optText(500).optional(),
+  whatsapp_number: mobile10.optional(),
+  sales_rep_code: repCode.optional(),
+  food_type: z.enum(FOOD_TYPES).optional(),
+});
 // Staff (sales reps), created by the platform admin; the password and rep ID are generated.
 export const staffCreate = z.object({
   username: z.string().trim().regex(/^[A-Za-z0-9_.-]{3,32}$/, 'Username: 3–32 letters, digits, dot, dash or underscore'),
@@ -190,6 +197,8 @@ export const storeSettings = z
     closed_days: optText(40),
     theme_color: z.preprocess((v) => (v ? v : null), z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable()),
     order_language: z.enum(['auto', ...LANGUAGE_CODES]), // auto = the customer's language
+    // The settings form sends '' while a store hasn't answered yet: that changes nothing.
+    food_type: z.preprocess((v) => (v === '' || v == null ? undefined : v), z.enum(FOOD_TYPES).optional()),
     business_type: z.enum(BUSINESS_TYPES), // only until the store is approved (see LOCKED_AFTER_APPROVAL)
     // Temporary closure (holiday): no orders or bookings until reopens_on (India date), or until switched off.
     temp_closed: z.boolean(),

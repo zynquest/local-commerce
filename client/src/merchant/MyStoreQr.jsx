@@ -8,7 +8,8 @@ import { get } from '../lib/api.js';
 import { whatsappLink } from '../services/whatsappService.js';
 
 /**
- * Owner's Store Settings: the printed QR stickers the platform team linked to this store, with Print and Share
+ * The printed QR stickers the platform team linked to this store (the dashboard's "My Store QR" tab, or Store
+ * Settings until one is linked, to ask for it), with Print and Share
  * (the sticker as a PNG plus an invitation with the store link). Loaded fresh each time, so links and removals made
  * by the team show up here.
  */

@@ -91,6 +91,16 @@
     "seedRemoveCta": "Ask us to remove it",
     "seedBadge": "Not taking orders yet"
   },
+  "food": {
+    "question": "Veg or non-veg?",
+    "hint": "Shoppers see a green or brown mark next to your store name.",
+    "veg": "Pure vegetarian",
+    "nonveg": "Also sells non-veg (egg, meat or fish)",
+    "none": "Not a food shop (no mark)",
+    "required": "Please choose one",
+    "vegMark": "Pure veg",
+    "nonvegMark": "Sells non-veg"
+  },
   "cart": {
     "unlistedTitle": "Unlisted Items & Special Instructions",
     "unlistedPlaceholder": "Can't find an item? Add your custom grocery list, fresh produce requests or delivery instructions here...",
@@ -650,6 +660,7 @@
     "shareLink": "Share store link",
     "viewStore": "View store",
     "tabs": {
+      "qr": "My Store QR",
       "products": "Products",
       "orders": "Orders",
       "import": "CSV Import",
@@ -908,7 +919,8 @@
       "all": "All",
       "shop": "Shops",
       "appointments": "Book appointments"
-    }
+    },
+    "byRoad": "~{km} km by road"
   },
   "biz": {
     "question": "What kind of business is it?",

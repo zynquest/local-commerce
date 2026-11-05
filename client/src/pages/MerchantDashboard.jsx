@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import {
   Archive, ArchiveRestore, CalendarDays, DoorClosed, ExternalLink, FileUp, Loader2, LogOut, Package, Pencil, Plus, ReceiptText, Scissors, Search,
-  Settings, Share2, Trash2, UserCog, Users,
+  QrCode, Settings, Share2, Trash2, UserCog, Users,
 } from 'lucide-react';
 import AppointmentsPanel from '../merchant/AppointmentsPanel.jsx';
 import ServicesPanel from '../merchant/ServicesPanel.jsx';
@@ -11,6 +11,7 @@ import ProductForm from '../merchant/ProductForm.jsx';
 import CsvImport from '../merchant/CsvImport.jsx';
 import OrdersPanel from '../merchant/OrdersPanel.jsx';
 import StoreSettings from '../merchant/StoreSettings.jsx';
+import MyStoreQr from '../merchant/MyStoreQr.jsx';
 import AccountPanel from '../merchant/AccountPanel.jsx';
 import StoreStatusCard, { StatusPill } from '../merchant/StoreStatusCard.jsx';
 import OnboardingWizard from '../merchant/OnboardingWizard.jsx';
@@ -45,9 +46,18 @@ const TABS = [
 /** Merchant console: catalog CRUD, orders, CSV import, store settings, account. */
 export default function MerchantDashboard() {
   const { owner, loadOwner, logoutOwner } = useSession();
+  // The open tab isn't kept in the address, so a reload starts on the default tab (My Store QR once the store has a
+  // sticker). Links with ?tab= (notifications: ?tab=orders) open that tab once, and the parameter is then dropped.
   const [params, setParams] = useSearchParams();
-  const tabParam = params.get('tab');
-  const setTab = (t) => setParams({ tab: t }, { replace: true });
+  const [tabPick, setTab] = useState(() => params.get('tab'));
+  useEffect(() => {
+    const linked = params.get('tab');
+    if (!linked) return;
+    setTab(linked);
+    const rest = new URLSearchParams(params);
+    rest.delete('tab');
+    setParams(rest, { replace: true });
+  }, [params, setParams]);
 
   const [store, setStore] = useState(null);
   const [stats, setStats] = useState(null);
@@ -164,8 +174,13 @@ export default function MerchantDashboard() {
   const inSetup = store.status === 'draft' || store.status === 'rejected';
   // Store Settings (delivery, hours, logo…) open once the store is approved.
   const settingsOpen = store.status === 'approved' || store.status === 'suspended';
-  const tabs = (isAppt ? TABS_APPOINTMENTS : TABS).filter((x) => x.id !== 'settings' || settingsOpen);
-  const tab = tabs.some((x) => x.id === tabParam) ? tabParam : tabs[0].id;
+  // Approved with a printed QR sticker linked by the team: "My Store QR" comes first and opens by default.
+  const hasQr = settingsOpen && store.qr_count > 0;
+  const tabs = [
+    ...(hasQr ? [{ id: 'qr', icon: QrCode }] : []),
+    ...(isAppt ? TABS_APPOINTMENTS : TABS).filter((x) => x.id !== 'settings' || settingsOpen),
+  ];
+  const tab = tabs.some((x) => x.id === tabPick) ? tabPick : tabs[0].id;
   const atLimit = stats && stats.sku_used >= stats.sku_limit;
 
   return (
@@ -345,6 +360,7 @@ export default function MerchantDashboard() {
             </>
           ))}
 
+        {tab === 'qr' && <MyStoreQr store={store} />}
         {tab === 'orders' && <OrdersPanel currency={cur} onChange={refreshStats} />}
         {tab === 'appointments' && <AppointmentsPanel store={store} currency={cur} onChange={refreshStats} />}
         {tab === 'services' && <ServicesPanel currency={cur} onChange={() => { refreshStats(); setTimeout(() => get('/merchant/store').then((r) => setStore(r.store)), 0); }} />}

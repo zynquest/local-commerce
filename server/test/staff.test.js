@@ -101,11 +101,11 @@ describe('staff (sales reps)', () => {
     assert.equal(bad.status, 400);
     assert.ok(bad.body.fields?.sales_rep_code);
     assert.equal((await stores.a.owner('POST', '/api/merchant/store/submit', { sales_rep_code: 'AB12' })).status, 400, 'format');
-    const ok = await stores.a.owner('POST', '/api/merchant/store/submit', { sales_rep_code: reps.ravi.rep_code.toLowerCase() });
+    const ok = await stores.a.owner('POST', '/api/merchant/store/submit', { sales_rep_code: reps.ravi.rep_code.toLowerCase(), food_type: 'veg' });
     assert.equal(ok.status, 200, JSON.stringify(ok.body));
     assert.equal(ok.body.store.sales_rep_code, reps.ravi.rep_code);
-    assert.equal((await stores.b.owner('POST', '/api/merchant/store/submit', { sales_rep_code: reps.sita.rep_code })).status, 200);
-    assert.equal((await stores.c.owner('POST', '/api/merchant/store/submit', {})).status, 200, 'no rep ID is fine');
+    assert.equal((await stores.b.owner('POST', '/api/merchant/store/submit', { sales_rep_code: reps.sita.rep_code, food_type: 'nonveg' })).status, 200);
+    assert.equal((await stores.c.owner('POST', '/api/merchant/store/submit', { food_type: 'none' })).status, 200, 'no rep ID is fine');
   });
 
   test('staff sign in at the console and see only their own approval requests', async () => {

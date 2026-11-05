@@ -239,7 +239,11 @@ describe('approval workflow', () => {
     assert.equal(early.status, 400, 'category + map location missing');
     assert.match(early.body.error, /Location on the map/);
     await owner('PUT', '/api/merchant/store', { category: 'Grocery', delivery_fee: 20, lat: 12.9716, lng: 77.5946 });
-    const sub = await owner('POST', '/api/merchant/store/submit', { note: 'Please review' });
+    const noFood = await owner('POST', '/api/merchant/store/submit', { note: 'Please review' });
+    assert.equal(noFood.status, 400, 'shops say veg or non-veg first');
+    assert.match(noFood.body.error, /Veg or non-veg/);
+    assert.equal((await owner('POST', '/api/merchant/store/submit', { food_type: 'meat' })).status, 400);
+    const sub = await owner('POST', '/api/merchant/store/submit', { note: 'Please review', food_type: 'veg' });
     assert.equal(sub.status, 200, JSON.stringify(sub.body));
     assert.equal(sub.body.store.status, 'pending_review');
     assert.equal((await owner('POST', '/api/merchant/store/submit', {})).status, 409, 'already pending');
@@ -260,7 +264,11 @@ describe('approval workflow', () => {
     assert.equal((await admin('POST', `/api/platform/stores/${storeId}/suspend`, { remarks: 'not approved yet' })).status, 409, 'invalid transition');
     const ok = await admin('POST', `/api/platform/stores/${storeId}/approve`, {});
     assert.equal(ok.body.store.status, 'approved');
-    assert.equal((await shopper('GET', `/api/stores/${slug}`)).status, 200);
+    const pub = await shopper('GET', `/api/stores/${slug}`);
+    assert.equal(pub.status, 200);
+    assert.equal(pub.body.store.food_type, 'veg', 'shoppers see the green mark');
+    assert.equal((await owner('PUT', '/api/merchant/store', { food_type: 'nonveg' })).body.store.food_type, 'nonveg', 'changeable in Settings');
+    assert.equal((await owner('GET', '/api/merchant/store')).body.store.qr_count, 0);
   });
 
   test('admin endpoints need the admin session; owners cannot use them', async () => {

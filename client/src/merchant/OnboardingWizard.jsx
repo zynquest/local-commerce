@@ -5,6 +5,7 @@ import BusinessTypePicker from '../components/BusinessTypePicker.jsx';
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import SearchSelect from '../components/SearchSelect.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
+import { FoodTypePicker } from '../components/VegMark.jsx';
 import { useSession } from '../context/SessionContext.jsx';
 import { categoriesFor, slugify } from '../businessCategories.js';
 import { PLATFORM } from '../config.js';
@@ -90,6 +91,7 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
     place_id: store.place_id || '',
     note: '',
     rep: store.sales_rep_code || '',
+    food_type: store.food_type || '',
   }));
   const [item, setItem] = useState(EMPTY_ITEM);
   const [member, setMember] = useState(EMPTY_MEMBER);
@@ -283,10 +285,16 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
   const submit = async () => {
     const rep = form.rep.replace(/\s+/g, '').toUpperCase();
     if (rep && !/^[A-Z0-9]{6}$/.test(rep)) return setErrors({ sales_rep_code: t('setup.repInvalid') });
+    if (!appt && !form.food_type) return setErrors({ food_type: t('food.required') });
     // WhatsApp is opened from the click itself (phones block pop-ups opened later), then pointed at the message.
     const win = window.open('', '_blank');
     const ok = await save(async () => {
-      const { store: s } = await post('/merchant/store/submit', { note: form.note.trim() || undefined, whatsapp_number: form.whatsapp || undefined, sales_rep_code: rep || null });
+      const { store: s } = await post('/merchant/store/submit', {
+        note: form.note.trim() || undefined,
+        whatsapp_number: form.whatsapp || undefined,
+        sales_rep_code: rep || null,
+        ...(appt ? {} : { food_type: form.food_type }),
+      });
       onStoreChange(s);
       const url = approvalLink(s);
       if (win) {
@@ -552,6 +560,16 @@ export default function OnboardingWizard({ store, onStoreChange, onCatalogChange
                   </div>
                 ))}
               </dl>
+              {!appt && (
+                <FoodTypePicker
+                  value={form.food_type}
+                  onChange={(v) => {
+                    setForm((f) => ({ ...f, food_type: v }));
+                    setErrors((x) => ({ ...x, food_type: undefined }));
+                  }}
+                  error={errors.food_type}
+                />
+              )}
               <Field id="wz-rep" label={`${t('setup.repLabel')} (${t('common.optional')})`} error={errors.sales_rep_code} hint={t('setup.repHint')}>
                 <input
                   id="wz-rep"

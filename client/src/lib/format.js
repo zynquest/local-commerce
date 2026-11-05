@@ -72,3 +72,10 @@ export const mapsLink = (url, address) => {
   if (address) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   return '';
 };
+
+/**
+ * Shops are found and sorted by straight-line distance, but roads in Indian cities run longer (one-ways, flyovers,
+ * rivers): Google Maps' route is typically 1.3–1.5× the straight line. Lists show this estimate of the road distance.
+ */
+export const ROAD_FACTOR = 1.4;
+export const roadKm = (straightKm) => Math.max(0.1, Math.round(Number(straightKm) * ROAD_FACTOR * 10) / 10);

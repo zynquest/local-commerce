@@ -14,7 +14,7 @@ export default function Testimonials() {
       <div className="mx-auto max-w-6xl px-4">
         <h2 id="testimonials" className="text-center text-3xl font-extrabold">{t('landing.testimonials.title')}</h2>
         <p className="mx-auto mt-2 max-w-2xl text-center text-stone-600">{t('landing.testimonials.subtitle')}</p>
-        <div className="mt-10 grid gap-4 md:grid-cols-2">
+        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {TESTIMONIALS.map((x) => (
             <figure key={x.quote} className="card flex flex-col p-6">
               <Quote size={28} className="text-brand/30" aria-hidden="true" />

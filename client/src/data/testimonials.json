@@ -6,7 +6,27 @@
     "stars": 5
   },
   {
-    "quote": "Wow, it literally took less than 2 minutes.",
-    "whoKey": "landing.testimonials.apartmentOwner"
+    "quote": "Thank you for listing Desi Stir on Vocal For Local. Our regular customers now order straight on WhatsApp!",
+    "store": "Desi Stir",
+    "slug": "desi-stir",
+    "stars": 5
+  },
+  {
+    "quote": "Setting up our store took just a few minutes. Thank you, Vocal For Local, for supporting small businesses like ours.",
+    "store": "The Box of Happiness",
+    "slug": "the-box-of-happiness",
+    "stars": 5
+  },
+  {
+    "quote": "Thank you for adding Daadi’s Thekua. Now people can order our homemade thekua from one simple link.",
+    "store": "Daadi’s Thekua",
+    "slug": "daadis-thekua",
+    "stars": 5
+  },
+  {
+    "quote": "A big thank you to the Vocal For Local team for helping Meva Shree come online, free and without any commission.",
+    "store": "Meva Shree",
+    "slug": "meva-shree",
+    "stars": 5
   }
 ]

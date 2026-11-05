@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
-import { ArrowDown, ArrowUp, Camera, ChevronDown, FileUp, Link2, Loader2, Plus, Save, Star, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Camera, ChevronDown, FileUp, Loader2, Plus, Save, Star, Trash2, X } from 'lucide-react';
+import ImageEditor from '../components/ImageEditor.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import { discountPercent, formatMoney } from '../lib/format.js';
-import { isInstagramCdn, normalizeImageUrl, uploadImage } from '../services/imageService.js';
+import { checkImageFile, uploadImage } from '../services/imageService.js';
 import { rich, useT } from '../i18n/index.jsx';
 
 const EMPTY = {
@@ -58,13 +59,17 @@ function validate(t, f, isNew, existingSkus) {
   return e;
 }
 
+const MAX_PHOTOS = 3;
+// Photos uploaded here live under /uploads/; older products may still have photos added by link.
+const isUploaded = (src) => String(src).startsWith('/uploads/');
+
 // Server field names → form field names.
 const SERVER_FIELD = { offer_price: 'list_price' };
 
 /**
- * canUpload: photo upload is on the paid plan; free stores add photos by link (https://…). onBulk: opens CSV Import.
+ * Photos: up to MAX_PHOTOS, each edited (crop, light, text) then uploaded. onBulk: opens CSV Import.
  */
-export default function ProductForm({ product, categories, existingSkus, onSave, onCancel, canUpload = true, onBulk }) {
+export default function ProductForm({ product, categories, existingSkus, onSave, onCancel, onBulk }) {
   const t = useT();
   const isNew = !product;
   const [f, setF] = useState(() =>
@@ -84,7 +89,7 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
   const [showOptional, setShowOptional] = useState(!isNew);
   const [specRows, setSpecRows] = useState(() => Object.entries(product?.specs || {}).map(([k, v]) => [k, String(v)]));
   const [tagInput, setTagInput] = useState('');
-  const [urlInput, setUrlInput] = useState('');
+  const [editingPhoto, setEditingPhoto] = useState(null); // the picked file, open in the photo editor
   const [uploading, setUploading] = useState(0);
   const [mediaError, setMediaError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -104,29 +109,30 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
   };
   const off = discountPercent(num(f.mrp), num(f.list_price));
 
-  const addImageUrl = () => {
-    const url = normalizeImageUrl(urlInput);
+  const pickPhoto = (file) => {
     setMediaError('');
-    if (!/^https:\/\//i.test(url)) return setMediaError(t('pf.httpsOnly'));
-    if (isInstagramCdn(url)) return setMediaError(t('pf.instagram'));
-    setF((s) => ({ ...s, images: [...s.images, url].slice(0, 8) }));
-    setUrlInput('');
+    if (fileRef.current) fileRef.current.value = '';
+    if (!file) return;
+    try {
+      checkImageFile(file);
+      setEditingPhoto(file);
+    } catch (err) {
+      setMediaError(err.message);
+    }
   };
 
-  const onFiles = async (files) => {
-    setMediaError('');
-    for (const file of Array.from(files || []).slice(0, 8 - f.images.length)) {
-      setUploading((n) => n + 1);
-      try {
-        const url = await uploadImage(file);
-        setF((s) => ({ ...s, images: [...s.images, url].slice(0, 8) }));
-      } catch (err) {
-        setMediaError(err.message);
-      } finally {
-        setUploading((n) => n - 1);
-      }
+  // The first uploaded photo replaces photos added earlier by link: the product then shows only real uploads.
+  const uploadPhoto = async (file) => {
+    setEditingPhoto(null);
+    setUploading((n) => n + 1);
+    try {
+      const url = await uploadImage(file);
+      setF((s) => ({ ...s, images: [...s.images.filter(isUploaded), url].slice(0, MAX_PHOTOS) }));
+    } catch (err) {
+      setMediaError(err.message);
+    } finally {
+      setUploading((n) => n - 1);
     }
-    if (fileRef.current) fileRef.current.value = '';
   };
 
   const moveImage = (i, dir) =>
@@ -244,7 +250,7 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
                     </div>
                   </div>
                 ))}
-                {canUpload && f.images.length < 8 && (
+                {f.images.filter(isUploaded).length < MAX_PHOTOS && (
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
@@ -254,23 +260,11 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
                     {uploading ? t('pf.uploading') : t('pf.addPhoto')}
                   </button>
                 )}
-                <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => onFiles(e.target.files)} />
+                <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pickPhoto(e.target.files?.[0])} />
               </div>
-              <div className="mt-2 flex gap-2">
-                <div className="relative flex-1">
-                  <Link2 size={16} className="absolute top-1/2 start-3 -translate-y-1/2 text-stone-400" />
-                  <input maxLength={1000}
-                    className="input ps-9"
-                    placeholder={canUpload ? t('pf.pasteLink') : 'https://…'}
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addImageUrl())}
-                  />
-                </div>
-                <button type="button" onClick={addImageUrl} className="btn-ghost">{t('common.add')}</button>
-              </div>
-              {!canUpload && <p className="mt-1 text-[11px] text-stone-500">{t('pf.uploadPaid')}</p>}
+              {f.images.some((src) => !isUploaded(src)) && <p className="mt-1 text-[11px] text-stone-500">{t('pf.linkPhotosReplaced')}</p>}
               {mediaError && <p className="mt-1 text-xs text-rose-600">{mediaError}</p>}
+              {editingPhoto && <ImageEditor file={editingPhoto} onDone={uploadPhoto} onCancel={() => setEditingPhoto(null)} />}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">

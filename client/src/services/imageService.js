@@ -1,4 +1,5 @@
-// Media helpers. Uploads go to the API (resized to WebP server-side); pasted URLs must be https.
+// Media helpers. Uploads go to the API (compressed to WebP server-side), up to 5 MB.
+export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 // Instagram CDN URLs are rejected: their signed `oe`/`oh` tokens expire within 24–72 hours.
 import { api } from '../lib/api.js';
 import { getActiveT } from '../i18n/index.jsx';
@@ -23,10 +24,15 @@ export function optimizeImage(url, width = 600) {
   return u;
 }
 
-export async function uploadImage(file) {
+/** Throws the message to show when this isn't a photo we can take (not an image, or over 5 MB). */
+export function checkImageFile(file) {
   const t = getActiveT();
   if (!file?.type?.startsWith('image/')) throw new Error(t('errors.chooseImage'));
-  if (file.size > 8 * 1024 * 1024) throw new Error(t('errors.imageTooBig'));
+  if (file.size > MAX_UPLOAD_BYTES) throw new Error(t('errors.imageTooBig'));
+}
+
+export async function uploadImage(file) {
+  checkImageFile(file);
   const form = new FormData();
   form.append('image', file);
   const { url } = await api('/merchant/uploads', { method: 'POST', body: form });

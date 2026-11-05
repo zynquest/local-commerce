@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight, BadgeIndianRupee, Check, Clock, Globe, ImageUp, LayoutDashboard, Minus, Plus, QrCode, ShieldCheck,
+  ArrowRight, BadgeIndianRupee, BookOpen, Check, Clock, Globe, ImageUp, IndianRupee, LayoutDashboard, Minus, Plus, QrCode, ShieldCheck,
   Languages, MapPin, ShoppingBasket as StoreIcon, Smartphone, Store, UserRound, Users, WifiOff, X,
 } from 'lucide-react';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import InstagramIcon from '../components/InstagramIcon.jsx';
 import SiteHeader from '../components/SiteHeader.jsx';
 import HomeVideos from '../components/HomeVideos.jsx';
+import Testimonials from '../components/Testimonials.jsx';
 import { useSeo } from '../lib/seo.js';
 import { NearbyBar, StoreList } from './StoreDirectory.jsx';
 import { PLATFORM } from '../config.js';
@@ -216,7 +217,7 @@ function Sandbox() {
 }
 
 // FAQ text lives in the locale files (landing.faq.qN / aN) and is also rendered as FAQPage JSON-LD by the server.
-const FAQ_COUNT = 9;
+const FAQ_COUNT = 11;
 // Where the platform was built: Sonsari village, Janjgir-Champa district, Chhattisgarh (pincode 495553).
 export const SONSARI = { lat: 21.9415764, lng: 82.3926376 };
 const SONSARI_MAP_EMBED = `https://maps.google.com/maps?q=${SONSARI.lat},${SONSARI.lng}&z=13&output=embed`;
@@ -231,6 +232,8 @@ const FEATURES = [
   ['dashboard', ShieldCheck],
   ['guests', UserRound],
   ['qr', QrCode],
+  ['khata', BookOpen],
+  ['upi', IndianRupee],
   ['languages', Languages],
 ];
 
@@ -327,6 +330,8 @@ export default function Landing() {
           ))}
         </div>
       </section>
+
+      <Testimonials />
 
       {/* Calculator */}
       <section className="bg-stone-50 py-16">

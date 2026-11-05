@@ -2,6 +2,7 @@
 // inside #root (React replaces it on load), sitemap.xml and robots.txt.
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { config } from './config.js';
 import { query } from './db.js';
 import { CLOSED_NOW_SQL, isUnclaimedSeed } from './serialize.js';
@@ -179,6 +180,10 @@ function homeLd(base, t) {
         'Find shops near me',
         'Store QR code to print and share',
         'Order and booking notifications',
+        'Digital khata (udhar) with WhatsApp reminders and monthly statements',
+        'UPI payments from the store page',
+        'Product photo upload with a built-in photo editor',
+        'Veg and non-veg mark for food shops',
         'Available in 23 Indian languages',
       ].join(', '),
     },
@@ -195,10 +200,19 @@ const OWNER_KEYWORDS = [
   'free online store', 'online store for local shops', 'WhatsApp ordering', 'WhatsApp store', 'zero commission',
   'sell online free', 'online appointment booking', 'salon booking app', 'digital catalog for shop', 'store QR code',
   'kirana store online', 'home business online', 'vocal for local', 'small business India',
+  'digital khata', 'udhar khata app', 'credit ledger for shop', 'accept UPI payments', 'UPI payment for shop', 'product photo editor',
 ];
-const CUSTOMER_KEYWORDS = ['shops near me', 'local stores near me', 'order on WhatsApp', 'home delivery near me', 'book appointment near me', 'vocal for local'];
+const CUSTOMER_KEYWORDS = [
+  'shops near me', 'local stores near me', 'order on WhatsApp', 'home delivery near me', 'book appointment near me', 'vocal for local',
+  'pay by UPI', 'pure veg shops near me',
+];
 
-const FAQ_COUNT = 9;
+// Shop owners' own words (client/src/data/testimonials.json, also shown on the home page), for the crawlable home HTML.
+const TESTIMONIALS = JSON.parse(
+  fs.readFileSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../client/src/data/testimonials.json'), 'utf8'),
+);
+
+const FAQ_COUNT = 11;
 const faq = (t) => Array.from({ length: FAQ_COUNT }, (_, i) => [t(`landing.faq.q${i + 1}`), t(`landing.faq.a${i + 1}`)]);
 
 /** Internal link that keeps the current language (so crawlers discover each language version). */
@@ -211,6 +225,11 @@ function homeBody(t, lang) {
 <h2>${esc(t('landing.seo.t2'))}</h2><p>${esc(t('landing.seo.d2', { limit }))}</p>
 <h2>${esc(t('landing.seo.t1'))}</h2><p>${esc(t('landing.seo.d1'))}</p>
 <h2>${esc(t('landing.seo.t3'))}</h2><p>${esc(t('landing.seo.d3'))}</p>
+<h2>${esc(t('landing.features.khataTitle'))}</h2><p>${esc(t('landing.features.khataBody'))}</p>
+<h2>${esc(t('landing.features.upiTitle'))}</h2><p>${esc(t('landing.features.upiBody'))}</p>
+<h2>${esc(t('landing.testimonials.title'))}</h2>${TESTIMONIALS.map(
+    (x) => `<figure><blockquote lang="en">${esc(x.quote)}</blockquote><figcaption>${esc(x.store ? `${x.store} · ${t('landing.testimonials.owner')}` : t(x.whoKey))}</figcaption></figure>`,
+  ).join('')}
 <h2>${esc(t('landing.story.title'))}</h2><p>${esc(t('landing.story.p1'))}</p><p>${esc(t('landing.story.p2'))}</p><p>${esc(t('landing.story.p3'))}</p><address>${esc(t('landing.story.place'))}</address>
 <h2>${esc(t('landing.faq.title'))}</h2>${faq(t).map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join('')}
 <p><a href="${href('/stores', lang)}">${esc(t('nav.shopStores'))}</a> · <a href="${href('/register', lang)}">${esc(t('nav.register'))}</a></p></main>`;
@@ -368,6 +387,8 @@ function businessLd(base, store, type) {
     image: abs(base, store.banner_url || store.logo_url) || undefined,
     logo: abs(base, store.logo_url) || undefined,
     description: store.description || undefined,
+    // Pure-veg food shops (bakery, restaurant, café): schema.org's food establishments carry the cuisine.
+    ...(store.food_type === 'veg' && ['Bakery', 'Restaurant', 'CafeOrCoffeeShop'].includes(type) ? { servesCuisine: 'Vegetarian' } : {}),
     ...(store.category ? { additionalType: store.category, keywords: [store.category, store.city, store.locality].filter(Boolean).join(', ') } : {}),
     telephone: store.is_demo ? `+${config.demoWhatsApp}` : store.whatsapp_number ? `+${store.whatsapp_number}` : undefined,
     address:
@@ -418,6 +439,8 @@ const businessKeywords = (store, extra = []) => {
     appt ? 'book appointment online' : 'order online',
     appt ? 'book on WhatsApp' : 'order on WhatsApp',
     !appt && 'home delivery',
+    !appt && store.food_type === 'veg' && 'pure veg',
+    store.upi_id && 'pay by UPI',
     ...extra,
     BRAND,
   ];

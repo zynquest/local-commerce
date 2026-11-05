@@ -10,6 +10,7 @@ import { config } from './config.js';
 import { query } from './db.js';
 import { errorHandler, forbidden, notFound } from './errors.js';
 import { merchantRouter } from './routes/merchant.js';
+import { khataRouter } from './routes/khata.js';
 import { whatsappRouter } from './routes/whatsapp.js';
 import { merchantAppointmentsRouter, publicAppointmentsRouter } from './routes/appointments.js';
 import { otpRouter } from './routes/otp.js';
@@ -88,6 +89,7 @@ export function createApp() {
   );
   app.use('/api/auth', authRouter);
   app.use('/api/merchant', merchantRouter);
+  app.use('/api/merchant', khataRouter);
   app.use('/api/merchant', merchantAppointmentsRouter);
   app.use('/api/platform', platformRouter);
   app.use('/api/otp', otpRouter);

@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react';
-import { BadgeCheck, Camera, Check, Link2, Loader2, Save } from 'lucide-react';
+import { BadgeCheck, Camera, Check, Loader2, Save } from 'lucide-react';
 import AddressPicker from '../components/AddressPicker.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
+import ImageEditor from '../components/ImageEditor.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import { put } from '../lib/api.js';
-import { uploadImage } from '../services/imageService.js';
+import { checkImageFile, uploadImage } from '../services/imageService.js';
 import { useT } from '../i18n/index.jsx';
 import { LANGUAGES } from '../i18n/languages.js';
 import { SupportNote } from './OnboardingWizard.jsx';
@@ -18,7 +19,7 @@ const APPT_DEFAULTS = { slot_minutes: 30, booking_days: 14, min_notice_minutes: 
 const EDITABLE = [
   'address_text', 'city', 'lat', 'lng', 'maps_url', 'place_id', 'order_language',
   'delivery_fee', 'free_delivery_above', 'logo_url', 'banner_url', 'opening_hours', 'closed_days', 'minimum_order',
-  'instagram_handle', 'theme_color', 'description', 'food_type',
+  'instagram_handle', 'theme_color', 'description', 'food_type', 'upi_id',
 ];
 
 const pretty = (p) => (p ? `+91 ${p.slice(-10, -5)} ${p.slice(-5)}` : '—');
@@ -60,8 +61,20 @@ export default function StoreSettings({ store, onSaved }) {
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const upload = async (key, file) => {
+  const [editingPhoto, setEditingPhoto] = useState(null); // { key, file } open in the photo editor
+  const pick = (key, e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
+    try {
+      checkImageFile(file);
+      setEditingPhoto({ key, file });
+    } catch (err) {
+      setStatus((s) => ({ ...s, error: err.message }));
+    }
+  };
+  const upload = async (key, file) => {
+    setEditingPhoto(null);
     setUploading(key);
     try {
       const url = await uploadImage(file);
@@ -93,30 +106,11 @@ export default function StoreSettings({ store, onSaved }) {
     }
   };
 
-  // Photo upload is on the paid plan; free stores use an image link (https://…).
-  const canUpload = store.plan !== 'free';
+  // Logo (square) and banner (the store page's 16:5 strip): picked, edited, uploaded. An uploaded photo replaces an
+  // older image link; the link fields are gone.
   const imagePicker = (key, label, ref, className) => (
     <div>
       <span className="label">{label}</span>
-      {!canUpload ? (
-        <div className="space-y-1.5">
-          <div className={`flex items-center justify-center overflow-hidden border-2 border-stone-200 bg-stone-50 text-stone-400 ${className}`}>
-            {form[key] ? <SmartImage src={form[key]} alt="" className="h-full w-full object-cover" /> : <Link2 size={20} />}
-          </div>
-          <input
-            className="input py-1.5 text-xs"
-            type="url"
-            inputMode="url"
-            maxLength={1000}
-            placeholder="https://"
-            value={form[key] || ''}
-            onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value.trim() }))}
-            aria-label={label}
-          />
-          {fields[key] && <p className="text-xs text-rose-600">{fields[key]}</p>}
-        </div>
-      ) : (
-      <>
       <button
         type="button"
         onClick={() => ref.current?.click()}
@@ -129,9 +123,8 @@ export default function StoreSettings({ store, onSaved }) {
           </span>
         )}
       </button>
-      <input ref={ref} type="file" accept="image/*" hidden onChange={(e) => upload(key, e.target.files?.[0])} />
-      </>
-      )}
+      <input ref={ref} type="file" accept="image/*" hidden onChange={(e) => pick(key, e)} />
+      {fields[key] && <p className="mt-1 text-xs text-rose-600">{fields[key]}</p>}
     </div>
   );
 
@@ -205,6 +198,10 @@ export default function StoreSettings({ store, onSaved }) {
         </div>
       </Section>
 
+      <Section title={t('settings.paymentsTitle')}>
+        {input('upi_id', { placeholder: 'yourname@okaxis', maxLength: 300, hint: t('settings.h.upi_id') })}
+      </Section>
+
       <Section title={t('setup.moreTitle')}>
         {!appointments && (
           <FoodTypePicker value={form.food_type} onChange={(v) => setForm((f) => ({ ...f, food_type: v }))} error={fields.food_type} name="st-food-type" />
@@ -233,7 +230,14 @@ export default function StoreSettings({ store, onSaved }) {
           {imagePicker('logo_url', t('settings.logo'), logoRef, 'h-24 w-24 rounded-2xl')}
           <div className="flex-1">{imagePicker('banner_url', t('settings.banner'), bannerRef, 'h-24 w-full rounded-2xl')}</div>
         </div>
-        {!canUpload && <p className="-mt-2 text-[11px] text-stone-500">{t('pf.uploadPaid')}</p>}
+        {editingPhoto && (
+          <ImageEditor
+            file={editingPhoto.file}
+            aspect={editingPhoto.key === 'logo_url' ? 1 : 16 / 5}
+            onDone={(file) => upload(editingPhoto.key, file)}
+            onCancel={() => setEditingPhoto(null)}
+          />
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2">
           {input('opening_hours', { placeholder: '09:00-21:00', hint: t('settings.h.opening_hours'), maxLength: 11 })}

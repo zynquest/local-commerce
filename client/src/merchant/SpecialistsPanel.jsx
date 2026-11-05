@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Camera, Copy, Loader2, Pencil, Plus, Trash2, UserRound, X } from 'lucide-react';
 import SmartImage from '../components/SmartImage.jsx';
 import { del, get, post, put } from '../lib/api.js';
-import { uploadImage } from '../services/imageService.js';
+import ImageEditor from '../components/ImageEditor.jsx';
+import { checkImageFile, uploadImage } from '../services/imageService.js';
 import { useI18n } from '../i18n/index.jsx';
 
 export const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -97,19 +98,31 @@ export function ScheduleEditor({ value, onChange }) {
   );
 }
 
-function SpecialistForm({ specialist, services, onSave, onCancel, canUpload = true }) {
+function SpecialistForm({ specialist, services, onSave, onCancel }) {
   const { t, dayName } = useI18n();
   const [form, setForm] = useState(() => (specialist ? { ...EMPTY, ...specialist } : { ...EMPTY, service_ids: services.map((s) => s.id) }));
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [editingPhoto, setEditingPhoto] = useState(null); // the picked file, open in the photo editor
   const [error, setError] = useState('');
   const photoRef = useRef(null);
 
   const toggleService = (id) =>
     setForm((f) => ({ ...f, service_ids: f.service_ids.includes(id) ? f.service_ids.filter((x) => x !== id) : [...f.service_ids, id] }));
 
-  const upload = async (file) => {
+  const pick = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
+    try {
+      checkImageFile(file);
+      setEditingPhoto(file);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+  const upload = async (file) => {
+    setEditingPhoto(null);
     setUploading(true);
     try {
       const url = await uploadImage(file);
@@ -144,20 +157,15 @@ function SpecialistForm({ specialist, services, onSave, onCancel, canUpload = tr
         <button type="button" onClick={onCancel} className="p-1 text-stone-400" aria-label={t('common.cancel')}><X size={18} /></button>
       </div>
       <div className="flex gap-3">
-        <button type="button" onClick={() => canUpload && photoRef.current?.click()} disabled={!canUpload} className="relative flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-stone-300 bg-stone-50 text-stone-400" aria-label={t('appt.photo')}>
+        <button type="button" onClick={() => photoRef.current?.click()} className="relative flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-stone-300 bg-stone-50 text-stone-400" aria-label={t('appt.photo')}>
           {form.photo_url ? <SmartImage src={form.photo_url} alt="" className="h-full w-full object-cover" /> : <Camera size={20} />}
           {uploading && <span className="absolute inset-0 flex items-center justify-center bg-white/70"><Loader2 className="animate-spin text-brand" /></span>}
         </button>
-        <input ref={photoRef} type="file" accept="image/*" hidden onChange={(e) => upload(e.target.files?.[0])} />
+        <input ref={photoRef} type="file" accept="image/*" hidden onChange={pick} />
+        {editingPhoto && <ImageEditor file={editingPhoto} aspect={1} onDone={upload} onCancel={() => setEditingPhoto(null)} />}
         <div className="flex-1 space-y-2">
           <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('appt.specialistName')} aria-label={t('appt.specialistName')} maxLength={60} autoFocus />
           <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('appt.specialistTitlePlaceholder')} aria-label={t('appt.specialistTitle')} maxLength={80} />
-          {!canUpload && (
-            <>
-              <input className="input text-xs" type="url" inputMode="url" maxLength={1000} placeholder="https://" value={form.photo_url || ''} onChange={(e) => setForm({ ...form, photo_url: e.target.value.trim() || null })} aria-label={t('appt.photo')} />
-              <p className="text-[11px] text-stone-500">{t('pf.uploadPaid')}</p>
-            </>
-          )}
         </div>
       </div>
       <div>
@@ -189,7 +197,7 @@ function SpecialistForm({ specialist, services, onSave, onCancel, canUpload = tr
 }
 
 /** Specialists (stylist, therapist, doctor): services they offer and weekly working hours. */
-export default function SpecialistsPanel({ onChange, canUpload = true }) {
+export default function SpecialistsPanel({ onChange }) {
   const { t, dayName } = useI18n();
   const [data, setData] = useState({ loading: true, specialists: [], services: [], error: '' });
   const [editing, setEditing] = useState(null);
@@ -217,7 +225,7 @@ export default function SpecialistsPanel({ onChange, canUpload = true }) {
     onChange?.();
   };
 
-  if (editing) return <SpecialistForm specialist={editing === 'new' ? null : editing} services={data.services} onSave={save} onCancel={() => setEditing(null)} canUpload={canUpload} />;
+  if (editing) return <SpecialistForm specialist={editing === 'new' ? null : editing} services={data.services} onSave={save} onCancel={() => setEditing(null)} />;
 
   const serviceName = Object.fromEntries(data.services.map((s) => [s.id, s.name]));
   return (

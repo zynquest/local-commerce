@@ -485,7 +485,11 @@
       "qrTitle": "Counter QR stand",
       "qrBody": "“Avoid the evening rush — scan to order on WhatsApp.” Turn walk-ins into repeat orders.",
       "languagesTitle": "Every Indian language",
-      "languagesBody": "Customers and shop owners can use the app in English or any of India's 22 official languages."
+      "languagesBody": "Customers and shop owners can use the app in English or any of India's 22 official languages.",
+      "khataTitle": "Digital khata (udhar)",
+      "khataBody": "Keep credit for regular customers: add credit and payments, mark balances as paid, and send reminders or monthly statements on WhatsApp.",
+      "upiTitle": "UPI payments",
+      "upiBody": "Add your UPI ID and customers tap “Pay by UPI” on your store page to pay with GPay, PhonePe, Paytm or any UPI app."
     },
     "seo": {
       "t1": "Free online store for local business",
@@ -514,7 +518,11 @@
       "q8": "Can I use my own domain name?",
       "a8": "Yes, on the paid plan we set up your store on your own domain with your branding. Contact us on WhatsApp.",
       "q9": "Who built this, and why?",
-      "a9": "A villager from Sonsari in Janjgir-Champa district, Chhattisgarh, a village of under 5,000 people. Quick-commerce apps don't deliver there, but mobile data does reach it, so the village's grocers, pickle and papad makers needed a simple way to take orders on WhatsApp. It's free for every local business in India, with zero commission."
+      "a9": "A villager from Sonsari in Janjgir-Champa district, Chhattisgarh, a village of under 5,000 people. Quick-commerce apps don't deliver there, but mobile data does reach it, so the village's grocers, pickle and papad makers needed a simple way to take orders on WhatsApp. It's free for every local business in India, with zero commission.",
+      "q10": "Can I keep a khata (udhar) for my regular customers?",
+      "a10": "Yes. The Khata tab records credit given and payments received for each customer, shows what is due, marks balances as paid, and sends WhatsApp reminders and monthly statements. An order can be added to a customer’s khata in one tap.",
+      "q11": "Can customers pay me by UPI?",
+      "a11": "Yes. Add your UPI ID in Store Settings and your store page shows “Pay by UPI”. Customers tap it to open their UPI app with your shop as the payee. The money comes straight to you, with zero commission."
     },
     "story": {
       "eyebrow": "Our story",
@@ -534,7 +542,15 @@
       "register": "Register your store",
       "chat": "Chat with us"
     },
-    "madeIn": "Made in Sonsari, Chhattisgarh, India"
+    "madeIn": "Made in Sonsari, Chhattisgarh, India",
+    "testimonials": {
+      "title": "What shop owners say",
+      "subtitle": "In their own words.",
+      "apartmentOwner": "Shop owner in a Bengaluru apartment",
+      "owner": "Shop owner",
+      "visit": "Visit store",
+      "stars": "{count} out of 5 stars"
+    }
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -571,7 +587,7 @@
     "enterPassword": "Enter your password",
     "enterUsername": "Enter your username",
     "codeMaybeSent": "If the number can receive codes, one has been sent.",
-    "imageTooBig": "Image must be under 8 MB",
+    "imageTooBig": "Image must be under 5 MB",
     "incorrectCode": "Incorrect code",
     "incorrectPhoneLogin": "Incorrect phone number or password",
     "incorrectLogin": "Incorrect username or password",
@@ -622,7 +638,13 @@
     "tooManyPending": "You already have 3 pending requests here. Please wait for the business to confirm them.",
     "bookingLimit": "Too many booking requests. Please try again later or message the business on WhatsApp.",
     "notTakingBookings": "This business is not taking bookings yet",
-    "validEmail": "Enter a valid email address"
+    "validEmail": "Enter a valid email address",
+    "khataPhoneTaken": "This mobile number is already in your khata",
+    "nothingDue": "Nothing is due",
+    "orderNoMobile": "This order has no mobile number to keep a khata for",
+    "orderInKhata": "This order is already in the khata",
+    "futureDate": "The date can’t be in the future",
+    "validUpi": "Enter a valid UPI ID, e.g. name@okaxis"
   },
   "owner": {
     "seoRegister": "Register your store free — {brand}",
@@ -668,7 +690,8 @@
       "account": "Account",
       "appointments": "Bookings",
       "services": "Services",
-      "specialists": "Specialists"
+      "specialists": "Specialists",
+      "khata": "Khata"
     },
     "welcome": "Welcome! Your store link is {link}",
     "welcomeBody": "Add your products (manually or with the Excel/CSV import), fill in your store type and city, then submit your store for approval. It becomes visible to customers once approved.",
@@ -710,7 +733,7 @@
     "discountPreview": "Customers see <b>{pct}% OFF</b> — they save {amount}.",
     "optional": "More details (optional)",
     "optionalHint": "Photos, category, description, tags, stock, item code",
-    "photos": "Photos (up to 8)",
+    "photos": "Photos (up to 3)",
     "moveLeft": "Move left",
     "moveRight": "Move right",
     "removePhoto": "Remove photo",
@@ -736,7 +759,8 @@
     "reviewCount": "Review count",
     "save": "Save product",
     "bulkLink": "Have many products? Add them all at once with CSV Import →",
-    "uploadPaid": "Photo upload is on the paid plan. Paste an image link (https://…) instead."
+    "uploadPaid": "Photo upload is on the paid plan. Paste an image link (https://…) instead.",
+    "linkPhotosReplaced": "Photos added by link are replaced when you upload a photo."
   },
   "imp": {
     "title": "Bulk import from Excel / CSV",
@@ -867,12 +891,14 @@
       "delivery_fee": "Delivery fee (₹)",
       "instagram_handle": "Instagram handle",
       "theme_color": "Brand colour",
-      "free_delivery_above": "Free delivery for orders above (₹)"
+      "free_delivery_above": "Free delivery for orders above (₹)",
+      "upi_id": "UPI ID"
     },
     "h": {
       "slug": "Lowercase letters, numbers and hyphens. Changing it breaks old links/QR codes.",
       "opening_hours": "24-hour format, e.g. 09:00-21:00",
-      "free_delivery_above": "Optional. Leave empty to charge the fee on every order."
+      "free_delivery_above": "Optional. Leave empty to charge the fee on every order.",
+      "upi_id": "Shoppers see “Pay by UPI” on your store page; tapping it opens their UPI app. Leave empty if you don’t take UPI."
     },
     "p": {
       "category": "Grocery, Bakery, Pharmacy…",
@@ -883,7 +909,8 @@
     "deliveryTitle": "Delivery",
     "freeDelivery": "Free delivery (no delivery fee)",
     "waPending": "Verified on approval",
-    "waSave": "Save number"
+    "waSave": "Save number",
+    "paymentsTitle": "Payments (optional)"
   },
   "loc": {
     "title": "Shop location",
@@ -1189,5 +1216,62 @@
     "emailApprovedBody": "We checked your claim {code} and handed {name} over to you.\n\nLog in at {url} with {email} to set your prices and start taking orders on WhatsApp.",
     "emailRejectedSubject": "Your claim for {name} on {brand}",
     "emailRejectedBody": "We couldn't approve your claim {code} for {name}. If you think this is a mistake, message us on WhatsApp. You can also create a new store at {url}."
+  },
+  "editor": {
+    "title": "Edit photo",
+    "dragHint": "Drag the photo to choose what shows.",
+    "original": "Original",
+    "square": "Square",
+    "wide": "4:3",
+    "rotate": "Rotate",
+    "zoom": "Zoom",
+    "light": "Light",
+    "contrast": "Contrast",
+    "text": "Text on photo",
+    "textPlaceholder": "Add text, e.g. Fresh today",
+    "textSize": "Text size",
+    "textPosition": "Text position",
+    "textColour": "Text colour",
+    "use": "Use photo"
+  },
+  "upi": {
+    "pay": "Pay by UPI",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "khata": {
+    "editCustomer": "Edit customer",
+    "addCustomer": "Add customer",
+    "mobileHint": "For WhatsApp reminders.",
+    "gaveCredit": "Gave on credit",
+    "gotPayment": "Payment received",
+    "amount": "Amount ({currency})",
+    "note": "What for",
+    "notePlaceholderCredit": "e.g. Rice, dal, oil",
+    "notePlaceholderPayment": "e.g. Cash, UPI",
+    "payByUpi": "Pay by UPI: {upi}",
+    "reminderMsg": "Namaste {name}, a gentle reminder from {store}: your khata balance is {amount}. Thank you!",
+    "statementMsg": "Namaste {name}, your {month} khata from {store}:\nCredit: {credit}\nPaid: {paid}\nBalance: {balance}",
+    "confirmSettle": "Mark {name}’s balance of {amount} as paid?",
+    "confirmDeleteEntry": "Delete this entry of {amount}?",
+    "confirmDeleteCustomer": "Delete {name} and their whole khata?",
+    "toCollect": "To collect",
+    "advance": "Paid in advance",
+    "settled": "All settled",
+    "markPaid": "Mark as paid",
+    "remind": "Remind on WhatsApp",
+    "addMobileForReminders": "Add their mobile number to send WhatsApp reminders.",
+    "noEntries": "No entries yet",
+    "monthLine": "Credit {credit} · Paid {paid} · Balance {balance}",
+    "sendStatement": "Send statement",
+    "totalToCollect": "Total to collect",
+    "fromCustomers": "Customers who owe: {count}",
+    "intro": "Your own record of customers who buy now and pay later. Only you see it.",
+    "search": "Search name or mobile",
+    "lastEntry": "Last entry {date}",
+    "empty": "No customers yet. Add one, or use “Add to Khata” on an order.",
+    "addedOrder": "Added to {name}’s khata",
+    "inKhata": "In khata",
+    "addToKhata": "Add to Khata"
   }
 }

@@ -7,6 +7,7 @@ import { getOpenStatus, mapsLink } from '../lib/format.js';
 import { rich, useI18n } from '../i18n/index.jsx';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
 import VegMark from './VegMark.jsx';
+import UpiPay from './UpiPay.jsx';
 import { whatsappLink } from '../services/whatsappService.js';
 
 /** Store header: banner, logo, name, verified badge, open/closed status, address + Maps shortcut. */
@@ -131,6 +132,7 @@ export default function StoreHeader() {
             )}
           </div>
         )}
+        <UpiPay id={config.upi_id} name={config.name} className="mt-3" />
       </div>
     </header>
     </>

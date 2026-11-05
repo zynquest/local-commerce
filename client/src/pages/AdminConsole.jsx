@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
-  BadgeCheck, Check, ExternalLink, Inbox, Loader2, LogOut, MapPin, Pencil, Phone, RefreshCw, RotateCcw, Search, ShieldCheck,
+  BadgeCheck, Check, ExternalLink, Inbox, Loader2, LogOut, MapPin, Pencil, RefreshCw, RotateCcw, Search, ShieldCheck,
   QrCode, ShieldOff, Sprout, Store, Trash2, UserCheck, Users, X,
 } from 'lucide-react';
 
@@ -50,6 +50,15 @@ const ago = (d) => {
   return `${Math.round(mins / 1440)}d ago`;
 };
 const phoneText = (p) => (p ? `+${p}` : '—');
+/** A number that opens a WhatsApp chat with it (store or owner), or a dash. */
+const WaLink = ({ phone }) =>
+  phone ? (
+    <a href={whatsappLink(phone)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline">
+      <WhatsAppIcon size={14} /> {phoneText(phone)}
+    </a>
+  ) : (
+    '—'
+  );
 
 /**
  * Support corrections of what owners can't change after approval: name, store link, business type, store type and
@@ -304,11 +313,11 @@ function StoreDetail({ id, onClose, onChanged, isStaff = false }) {
               </div>
               <div>
                 <p className="label">Owner mobile</p>
-                <p className="flex items-center gap-1"><Phone size={12} /> {phoneText(s.owner_phone)} {s.owner_phone_verified_at && <BadgeCheck size={14} className="text-emerald-600" aria-label="Verified" />}</p>
+                <p className="flex items-center gap-1"><WaLink phone={s.owner_phone} /> {s.owner_phone_verified_at && <BadgeCheck size={14} className="text-emerald-600" aria-label="Verified" />}</p>
               </div>
               <div>
                 <p className="label">WhatsApp orders</p>
-                <p className="flex items-center gap-1">{phoneText(s.whatsapp_number)} {s.whatsapp_verified && <BadgeCheck size={14} className="text-emerald-600" aria-label="Verified" />}</p>
+                <p className="flex items-center gap-1"><WaLink phone={s.whatsapp_number} /> {s.whatsapp_verified && <BadgeCheck size={14} className="text-emerald-600" aria-label="Verified" />}</p>
               </div>
               <div><p className="label">Products</p><p className="font-semibold">{data.counts.products}</p></div>
               <div><p className="label">Orders</p><p className="font-semibold">{data.counts.orders}</p></div>
@@ -363,7 +372,7 @@ function StoreDetail({ id, onClose, onChanged, isStaff = false }) {
                   <>
                     <p className="w-full text-xs text-stone-600">
                       {s.whatsapp_number
-                        ? <>Approve once their WhatsApp message arrives from <b>{phoneText(s.whatsapp_number)}</b>: approving marks that number verified.</>
+                        ? <>Approve once their WhatsApp message arrives from <WaLink phone={s.whatsapp_number} />: approving marks that number verified.</>
                         : 'No WhatsApp number yet.'}
                     </p>
                     <button onClick={() => act('approve')} disabled={!!busy} className="btn-brand">

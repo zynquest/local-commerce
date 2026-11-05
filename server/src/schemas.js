@@ -75,6 +75,21 @@ export const ownerEmailAuth = z.object({
   businessType: z.enum(BUSINESS_TYPES).default('shop'),
 });
 export const whatsappVerify = z.object({ phone: mobile10, code: otpCode });
+// Khata (credit ledger)
+const optMobile10 = z.preprocess((v) => (v == null || String(v).trim() === '' ? null : v), mobile10.nullable());
+export const khataCustomer = z.object({
+  name: z.preprocess(cleanText, z.string().min(1, 'Name is required').max(80, 'Max 80 characters')),
+  phone: optMobile10.default(null),
+});
+export const khataEntry = z.object({
+  kind: z.enum(['credit', 'payment']),
+  amount: z.coerce.number({ error: 'Enter a valid amount' }).positive('Enter a valid amount').max(10_000_000),
+  note: optText(200).default(null),
+  entry_date: z.preprocess(
+    (v) => (v ? v : undefined),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a date').optional(),
+  ),
+});
 // Owners, OWNER_LOGIN=email: claim a seeded listing. Same proof as signing up (email + code, or a Google credential)
 // plus the WhatsApp number orders should go to; nothing is created until the platform admin approves.
 export const ownerClaim = z
@@ -199,6 +214,11 @@ export const storeSettings = z
     order_language: z.enum(['auto', ...LANGUAGE_CODES]), // auto = the customer's language
     // The settings form sends '' while a store hasn't answered yet: that changes nothing.
     food_type: z.preprocess((v) => (v === '' || v == null ? undefined : v), z.enum(FOOD_TYPES).optional()),
+    // Optional UPI ID for payments; empty removes it.
+    upi_id: z.preprocess(
+      (v) => (v == null || String(v).trim() === '' ? null : String(v).trim()),
+      z.string().regex(/^[A-Za-z0-9._-]{2,255}@[A-Za-z][A-Za-z0-9.]{1,63}$/, 'Enter a valid UPI ID, e.g. name@okaxis').nullable(),
+    ),
     business_type: z.enum(BUSINESS_TYPES), // only until the store is approved (see LOCKED_AFTER_APPROVAL)
     // Temporary closure (holiday): no orders or bookings until reopens_on (India date), or until switched off.
     temp_closed: z.boolean(),
@@ -262,7 +282,7 @@ const productObject = z
     images: z
       .preprocess(
         (v) => (Array.isArray(v) ? v : String(v ?? '').split(',')).map((s) => String(s).trim()).filter(Boolean),
-        z.array(httpsUrl).max(8, 'Max 8 images'),
+        z.array(httpsUrl).max(3, 'Max 3 images'),
       )
       .default([]),
     description: text(2000).default(''),

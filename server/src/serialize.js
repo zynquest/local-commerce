@@ -20,7 +20,7 @@ export const PUBLIC_STORE_COLUMNS = `s.id, s.slug, s.name, s.whatsapp_number, s.
   s.address_text, s.maps_url, s.description, s.category, s.city, s.currency_symbol, s.minimum_order,
   s.delivery_fee, s.free_delivery_above, s.opening_hours, s.closed_days, s.theme_color, s.verified, s.order_language, s.is_demo, s.updated_at,
   s.business_type, s.lat, s.lng, s.slot_minutes, s.booking_days, s.min_notice_minutes, s.origin, s.claimed_at, s.locality, s.seed_source,
-  s.reopens_on, s.closure_message, s.food_type, ${CLOSED_NOW_SQL} AS closed_now`;
+  s.reopens_on, s.closure_message, s.food_type, s.upi_id, ${CLOSED_NOW_SQL} AS closed_now`;
 
 export const PRODUCT_COLUMNS = `p.id, p.sku_id, p.name, p.category, p.mrp, p.offer_price, p.images, p.description,
   p.specs, p.tags, p.rating, p.review_count, p.in_stock, p.status, p.position, p.updated_at`;
@@ -64,6 +64,8 @@ export const publicStore = (s) => ({
   locality: s.locality || null,
   // Shops only: 'veg' (green mark), 'nonveg' (brown mark), 'none' or null (no mark).
   food_type: s.business_type === 'appointments' ? null : s.food_type || null,
+  // Optional: shown as "Pay by UPI"; tapping opens the shopper's UPI app. Not for demo or unclaimed listings.
+  upi_id: s.is_demo || isUnclaimedSeed(s) ? null : s.upi_id || null,
 });
 
 /** A seeded listing its owner hasn't claimed yet. */

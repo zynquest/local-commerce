@@ -8,7 +8,7 @@ import sharp from 'sharp';
 import { requireOwner } from '../auth.js';
 import { config } from '../config.js';
 import { query, tx } from '../db.js';
-import { badRequest, conflict, forbidden, notFound, parse } from '../errors.js';
+import { badRequest, conflict, notFound, parse } from '../errors.js';
 import { verifyOtp } from '../otp/otp.js';
 import * as S from '../schemas.js';
 import { CLOSED_NOW_SQL, PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
@@ -416,36 +416,29 @@ merchantRouter.post('/products/import', async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Image uploads: resized to WebP (+ a JPEG twin for link previews) and stored under UPLOAD_DIR/<store_id>/
+// Image uploads (every plan): up to 5 MB, compressed to WebP (+ a JPEG twin for link previews) at the photo's own size
+// (only very large photos are brought down to 1600 px on the longest side), stored under UPLOAD_DIR/<store_id>/
 // ---------------------------------------------------------------------------
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 8 * 1024 * 1024, files: 1 },
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
   fileFilter: (_req, file, cb) =>
     /^image\/(jpeg|png|webp|gif|avif|heic|heif)$/.test(file.mimetype) ? cb(null, true) : cb(badRequest('Please upload an image')),
 });
 
-// Photo upload is part of the paid plan; free stores add photos by link (https://…), and items without a photo
-// get artwork from their name in the app.
-export const UPLOAD_PAID_ONLY = 'Photo upload is on the paid plan. Paste an image link (https://…) instead.';
-async function requirePaidUploads(req, _res, next) {
-  const { rows } = await query('SELECT plan, is_demo FROM stores WHERE id = $1', [req.user.store_id]);
-  if (rows[0]?.plan === 'free' && !rows[0]?.is_demo) return next(forbidden(UPLOAD_PAID_ONLY));
-  next();
-}
-
-merchantRouter.post('/uploads', requirePaidUploads, upload.single('image'), async (req, res) => {
+merchantRouter.post('/uploads', upload.single('image'), async (req, res) => {
   if (!req.file) throw badRequest('No image received');
   let output;
   let share;
   try {
     const img = sharp(req.file.buffer, { failOn: 'error' })
       .rotate() // respect EXIF orientation from phone cameras
-      .resize({ width: 1000, height: 1000, fit: 'inside', withoutEnlargement: true });
-    output = await img.clone().webp({ quality: 80 }).toBuffer();
+      .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true });
+    // Smallest file that still looks the same: WebP at quality 72 with the slowest (best) compression effort.
+    output = await img.clone().webp({ quality: 72, effort: 6, smartSubsample: true }).toBuffer();
     // JPEG twin for link previews (og:image): WhatsApp/Facebook previews don't reliably support WebP.
-    share = await img.clone().flatten({ background: '#ffffff' }).jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+    share = await img.clone().flatten({ background: '#ffffff' }).jpeg({ quality: 75, mozjpeg: true }).toBuffer();
   } catch {
     throw badRequest('That file could not be read as an image');
   }
@@ -467,7 +460,7 @@ merchantRouter.get('/orders', async (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 50, 200);
   const before = req.query.before ? new Date(String(req.query.before)) : null;
   const { rows } = await query(
-    `SELECT o.*, c.name AS account_name,
+    `SELECT o.*, c.name AS account_name, EXISTS (SELECT 1 FROM khata_entries k WHERE k.order_id = o.id) AS in_khata,
             coalesce(json_agg(json_build_object(
               'sku_id', i.sku_id, 'name', i.name, 'quantity', i.quantity,
               'unit_price', i.unit_price, 'mrp', i.mrp, 'line_total', i.line_total) ORDER BY i.id)

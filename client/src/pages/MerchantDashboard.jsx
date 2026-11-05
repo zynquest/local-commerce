@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import {
   Archive, ArchiveRestore, CalendarDays, DoorClosed, ExternalLink, FileUp, Loader2, LogOut, Package, Pencil, Plus, ReceiptText, Scissors, Search,
-  QrCode, Settings, Share2, Trash2, UserCog, Users,
+  BookOpen, QrCode, Settings, Share2, Trash2, UserCog, Users,
 } from 'lucide-react';
 import AppointmentsPanel from '../merchant/AppointmentsPanel.jsx';
 import ServicesPanel from '../merchant/ServicesPanel.jsx';
@@ -12,6 +12,7 @@ import CsvImport from '../merchant/CsvImport.jsx';
 import OrdersPanel from '../merchant/OrdersPanel.jsx';
 import StoreSettings from '../merchant/StoreSettings.jsx';
 import MyStoreQr from '../merchant/MyStoreQr.jsx';
+import KhataPanel from '../merchant/KhataPanel.jsx';
 import AccountPanel from '../merchant/AccountPanel.jsx';
 import StoreStatusCard, { StatusPill } from '../merchant/StoreStatusCard.jsx';
 import OnboardingWizard from '../merchant/OnboardingWizard.jsx';
@@ -32,12 +33,14 @@ const TABS_APPOINTMENTS = [
   { id: 'appointments', icon: CalendarDays },
   { id: 'services', icon: Scissors },
   { id: 'specialists', icon: Users },
+  { id: 'khata', icon: BookOpen },
   { id: 'settings', icon: Settings },
   { id: 'account', icon: UserCog },
 ];
 const TABS = [
   { id: 'products', icon: Package },
   { id: 'orders', icon: ReceiptText },
+  { id: 'khata', icon: BookOpen },
   { id: 'import', icon: FileUp },
   { id: 'settings', icon: Settings },
   { id: 'account', icon: UserCog },
@@ -280,7 +283,6 @@ export default function MerchantDashboard() {
               existingSkus={existingSkus}
               onSave={saveProduct}
               onCancel={() => setEditing(null)}
-              canUpload={store.plan !== 'free'}
               onBulk={() => {
                 setEditing(null);
                 setTab('import');
@@ -361,10 +363,11 @@ export default function MerchantDashboard() {
           ))}
 
         {tab === 'qr' && <MyStoreQr store={store} />}
+        {tab === 'khata' && <KhataPanel store={store} currency={cur} />}
         {tab === 'orders' && <OrdersPanel currency={cur} onChange={refreshStats} />}
         {tab === 'appointments' && <AppointmentsPanel store={store} currency={cur} onChange={refreshStats} />}
         {tab === 'services' && <ServicesPanel currency={cur} onChange={() => { refreshStats(); setTimeout(() => get('/merchant/store').then((r) => setStore(r.store)), 0); }} />}
-        {tab === 'specialists' && <SpecialistsPanel canUpload={store.plan !== 'free'} onChange={() => get('/merchant/store').then((r) => setStore(r.store))} />}
+        {tab === 'specialists' && <SpecialistsPanel onChange={() => get('/merchant/store').then((r) => setStore(r.store))} />}
         {tab === 'import' && (
           <CsvImport
             existingProducts={products.items}

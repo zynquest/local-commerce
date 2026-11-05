@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, CloudOff, Loader2, MapPin, ReceiptText, RefreshCw, UserRound } from 'lucide-react';
+import { AlertTriangle, BookOpen, CloudOff, Loader2, MapPin, ReceiptText, RefreshCw, UserRound } from 'lucide-react';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
-import { get, patch } from '../lib/api.js';
+import { get, patch, post } from '../lib/api.js';
 import { formatMoney } from '../lib/format.js';
 import { whatsappLink } from '../services/whatsappService.js';
 import { useI18n } from '../i18n/index.jsx';
@@ -46,8 +46,22 @@ export default function OrdersPanel({ currency, onChange }) {
     }
   };
 
+  // Credit sale: the order total goes into the khata of the order's mobile number.
+  const [notice, setNotice] = useState('');
+  const addToKhata = async (order) => {
+    try {
+      const { name } = await post(`/merchant/orders/${order.id}/khata`);
+      setState((s) => ({ ...s, orders: s.orders.map((o) => (o.id === order.id ? { ...o, in_khata: true } : o)) }));
+      setNotice(t('khata.addedOrder', { name }));
+      setTimeout(() => setNotice(''), 3000);
+    } catch (err) {
+      setState((s) => ({ ...s, error: err.message }));
+    }
+  };
+
   return (
     <div className="space-y-3">
+      {notice && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">{notice}</p>}
       <div className="flex items-center gap-2">
         <div className="no-scrollbar flex flex-1 gap-1.5 overflow-x-auto">
           {['all', ...ORDER_STATUSES.map(([k]) => k)].map((k) => (
@@ -137,14 +151,23 @@ export default function OrdersPanel({ currency, onChange }) {
             </div>
           </div>
           {o.customer_phone && (
-            <a
-              href={whatsappLink(o.customer_phone, t('orders.messageText', { name: o.customer_name || '', code: o.order_code }))}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-whatsapp w-full py-2 text-xs"
-            >
-              <WhatsAppIcon size={14} /> {t('orders.messageCustomer')}
-            </a>
+            <div className="flex gap-2">
+              <a
+                href={whatsappLink(o.customer_phone, t('orders.messageText', { name: o.customer_name || '', code: o.order_code }))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-whatsapp flex-1 py-2 text-xs"
+              >
+                <WhatsAppIcon size={14} /> {t('orders.messageCustomer')}
+              </a>
+              {o.in_khata ? (
+                <span className="flex flex-none items-center gap-1 rounded-xl bg-stone-100 px-3 text-xs font-semibold text-stone-600"><BookOpen size={14} /> {t('khata.inKhata')}</span>
+              ) : (
+                o.status !== 'cancelled' && (
+                  <button type="button" onClick={() => addToKhata(o)} className="btn-ghost flex-none py-2 text-xs"><BookOpen size={14} /> {t('khata.addToKhata')}</button>
+                )
+              )}
+            </div>
           )}
         </article>
       ))}

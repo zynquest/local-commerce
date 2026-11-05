@@ -2,10 +2,14 @@
 // name, link, WhatsApp) are locked for the owner and only the platform team can correct them.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import { createApp } from '../src/app.js';
+import { config } from '../src/config.js';
 import { pool, query } from '../src/db.js';
 import { migrate } from '../src/migrate.js';
+import sharp from 'sharp';
 
 const run = Date.now().toString(36);
 const slug = `onb-${run}`;
@@ -101,12 +105,28 @@ describe('store onboarding', () => {
     assert.equal(ok.body.store.opening_hours, '09:00-21:00');
   });
 
-  test('photo upload is refused on the free plan (image links still work)', async () => {
-    const form = new FormData();
-    form.append('image', new Blob([Buffer.from('not really an image')], { type: 'image/png' }), 'x.png');
-    const res = await fetch(`${base}/api/merchant/uploads`, { method: 'POST', body: form, headers: { Cookie: `vfl_owner=${ownerToken}` } });
-    assert.equal(res.status, 403);
-    assert.match((await res.json()).error, /paid plan/);
+  test('photo upload works on the free plan: compressed WebP, very large photos capped at 1600 px; 5 MB limit', async () => {
+    const send = (buffer, type = 'image/png') => {
+      const form = new FormData();
+      form.append('image', new Blob([buffer], { type }), 'x.png');
+      return fetch(`${base}/api/merchant/uploads`, { method: 'POST', body: form, headers: { Cookie: `vfl_owner=${ownerToken}` } });
+    };
+    const png = await sharp({ create: { width: 2400, height: 1200, channels: 3, background: '#f59e0b' } }).png().toBuffer();
+    const res = await send(png);
+    assert.equal(res.status, 201);
+    const { url } = await res.json();
+    assert.match(url, /^\/uploads\/.+\.webp$/);
+    const stored = await sharp(path.join(config.uploadDir, url.replace('/uploads/', ''))).metadata();
+    assert.deepEqual([stored.format, stored.width, stored.height], ['webp', 1600, 800]);
+    const small = await sharp({ create: { width: 640, height: 480, channels: 3, background: '#10b981' } }).png().toBuffer();
+    const kept = await sharp(path.join(config.uploadDir, (await (await send(small)).json()).url.replace('/uploads/', ''))).metadata();
+    assert.deepEqual([kept.width, kept.height], [640, 480], 'smaller photos keep their size');
+
+    const big = await send(Buffer.alloc(5 * 1024 * 1024 + 1));
+    assert.equal(big.status, 413);
+    assert.equal((await big.json()).error, 'Image must be under 5 MB');
+    assert.equal((await send(Buffer.from('not really an image'))).status, 400);
+    fs.rmSync(path.dirname(path.join(config.uploadDir, url.replace('/uploads/', ''))), { recursive: true, force: true });
   });
 
   test('the platform team can correct the locked details', async () => {

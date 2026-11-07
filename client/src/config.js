@@ -14,6 +14,8 @@ export const PLATFORM = {
     ...(import.meta.env?.VITE_PLATFORM_HOSTS || '').split(',').map((h) => h.trim().toLowerCase()).filter(Boolean),
   ],
   hostSuffixes: [],
+  // Google Ads tag (lib/googleTag.js): live site only.
+  googleAdsId: 'AW-18260353802',
   aggregatorCommission: 0.25,
   freeSkuLimit: 50,
 };

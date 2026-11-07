@@ -145,6 +145,14 @@ describe('owner registration + login (10-digit mobile + OTP only)', () => {
     const csp = (await fetch(`${base}/`)).headers.get('content-security-policy');
     assert.match(csp, /frame-src[^;]*https:\/\/www\.youtube-nocookie\.com/);
   });
+
+  test('CSP allows the Google Ads tag (gtag.js) and its calls', async () => {
+    const csp = (await fetch(`${base}/`)).headers.get('content-security-policy');
+    assert.match(csp, /script-src[^;]*https:\/\/www\.googletagmanager\.com/);
+    assert.match(csp, /connect-src[^;]*https:\/\/googleads\.g\.doubleclick\.net/);
+    assert.match(csp, /frame-src[^;]*https:\/\/td\.doubleclick\.net/);
+    assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/, 'no inline scripts');
+  });
 });
 
 describe('WhatsApp number change requires OTP', () => {

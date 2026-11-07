@@ -38,6 +38,13 @@ function originGuard(req, _res, next) {
   throw forbidden('Cross-site request blocked');
 }
 
+// Google Ads tag (gtag.js) hosts, per Google's guide to using the Google tag with a Content Security Policy.
+const GOOGLE_ADS = {
+  script: ['https://www.googletagmanager.com', 'https://www.googleadservices.com', 'https://googleads.g.doubleclick.net', 'https://www.google.com'],
+  connect: ['https://www.googletagmanager.com', 'https://www.googleadservices.com', 'https://googleads.g.doubleclick.net', 'https://www.google.com', 'https://pagead2.googlesyndication.com'],
+  frame: ['https://td.doubleclick.net', 'https://www.googletagmanager.com'],
+};
+
 export function createApp() {
   const app = express();
   app.set('trust proxy', 1);
@@ -52,12 +59,13 @@ export function createApp() {
           workerSrc: ["'self'", 'blob:'],
           // Google Maps JS API (address search, map pin) loads its scripts and calls these hosts.
           // Google Identity Services (Sign in with Google) loads from accounts.google.com.
-          scriptSrc: ["'self'", 'https://maps.googleapis.com', 'https://maps.gstatic.com', 'https://accounts.google.com'],
-          connectSrc: ["'self'", 'https://maps.googleapis.com', 'https://places.googleapis.com', 'https://*.googleapis.com', 'https://maps.gstatic.com', 'https://accounts.google.com'],
+          // Google Ads tag (client/src/lib/googleTag.js, live site only): the hosts Google lists for gtag.js.
+          scriptSrc: ["'self'", 'https://maps.googleapis.com', 'https://maps.gstatic.com', 'https://accounts.google.com', ...GOOGLE_ADS.script],
+          connectSrc: ["'self'", 'https://maps.googleapis.com', 'https://places.googleapis.com', 'https://*.googleapis.com', 'https://maps.gstatic.com', 'https://accounts.google.com', ...GOOGLE_ADS.connect],
           fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
           // Home page embeds a Google Map of Sonsari (keyless maps.google.com/maps?output=embed iframe)
           // and the explainer videos (youtube-nocookie player, loaded on tap).
-          frameSrc: ["'self'", 'https://maps.google.com', 'https://www.google.com', 'https://accounts.google.com', 'https://www.youtube-nocookie.com'],
+          frameSrc: ["'self'", 'https://maps.google.com', 'https://www.google.com', 'https://accounts.google.com', 'https://www.youtube-nocookie.com', ...GOOGLE_ADS.frame],
         },
       },
       // The Google sign-in popup must be able to report back to this page.

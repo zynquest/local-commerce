@@ -7,6 +7,7 @@ import InstallBanner from './components/InstallBanner.jsx';
 import { LoadingScreen, MessageScreen } from './components/StatusScreens.jsx';
 import { PLATFORM } from './config.js';
 import { get } from './lib/api.js';
+import { trackPageView } from './lib/googleTag.js';
 import { useT } from './i18n/index.jsx';
 
 // Shoppers only download the storefront; everything else loads on demand.
@@ -33,6 +34,13 @@ function ScrollToTop() {
   useEffect(() => {
     if (navType !== 'POP' && !hash) window.scrollTo(0, 0);
   }, [pathname, hash, navType]);
+  return null;
+}
+
+/** Google Ads page views (live site only; see lib/googleTag.js). */
+function GoogleAdsTag() {
+  const { pathname } = useLocation();
+  useEffect(() => trackPageView(pathname), [pathname]);
   return null;
 }
 
@@ -75,6 +83,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <GoogleAdsTag />
       {/* "Install the app" bar on phones. Not on merchants' custom domains: the manifest is the platform's. */}
       <InstallBanner enabled={platform} />
       <Suspense fallback={<LoadingScreen label="Loading…" />}>

@@ -349,6 +349,22 @@ describe('storefront + orders', () => {
     assert.equal((await other('GET', '/api/merchant/orders')).body.orders.length, 0);
   });
 
+  test('the platform admin can open an order: customer and line items, admin only', async () => {
+    const created = (await owner('GET', '/api/merchant/orders')).body.orders[0];
+    const path = `/api/platform/orders/${created.id}`;
+    const { status, body } = await admin('GET', path);
+    assert.equal(status, 200, JSON.stringify(body));
+    assert.equal(body.order.order_code, created.order_code);
+    assert.equal(body.order.customer_name, created.customer_name);
+    assert.equal(body.order.notes, created.notes);
+    assert.equal(body.order.store_slug, slug);
+    assert.deepEqual(body.order.items.map((i) => [i.name, i.quantity]), created.items.map((i) => [i.name, i.quantity]));
+    assert.equal((await owner('GET', path)).status, 401);
+    assert.equal((await shopper('GET', path)).status, 401);
+    assert.equal((await admin('GET', '/api/platform/orders/00000000-0000-4000-8000-000000000000')).status, 404);
+    assert.equal((await admin('GET', '/api/platform/orders/not-a-uuid')).status, 404);
+  });
+
   test('customer account: email + OTP in one flow (new shopper is asked for a name), order is linked, history visible', async () => {
     const bad = await shopper('POST', '/api/otp/request', { phone: phoneShopper, purpose: 'customer_login' });
     assert.equal(bad.status, 400, 'customers identify by email, not mobile');

@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import {
-  BadgeCheck, Check, ExternalLink, Inbox, Loader2, LogOut, MapPin, Pencil, RefreshCw, RotateCcw, Search, ShieldCheck,
+  ArrowLeft, BadgeCheck, Check, ExternalLink, Inbox, Loader2, LogOut, MapPin, Pencil, Phone, RefreshCw, RotateCcw, Search, ShieldCheck,
   QrCode, ShieldOff, Sprout, Store, Trash2, UserCheck, Users, X,
 } from 'lucide-react';
 
@@ -469,8 +469,99 @@ function StoreDetail({ id, onClose, onChanged, isStaff = false }) {
 }
 
 /** Platform admin console: approval queue, store moderation, plans. */
-/** Recent orders across all stores (from the "Orders (7 days)" tile). Tapping one opens its store. */
-function RecentOrders({ onClose, onOpenStore }) {
+/** One order in full, opened from Recent orders: who ordered, where it goes and what's in it. */
+function OrderDetail({ id, onClose, onOpenStore }) {
+  const [order, setOrder] = useState(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    get(`/platform/orders/${id}`).then((d) => setOrder(d.order), (err) => setError(err.message));
+  }, [id]);
+  const money = (n) => formatMoney(n, order.currency_symbol);
+  // The phone typed on the order, else the one on the shopper's account (the same for the name).
+  const name = order?.customer_name || order?.account_name;
+  const phone = order?.customer_phone || order?.account_phone;
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label="Order details">
+      <div className="h-full w-full max-w-2xl animate-slide-in overflow-y-auto bg-stone-50">
+        <header className="sticky top-0 z-10 flex items-center gap-1 border-b border-stone-200 bg-white px-2 py-3">
+          <button onClick={onClose} aria-label="Back to orders" className="rounded-full p-2 hover:bg-stone-100"><ArrowLeft size={20} className="rtl:rotate-180" /></button>
+          <h2 className="font-bold">{order ? `#${order.order_code}` : 'Order'}</h2>
+        </header>
+        {!order && !error && <Loader2 className="mx-auto mt-10 animate-spin text-stone-400" />}
+        {error && <p className="m-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+        {order && (
+          <div className="space-y-4 p-4">
+            <section className="card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold break-words">{order.store_name}</p>
+                  <p className="text-xs text-stone-500">
+                    {new Date(order.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                    {order.placed_offline ? ' · placed offline' : ''}
+                  </p>
+                </div>
+                <span className="flex-none rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold capitalize">{order.status.replace(/_/g, ' ')}</span>
+              </div>
+              <button onClick={() => onOpenStore(order.store_id)} className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
+                <Store size={14} /> Open store
+              </button>
+            </section>
+
+            <section className="card space-y-3 p-4">
+              <h3 className="font-bold">Customer</h3>
+              <div><p className="label">Name</p><p className="font-semibold break-words">{name || '—'}</p></div>
+              <div>
+                <p className="label">Phone</p>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <WaLink phone={phone} />
+                  {phone && (
+                    <a href={`tel:+${phone}`} className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"><Phone size={14} /> Call</a>
+                  )}
+                </div>
+              </div>
+              {order.account_email && (
+                <div><p className="label">Email</p><a href={`mailto:${order.account_email}`} className="font-semibold break-all text-brand hover:underline">{order.account_email}</a></div>
+              )}
+              <div><p className="label">Delivery address</p><p className="break-words whitespace-pre-line">{order.delivery_address || '—'}</p></div>
+              <div><p className="label">Account</p><p>{order.has_account ? 'Signed-in shopper' : 'Guest checkout'}</p></div>
+            </section>
+
+            {order.notes && <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm break-words whitespace-pre-line text-amber-900">📝 {order.notes}</p>}
+
+            <section className="card p-4">
+              <h3 className="font-bold">Items ({order.items.length})</h3>
+              {order.items.length ? (
+                <ul className="mt-2 divide-y divide-stone-100">
+                  {order.items.map((i, n) => (
+                    <li key={n} className="flex items-start justify-between gap-3 py-2">
+                      <div className="min-w-0">
+                        <p className="font-medium break-words">{i.name}</p>
+                        <p className="text-xs text-stone-500">{i.quantity} × {money(i.unit_price)}</p>
+                      </div>
+                      <span className="flex-none font-semibold">{money(i.line_total)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-2 text-sm text-stone-500">No listed items. See the note above.</p>
+              )}
+              <dl className="mt-2 space-y-1 border-t border-stone-200 pt-3 text-sm">
+                <div className="flex justify-between"><dt className="text-stone-500">Subtotal</dt><dd>{money(order.subtotal)}</dd></div>
+                {order.savings > 0 && <div className="flex justify-between"><dt className="text-stone-500">Savings</dt><dd>{money(order.savings)}</dd></div>}
+                <div className="flex justify-between"><dt className="text-stone-500">Delivery</dt><dd>{money(order.delivery_fee)}</dd></div>
+                <div className="flex justify-between pt-1 text-base font-bold"><dt>Total</dt><dd>{money(order.total)}</dd></div>
+              </dl>
+              {order.price_mismatch && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">The shopper's prices differed from the live catalog when this was placed.</p>}
+            </section>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Recent orders across all stores (from the "Orders (7 days)" tile). Tapping one opens its details. */
+function RecentOrders({ onClose, onOpenOrder }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   useEffect(() => {
@@ -489,7 +580,7 @@ function RecentOrders({ onClose, onOpenStore }) {
           <ul className="card m-4 divide-y divide-stone-100">
             {data.orders.map((o) => (
               <li key={o.id}>
-                <button onClick={() => onOpenStore(o.store_id)} className="flex w-full items-start gap-3 p-3 text-start hover:bg-stone-50">
+                <button onClick={() => onOpenOrder(o.id)} className="flex w-full items-start gap-3 p-3 text-start hover:bg-stone-50">
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold break-words">{o.store_name}</p>
                     <p className="text-xs text-stone-500">
@@ -518,6 +609,7 @@ export default function AdminConsole() {
   const [filter, setFilter] = useState('pending_review');
   const [sort, setSort] = useState(''); // 'products' from the Active products tile
   const [ordersOpen, setOrdersOpen] = useState(false);
+  const [orderId, setOrderId] = useState(null);
   const listRef = useRef(null);
   const [query, setQuery] = useState('');
   const q = useDebounce(query.trim(), 250);
@@ -716,7 +808,8 @@ export default function AdminConsole() {
       </main>
 
       {openId && <StoreDetail id={openId} onClose={() => setOpenId(null)} onChanged={load} isStaff={isStaff} />}
-      {ordersOpen && !openId && <RecentOrders onClose={() => setOrdersOpen(false)} onOpenStore={(id) => setOpenId(id)} />}
+      {ordersOpen && !openId && <RecentOrders onClose={() => setOrdersOpen(false)} onOpenOrder={setOrderId} />}
+      {ordersOpen && orderId && !openId && <OrderDetail id={orderId} onClose={() => setOrderId(null)} onOpenStore={setOpenId} />}
     </div>
   );
 }

@@ -138,6 +138,7 @@ describe('staff (sales reps)', () => {
       ['GET', '/api/platform/staff'],
       ['POST', '/api/platform/staff', { username: `evil${run}` }],
       ['GET', '/api/platform/orders'],
+      ['GET', '/api/platform/orders/00000000-0000-4000-8000-000000000000'],
       ['PATCH', `/api/platform/stores/${stores.a.id}/plan`, { plan: 'paid', sku_limit: 500 }],
       ['PATCH', `/api/platform/stores/${stores.a.id}/details`, { name: 'Hijacked' }],
     ]) {

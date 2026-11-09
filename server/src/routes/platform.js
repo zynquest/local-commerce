@@ -190,6 +190,26 @@ platformRouter.get('/orders', async (req, res) => {
   res.json({ orders: rows, days });
 });
 
+/** One order in full: the customer, the delivery details and every line item. Platform admin only (staffGate). */
+platformRouter.get('/orders/:id', async (req, res) => {
+  const { rows } = await query(
+    `SELECT o.id, o.order_code, o.status, o.customer_name, o.customer_phone, o.delivery_address, o.notes,
+            o.subtotal, o.delivery_fee, o.savings, o.total, o.price_mismatch, o.placed_offline, o.created_at,
+            o.customer_id IS NOT NULL AS has_account, c.name AS account_name, c.phone AS account_phone, c.email AS account_email,
+            s.id AS store_id, s.name AS store_name, s.slug AS store_slug, s.currency_symbol,
+            coalesce((SELECT json_agg(json_build_object('sku_id', i.sku_id, 'name', i.name, 'quantity', i.quantity,
+                        'unit_price', i.unit_price, 'mrp', i.mrp, 'line_total', i.line_total) ORDER BY i.id)
+                        FROM order_items i WHERE i.order_id = o.id), '[]') AS items
+       FROM orders o
+       JOIN stores s ON s.id = o.store_id
+       LEFT JOIN customers c ON c.id = o.customer_id
+      WHERE o.id = $1`,
+    [req.params.id],
+  );
+  if (!rows[0]) throw notFound('Order not found');
+  res.json({ order: rows[0] });
+});
+
 platformRouter.get('/stores/:id', async (req, res) => {
   await assertStaffStore(req, req.params.id);
   const { rows } = await query(

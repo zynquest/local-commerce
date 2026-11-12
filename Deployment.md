@@ -854,7 +854,7 @@ Pricing references:
 
 ## B19. Google Maps: address search and "near me"
 
-Merchants pick their shop address from **Google Maps search** (India only), or use **"Use my current location"** and drag a pin. Shoppers see only businesses within **10 km** (`NEARBY_RADIUS_KM`) of their location, from GPS or an area search. Without a key, everything still works: merchants type the address and set the pin with their phone's GPS, and shoppers use GPS.
+Merchants (and the admin, in admin mode) pick their shop address from **Google Maps search** (India only) or **Pick on Google Maps**: a full-screen map to search a place, tap or drag the pin, or jump to the phone's location. Shoppers see only businesses within **10 km** (`NEARBY_RADIUS_KM`) of their location, from GPS or an area search. Without a key, everything still works but there is no map: merchants type the address and set the pin with **"Use my current location"** (the phone's GPS), and shoppers use GPS. So if the setup screens show "Use my current location" instead of "Pick on Google Maps", the key is missing.
 
 **1. Enable the APIs.** In Cloud Console (same project), go to **APIs & Services → Library** and enable:
 - **Maps JavaScript API**
@@ -881,7 +881,7 @@ sudo nano /etc/vfl/env
 # NEARBY_RADIUS_KM=10                   # shoppers see businesses within this distance
 sudo systemctl restart vfl-api
 ```
-Check: `curl -s https://sonsari.in/api/config` should show `"mapsKey":"AIza…"` and `"nearbyKm":5`.
+Check: `curl -s https://sonsari.in/api/config` should show `"mapsKey":"AIza…"` and `"nearbyKm":10`. The app caches this for 5 minutes, so reload the setup screen a few minutes after the restart.
 
 **How "near me" works:**
 - The store directory and the home page list only approved businesses within the radius, nearest first, with the distance shown.

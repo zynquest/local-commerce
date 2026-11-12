@@ -4,7 +4,8 @@ import AddressPicker from '../components/AddressPicker.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
 import ImageEditor from '../components/ImageEditor.jsx';
 import SmartImage from '../components/SmartImage.jsx';
-import { put } from '../lib/api.js';
+import { get, put } from '../lib/api.js';
+import EditDetails from '../components/AdminStoreDetails.jsx';
 import { checkImageFile, uploadImage } from '../services/imageService.js';
 import { useT } from '../i18n/index.jsx';
 import { LANGUAGES } from '../i18n/languages.js';
@@ -41,10 +42,11 @@ const Detail = ({ label, children }) => (
 );
 
 /**
- * Settings of an approved store: the fixed details (support corrects those), location and order language, then the
- * optional extras (delivery, logo, hours, weekly off, minimum order, Instagram, colour).
+ * Settings of an approved store: the fixed details (support corrects those; in admin mode the platform admin edits them
+ * here), location and order language, then the optional extras (delivery, logo, hours, weekly off, minimum order,
+ * Instagram, colour).
  */
-export default function StoreSettings({ store, onSaved }) {
+export default function StoreSettings({ store, onSaved, actingAdmin = null }) {
   const t = useT();
   const appointments = store.business_type === 'appointments';
   const [form, setForm] = useState(() => ({
@@ -180,7 +182,15 @@ export default function StoreSettings({ store, onSaved }) {
             </span>
           </Detail>
         </dl>
-        <SupportNote store={store} />
+        {actingAdmin ? (
+          <EditDetails
+            store={store}
+            label="Edit business type, store type, name, link or WhatsApp (admin)"
+            onSaved={() => get('/merchant/store').then((r) => onSaved(r.store))}
+          />
+        ) : (
+          <SupportNote store={store} />
+        )}
       </Section>
 
       <Section title={t('loc.title')}>

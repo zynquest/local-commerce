@@ -402,6 +402,7 @@ export default function MerchantDashboard() {
         {tab === 'settings' && (
           <StoreSettings
             store={store}
+            actingAdmin={actingAdmin}
             onSaved={(s, message) => {
               setStore((prev) => ({ ...prev, ...s }));
               flash(message || t('common.saved'));

@@ -87,6 +87,7 @@ const PRODUCT_ART = [
 ];
 
 const SERVICE_ART = [
+  ['🪔', ['puja', 'pooja', 'pandit', 'havan', 'hawan', 'homa', 'katha', 'griha pravesh', 'grih pravesh', 'mundan', 'namkaran', 'vivah', 'shraddh', 'jaap', 'kundli', 'horoscope', 'astrology', 'jyotish', 'vastu']],
   ['🧔', ['beard', 'shave', 'shaving', 'moustache', 'mustache']],
   ['🎨', ['colour', 'color', 'highlight', 'balayage', 'henna hair', 'dye']],
   ['🧖', ['facial', 'cleanup', 'clean-up', 'clean up', 'bleach', 'detan', 'de-tan', 'face pack', 'skin']],
@@ -133,7 +134,7 @@ const STORE_ART = [
   ['🌾', ['flour', 'mill']],
   ['💧', ['water']],
   ['💐', ['flower', 'florist']],
-  ['🪔', ['pooja', 'puja']],
+  ['🪔', ['pooja', 'puja', 'pandit', 'priest', 'astrolog', 'jyotish']],
   ['💊', ['medical', 'pharmacy', 'chemist']],
   ['🔧', ['hardware', 'plumbing', 'sanitary', 'building']],
   ['💡', ['electrical', 'electricals']],

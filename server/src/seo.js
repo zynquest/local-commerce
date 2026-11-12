@@ -469,6 +469,7 @@ const businessGeo = (store) => (store.lat != null && store.lng != null ? { lat: 
 /** schema.org type for an appointment business, from its category text. */
 function bookingBusinessType(category = '') {
   const c = category.toLowerCase();
+  if (/pandit|puja|pooja|priest|astrolog|jyotish/.test(c)) return 'LocalBusiness';
   if (/dent/.test(c)) return 'Dentist';
   if (/physio/.test(c)) return 'Physiotherapy';
   if (/clinic|doctor|medical|hospital/.test(c)) return 'MedicalClinic';

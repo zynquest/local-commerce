@@ -91,6 +91,7 @@ export const APPOINTMENT_CATEGORIES = [
   'Counselling',
   'Lawyer & Notary',
   'CA & Tax Consultant',
+  'Pandit & Puja Services',
   'Other',
 ];
 

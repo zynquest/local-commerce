@@ -121,6 +121,22 @@ export async function qrPngFile({ code, base, name, cta }) {
 }
 
 /**
+ * Straight to the phone's share sheet with the sticker PNG and `text`, for a share that follows other work (Assign &
+ * Share). Returns 'shared', 'aborted' (sheet closed), or 'unavailable': no file sharing here, or the browser no
+ * longer counts the tap (iPhones allow the share sheet only right after a tap), so offer a Share button instead.
+ */
+export async function shareQrNow(sticker, text) {
+  const png = await qrPngFile(sticker);
+  if (!navigator.canShare?.({ files: [png] })) return 'unavailable';
+  try {
+    await navigator.share({ files: [png], text });
+    return 'shared';
+  } catch (err) {
+    return err?.name === 'AbortError' ? 'aborted' : 'unavailable';
+  }
+}
+
+/**
  * Share button: the phone's share sheet with the sticker PNG and `text` (pick WhatsApp there). Where files can't be
  * shared (most desktops), the PNG is downloaded and WhatsApp opens with the text. The PNG is drawn when the finger or
  * pointer arrives, so the share call still counts as part of the tap (iPhones require that).

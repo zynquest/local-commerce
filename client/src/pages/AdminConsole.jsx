@@ -2,12 +2,13 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom';
 import {
   ArrowLeft, BadgeCheck, Check, ExternalLink, Inbox, Loader2, LogOut, MapPin, Pencil, Phone, RefreshCw, RotateCcw, Search, ShieldCheck,
-  QrCode, ShieldOff, Sprout, Store, Trash2, UserCheck, Users, X,
+  Plus, QrCode, ShieldOff, Sprout, Store, Trash2, UserCheck, Users, X,
 } from 'lucide-react';
 
 const AdminQrCodes = lazy(() => import('./AdminQrCodes.jsx'));
 const AdminStaff = lazy(() => import('./AdminStaff.jsx'));
 const AdminClaims = lazy(() => import('./AdminClaims.jsx'));
+const AdminNewStore = lazy(() => import('./AdminNewStore.jsx'));
 import MobileInput, { isMobile10 } from '../components/MobileInput.jsx';
 import SmartImage from '../components/SmartImage.jsx';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
@@ -40,7 +41,13 @@ const STAFF_FILTERS = [
 
 const SEED_SOURCE = { osm: 'OpenStreetMap', google_places: 'Google Places', manual: 'Field survey / manual' };
 
-const ACTION_LABEL = { submitted: 'Submitted by owner', approved: 'Approved', rejected: 'Rejected', suspended: 'Suspended', reinstated: 'Reinstated' };
+/** The owner screens, for a store the admin just opened as its owner (admin mode). */
+const goToOwnerScreens = () => window.location.assign('/merchant');
+
+const ACTION_LABEL = {
+  submitted: 'Submitted by owner', approved: 'Approved', rejected: 'Rejected', suspended: 'Suspended', reinstated: 'Reinstated',
+  claimed: 'Handed over to the owner', created_by_admin: 'Created by admin for the owner', opened_by_admin: 'Opened in the owner screens by admin',
+};
 
 const ago = (d) => {
   if (!d) return '';
@@ -217,6 +224,19 @@ function StoreDetail({ id, onClose, onChanged, isStaff = false }) {
     }
   };
 
+  // Edit in the owner screens (setup steps, settings, products), as the owner would: admin mode.
+  const openAsOwner = async () => {
+    setBusy('owner');
+    setError('');
+    try {
+      await post(`/platform/stores/${id}/open-as-owner`, {});
+      goToOwnerScreens();
+    } catch (err) {
+      setError(err.message);
+      setBusy('');
+    }
+  };
+
   const savePlan = async () => {
     setBusy('plan');
     setError('');
@@ -238,6 +258,11 @@ function StoreDetail({ id, onClose, onChanged, isStaff = false }) {
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3">
           <h2 className="min-w-0 leading-tight font-bold break-words">{s?.name || 'Loading…'}</h2>
           <div className="flex flex-none items-center gap-1">
+            {s && !isStaff && (
+              <button onClick={openAsOwner} disabled={!!busy} className="btn-brand py-1.5 text-xs" title="Edit this store in the owner screens">
+                {busy === 'owner' ? <Loader2 size={14} className="animate-spin" /> : <Pencil size={14} />} Edit as owner
+              </button>
+            )}
             {s && (
               <a href={`/s/${s.slug}`} target="_blank" rel="noreferrer" className="btn-ghost py-1.5 text-xs">
                 <ExternalLink size={14} /> Preview
@@ -610,6 +635,7 @@ export default function AdminConsole() {
   const [sort, setSort] = useState(''); // 'products' from the Active products tile
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const [newStore, setNewStore] = useState(false);
   const listRef = useRef(null);
   const [query, setQuery] = useState('');
   const q = useDebounce(query.trim(), 250);
@@ -730,6 +756,12 @@ export default function AdminConsole() {
           </div>
         )}
 
+        {!isStaff && (
+          <div className="flex justify-end">
+            <button onClick={() => setNewStore(true)} className="btn-brand text-sm"><Plus size={16} /> New store</button>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-2">
           <div className="no-scrollbar flex flex-1 gap-1.5 overflow-x-auto">
             {(isStaff ? STAFF_FILTERS : FILTERS).map(([k, label]) => (
@@ -807,6 +839,11 @@ export default function AdminConsole() {
         )}
       </main>
 
+      {newStore && (
+        <Suspense fallback={null}>
+          <AdminNewStore onClose={() => setNewStore(false)} />
+        </Suspense>
+      )}
       {openId && <StoreDetail id={openId} onClose={() => setOpenId(null)} onChanged={load} isStaff={isStaff} />}
       {ordersOpen && !openId && <RecentOrders onClose={() => setOrdersOpen(false)} onOpenOrder={setOrderId} />}
       {ordersOpen && orderId && !openId && <OrderDetail id={orderId} onClose={() => setOrderId(null)} onOpenStore={setOpenId} />}

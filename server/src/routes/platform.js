@@ -4,10 +4,13 @@
 import crypto from 'node:crypto';
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import { createSession, destroySession, destroyAllSessions, hashPassword, requireAdmin, verifyPassword } from '../auth.js';
+import { COOKIES, createSession, destroySession, destroyAllSessions, hashPassword, requireAdmin, verifyPassword } from '../auth.js';
+import { createOwnerByEmail } from './auth.js';
+import { issueOtp, verifyOtp } from '../otp/otp.js';
+import { ownersUseEmail, providerFor } from '../otp/providers.js';
 import { clientKey } from '../clientIp.js';
 import { query, tx } from '../db.js';
-import { conflict, forbidden, notFound, parse, unauthorized } from '../errors.js';
+import { badRequest, conflict, forbidden, notFound, parse, unauthorized } from '../errors.js';
 import * as S from '../schemas.js';
 import { PRODUCT_COLUMNS, product as serializeProduct } from '../serialize.js';
 import { claimSeedStore, removeSeedStore } from '../seed/stores.js';
@@ -42,6 +45,14 @@ platformRouter.post('/login', adminLoginLimiter, async (req, res) => {
 });
 
 platformRouter.post('/logout', async (req, res) => {
+  // Store screens the admin opened as an owner (admin mode) close with the admin's sign-out.
+  const token = req.cookies?.[COOKIES.admin];
+  if (token) {
+    await query(
+      `DELETE FROM sessions WHERE acting_admin_id = (SELECT subject_id FROM sessions WHERE token_hash = $1 AND subject_type = 'admin')`,
+      [crypto.createHash('sha256').update(token).digest('hex')],
+    );
+  }
   await destroySession(req, res, 'admin');
   res.json({ ok: true });
 });
@@ -171,6 +182,54 @@ platformRouter.post('/qr/:code/assign', async (req, res) => {
 platformRouter.post('/qr/:code/unassign', async (req, res) => {
   if (!isQrCode(req.params.code)) throw notFound('QR code not found');
   await unassignQrCode(req.params.code);
+  res.json({ ok: true });
+});
+
+// ---------------------------------------------------------------------------
+// The platform admin works on a store in the owner screens ("admin mode"): the same setup wizard, settings and
+// catalog the owner uses. Creating a store needs the owner: the code goes to their email and they read it out,
+// exactly like signing up themselves. Approval stays the normal review.
+
+/** Opens the owner screens for this owner: an owner session in admin mode (2 hours, ends at admin sign-out). */
+async function openAsOwner(req, res, storeId, ownerId, action) {
+  await query(`INSERT INTO store_reviews (store_id, action, actor_id) VALUES ($1, $2, $3)`, [storeId, action, req.admin.id]);
+  await createSession(res, 'user', ownerId, { actingAdminId: req.admin.id });
+}
+
+/** Step 1 of "New store": emails the owner a sign-in code (the same code and email as owner sign-up). */
+platformRouter.post('/owners/otp', async (req, res) => {
+  if (!ownersUseEmail()) throw badRequest('Owners sign up with their mobile number on this server. Ask the owner to register at /register.');
+  const { email, storeName } = parse(S.adminOwnerOtp, req.body);
+  const { rows } = await query(
+    `SELECT s.name FROM users u LEFT JOIN stores s ON s.owner_id = u.id WHERE u.email = $1`,
+    [email],
+  );
+  if (rows[0]) {
+    const msg = rows[0].name ? `This email already has a store: ${rows[0].name}. Open it from the list instead.` : 'This email already has an account.';
+    throw conflict(msg, { email: msg });
+  }
+  res.json({ ok: true, delivery: providerFor('owner_login').delivery, ...(await issueOtp({ phone: email, purpose: 'owner_login', meta: { name: storeName, ip: req.ip } })) });
+});
+
+/** Step 2: the owner's code creates their account + draft store, then the owner screens open in admin mode. */
+platformRouter.post('/stores/new', async (req, res) => {
+  if (!ownersUseEmail()) throw badRequest('Owners sign up with their mobile number on this server.');
+  const { email, code, storeName, businessType } = parse(S.adminCreateStore, req.body);
+  await verifyOtp({ phone: email, purpose: 'owner_login', code });
+  const ownerId = await createOwnerByEmail({ storeName, email, businessType });
+  const { rows } = await query('SELECT id, slug, name FROM stores WHERE owner_id = $1', [ownerId]);
+  await openAsOwner(req, res, rows[0].id, ownerId, 'created_by_admin');
+  res.status(201).json({ store: rows[0] });
+});
+
+/** Edit an existing store in the owner screens (admin mode). */
+platformRouter.post('/stores/:id/open-as-owner', async (req, res) => {
+  const { rows } = await query(
+    `SELECT s.id, s.owner_id FROM stores s JOIN users u ON u.id = s.owner_id AND u.role = 'owner' WHERE s.id = $1`,
+    [req.params.id],
+  );
+  if (!rows[0]) throw notFound('Store not found');
+  await openAsOwner(req, res, rows[0].id, rows[0].owner_id, 'opened_by_admin');
   res.json({ ok: true });
 });
 

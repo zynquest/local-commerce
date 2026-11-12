@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import {
   Archive, ArchiveRestore, CalendarDays, DoorClosed, ExternalLink, FileUp, Loader2, LogOut, Package, Pencil, Plus, ReceiptText, Scissors, Search,
-  BookOpen, QrCode, Settings, Share2, Trash2, UserCog, Users,
+  BookOpen, QrCode, Settings, Share2, ShieldCheck, Trash2, UserCog, Users,
 } from 'lucide-react';
 import AppointmentsPanel from '../merchant/AppointmentsPanel.jsx';
 import ServicesPanel from '../merchant/ServicesPanel.jsx';
@@ -172,6 +172,14 @@ export default function MerchantDashboard() {
   if (!store) return products.error ? <p className="p-6 text-rose-600">{products.error}</p> : <LoadingScreen label={t('common.loading')} />;
 
   const cur = store.currency_symbol;
+  // Admin mode: the platform admin opened this store in the owner screens. Leaving goes back to the admin console.
+  const actingAdmin = owner.acting_admin;
+  const exit = actingAdmin
+    ? async () => {
+        await post('/auth/logout').catch(() => {});
+        window.location.assign('/motiveboss');
+      }
+    : logoutOwner;
   const isAppt = store.business_type === 'appointments';
   // New stores (and stores the team sent back) go through the setup steps; the console tabs come after submitting.
   const inSetup = store.status === 'draft' || store.status === 'rejected';
@@ -189,6 +197,15 @@ export default function MerchantDashboard() {
   return (
     <div className="min-h-screen pb-16">
       <header className="sticky top-0 z-20 border-b border-stone-200 bg-white">
+        {actingAdmin && (
+          <div className="bg-stone-900 text-white" lang="en" dir="ltr">
+            <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-xs sm:text-sm">
+              <ShieldCheck size={16} className="flex-none text-emerald-400" />
+              <span className="min-w-0 flex-1">Admin mode: you are editing this store as its owner ({actingAdmin}).</span>
+              <button onClick={exit} className="rounded-lg bg-white/10 px-2.5 py-1 font-semibold hover:bg-white/20">Back to admin</button>
+            </div>
+          </div>
+        )}
         {/* Row 1: logo · name (full, wraps) · actions. Row 2: the status pill, which may run under the actions. */}
         <div className="mx-auto grid max-w-5xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 pt-3 pb-2">
           <SmartImage src={store.logo_url} alt={store.name} kind={isAppt ? 'appointments' : 'shop'} hint={store.category} width={80} className="row-span-2 h-11 w-11 rounded-xl object-cover" />
@@ -203,7 +220,7 @@ export default function MerchantDashboard() {
             <a href={`/s/${store.slug}`} target="_blank" rel="noreferrer" className="rounded-lg p-2 text-stone-600 hover:bg-stone-100" aria-label={t('merchant.viewStore')}>
               <ExternalLink size={18} />
             </a>
-            <button onClick={logoutOwner} className="rounded-lg p-2 text-stone-600 hover:bg-stone-100" aria-label={t('common.logOut')}>
+            <button onClick={exit} className="rounded-lg p-2 text-stone-600 hover:bg-stone-100" aria-label={t('common.logOut')}>
               <LogOut size={18} />
             </button>
           </div>
@@ -240,7 +257,7 @@ export default function MerchantDashboard() {
       ) : (
       <main className="mx-auto max-w-5xl space-y-4 p-4">
         <StoreStatusCard store={store} onChange={(s) => setStore(s)} />
-        <PushOptIn store={store} />
+        {!actingAdmin && <PushOptIn store={store} />}
         {store.closed_now && (
           <button
             onClick={() => setTab('settings')}

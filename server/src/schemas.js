@@ -75,6 +75,9 @@ export const ownerEmailAuth = z.object({
   businessType: z.enum(BUSINESS_TYPES).default('shop'),
 });
 export const whatsappVerify = z.object({ phone: mobile10, code: otpCode });
+// Platform admin creating a store for an owner: the code goes to the owner's email, the owner reads it out.
+export const adminOwnerOtp = z.object({ email, storeName: z.preprocess((v) => (v == null || v === '' ? undefined : v), storeName.optional()) });
+export const adminCreateStore = z.object({ email, code: otpCode, storeName, businessType: z.enum(BUSINESS_TYPES).default('shop') });
 // Khata (credit ledger)
 const optMobile10 = z.preprocess((v) => (v == null || String(v).trim() === '' ? null : v), mobile10.nullable());
 export const khataCustomer = z.object({

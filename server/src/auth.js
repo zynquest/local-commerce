@@ -19,15 +19,20 @@ export async function verifyPassword(pw, hash) {
   return bcrypt.compare(pw, hash || DUMMY_HASH).then((ok) => ok && Boolean(hash));
 }
 
-export async function createSession(res, subjectType, subjectId) {
+/** Owner sessions opened by the platform admin ("admin mode") last this long. */
+export const ACTING_SESSION_HOURS = 2;
+
+/** actingAdminId: the platform admin opening a store in the owner screens (an owner session in admin mode). */
+export async function createSession(res, subjectType, subjectId, { actingAdminId = null } = {}) {
   const token = crypto.randomBytes(32).toString('base64url');
-  const ttlMs = subjectType === 'admin' ? config.adminSessionHours * 3600_000 : config.sessionDays * 86400_000;
+  const ttlMs = actingAdminId ? ACTING_SESSION_HOURS * 3600_000 : subjectType === 'admin' ? config.adminSessionHours * 3600_000 : config.sessionDays * 86400_000;
   const expires = new Date(Date.now() + ttlMs);
-  await query('INSERT INTO sessions (token_hash, subject_type, subject_id, expires_at) VALUES ($1, $2, $3, $4)', [
+  await query('INSERT INTO sessions (token_hash, subject_type, subject_id, expires_at, acting_admin_id) VALUES ($1, $2, $3, $4, $5)', [
     sha256(token),
     subjectType,
     subjectId,
     expires,
+    actingAdminId,
   ]);
   res.cookie(COOKIES[subjectType], token, {
     httpOnly: true,
@@ -47,26 +52,30 @@ export async function destroySession(req, res, subjectType) {
 export const destroyAllSessions = (subjectType, subjectId) =>
   query('DELETE FROM sessions WHERE subject_type = $1 AND subject_id = $2', [subjectType, subjectId]);
 
-async function lookup(req, subjectType) {
+async function session(req, subjectType) {
   const token = req.cookies?.[COOKIES[subjectType]];
   if (!token) return null;
   const { rows } = await query(
-    'SELECT subject_id FROM sessions WHERE token_hash = $1 AND subject_type = $2 AND expires_at > now()',
+    'SELECT subject_id, acting_admin_id FROM sessions WHERE token_hash = $1 AND subject_type = $2 AND expires_at > now()',
     [sha256(token), subjectType],
   );
-  return rows[0]?.subject_id || null;
+  return rows[0] || null;
 }
+const lookup = async (req, subjectType) => (await session(req, subjectType))?.subject_id || null;
 
 /** Requires a store-owner session; attaches req.user and req.store. */
 export async function requireOwner(req, _res, next) {
-  const userId = await lookup(req, 'user');
-  if (!userId) throw unauthorized();
+  const found = await session(req, 'user');
+  if (!found) throw unauthorized();
   const { rows } = await query(
-    `SELECT u.id, u.username, u.phone, u.role, s.id AS store_id
-       FROM users u LEFT JOIN stores s ON s.owner_id = u.id WHERE u.id = $1 AND u.role = 'owner'`,
-    [userId],
+    `SELECT u.id, u.username, u.phone, u.role, s.id AS store_id, a.username AS acting_admin
+       FROM users u LEFT JOIN stores s ON s.owner_id = u.id
+       LEFT JOIN users a ON a.id = $2 AND a.role = 'platform_admin'
+      WHERE u.id = $1 AND u.role = 'owner'`,
+    [found.subject_id, found.acting_admin_id],
   );
   if (!rows[0]) throw unauthorized();
+  if (found.acting_admin_id && !rows[0].acting_admin) throw unauthorized(); // the admin account is gone or changed role
   if (!rows[0].store_id) throw forbidden('No store linked to this account');
   req.user = rows[0];
   next();

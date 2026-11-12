@@ -40,10 +40,10 @@ export function storeSlugFrom(input) {
 async function findStore(client, input) {
   const text = String(input || '').trim();
   const slug = storeSlugFrom(text);
-  const bySlug = await client.query('SELECT id, name, slug FROM stores WHERE slug = $1 OR slug = $2 LIMIT 1', [slug, slug.replace(/\s+/g, '-')]);
+  const bySlug = await client.query('SELECT id, name, slug, business_type FROM stores WHERE slug = $1 OR slug = $2 LIMIT 1', [slug, slug.replace(/\s+/g, '-')]);
   if (bySlug.rows[0]) return bySlug.rows[0];
   const byName = await client.query(
-    `SELECT id, name, slug FROM stores WHERE lower(name) = lower($1) ORDER BY (status = 'approved') DESC, created_at LIMIT 5`,
+    `SELECT id, name, slug, business_type FROM stores WHERE lower(name) = lower($1) ORDER BY (status = 'approved') DESC, created_at LIMIT 5`,
     [text],
   );
   if (byName.rows.length > 1) {

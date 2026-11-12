@@ -60,7 +60,7 @@ async function createOwner({ storeName, phone, businessType = 'shop' }) {
 }
 
 /** OWNER_LOGIN=email: creates owner (email verified by the code just checked) + draft store without a WhatsApp number. */
-async function createOwnerByEmail({ storeName, email, businessType = 'shop' }) {
+export async function createOwnerByEmail({ storeName, email, businessType = 'shop' }) {
   return tx(async (client) => {
     if ((await client.query('SELECT 1 FROM users WHERE email = $1', [email])).rowCount) throw conflict('An account with this email already exists. Please log in.');
     await cancelPendingClaims(client, email); // they chose a store of their own over the listing they claimed
@@ -169,5 +169,6 @@ authRouter.post('/logout', async (req, res) => {
 });
 
 authRouter.get('/me', requireOwner, async (req, res) => {
-  res.json({ user: await ownerProfile(req.user.id) });
+  // acting_admin: the platform admin's username when the admin opened this store in the owner screens (admin mode).
+  res.json({ user: { ...(await ownerProfile(req.user.id)), acting_admin: req.user.acting_admin || null } });
 });

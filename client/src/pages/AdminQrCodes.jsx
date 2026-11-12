@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link2, Link2Off, Loader2, Printer, QrCode, RefreshCw, Search, Share2 } from 'lucide-react';
-import { PrintSheet, QrImage, ShareQrButton, ctaFor, hostOf as host, prettyCode as pretty, scanUrl } from '../components/QrSticker.jsx';
+import { Link2, Link2Off, Loader2, Printer, QrCode, RefreshCw, Search, Share2, X } from 'lucide-react';
+import { PrintSheet, QrImage, ShareQrButton, ctaFor, hostOf as host, prettyCode as pretty, scanUrl, shareQrNow } from '../components/QrSticker.jsx';
 import { get, post } from '../lib/api.js';
 import { useDebounce } from '../lib/hooks.js';
 
@@ -108,19 +108,57 @@ function StorePicker({ code, value, onChange, onPick, onSubmit }) {
   );
 }
 
-function Row({ qr, base, selected, onToggle, onChanged }) {
+/** What sharing a linked code sends: the sticker (store name + call to action) and the store link. */
+const shareOf = (code, store, base) => ({
+  sticker: { code, name: store.name, cta: ctaFor(store.business_type), base },
+  text: shareText(store.name, `${base}/s/${store.slug}`, store.business_type),
+});
+
+/** After Assign & Share, when the share sheet couldn't open by itself (iPhone, desktop): one tap on Share opens it. */
+function ShareLinked({ linked, onClose }) {
+  const [error, setError] = useState('');
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" role="dialog" aria-modal="true" aria-label="Share QR code">
+      <div className="w-full max-w-sm animate-fade-up space-y-4 rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-3xl">
+        <div className="flex items-start justify-between gap-2">
+          <p className="font-bold">
+            <Link2 size={16} className="me-1 inline text-emerald-700" /> QR {pretty(linked.code)} is linked to <span className="break-words">{linked.store.name}</span>
+          </p>
+          <button onClick={onClose} className="flex-none rounded-full p-1.5 hover:bg-stone-100" aria-label="Close"><X size={18} /></button>
+        </div>
+        <div className="mx-auto w-40 rounded-xl border border-stone-200 p-2"><QrImage url={scanUrl(linked.base, linked.code)} className="h-full w-full" /></div>
+        <ShareQrButton {...shareOf(linked.code, linked.store, linked.base)} onError={(err) => setError(err.message)} className="btn-brand w-full">
+          <Share2 size={16} /> Share
+        </ShareQrButton>
+        {error && <p className="text-xs text-rose-600">{error}</p>}
+      </div>
+    </div>
+  );
+}
+
+function Row({ qr, base, selected, onToggle, onChanged, onShareLater }) {
   const [store, setStore] = useState('');
   const [picked, setPicked] = useState(null); // the suggestion chosen, so two stores with one name can't mix up
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
 
+  // Assign & Share: links the code, then opens the share sheet with the sticker and the store link. Where the sheet
+  // can't open on its own (iPhones need a fresh tap, most desktops can't share files) a Share button pops up instead.
   const assign = async () => {
     setBusy('assign');
     setError('');
     try {
-      await post(`/platform/qr/${qr.code}/assign`, { store: picked && picked.name === store ? picked.slug : store });
+      const r = await post(`/platform/qr/${qr.code}/assign`, { store: picked && picked.name === store ? picked.slug : store });
       setStore('');
       setPicked(null);
+      const { sticker, text } = shareOf(qr.code, r.store, base);
+      const shared = await shareQrNow(sticker, text).catch(() => 'unavailable');
+      if (shared === 'unavailable') onShareLater({ code: qr.code, store: r.store, base });
       onChanged();
     } catch (err) {
       setError(err.fields?.store || err.message);
@@ -194,7 +232,7 @@ function Row({ qr, base, selected, onToggle, onChanged }) {
               onSubmit={assign}
             />
             <button onClick={assign} disabled={!!busy || !store.trim()} className="btn-brand flex-none text-sm">
-              {busy === 'assign' ? <Loader2 size={14} className="animate-spin" /> : <Link2 size={14} />} Assign
+              {busy === 'assign' ? <Loader2 size={14} className="animate-spin" /> : <Share2 size={14} />} Assign &amp; Share
             </button>
           </div>
         )}
@@ -216,6 +254,8 @@ export default function AdminQrCodes() {
   const [notice, setNotice] = useState('');
   const [selected, setSelected] = useState(() => new Set());
   const [printing, setPrinting] = useState(null); // stickers being printed
+  const [shareLater, setShareLater] = useState(null); // a code just linked whose share sheet needs one more tap
+  const closeShare = useCallback(() => setShareLater(null), []);
   const stopPrinting = useCallback(() => setPrinting(null), []);
 
   const load = useCallback(async () => {
@@ -320,7 +360,7 @@ export default function AdminQrCodes() {
       {data.error && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{data.error}</p>}
       <ul className="card divide-y divide-stone-100">
         {data.codes.map((qr) => (
-          <Row key={qr.code} qr={qr} base={data.base} selected={selected.has(qr.code)} onToggle={() => toggle(qr.code)} onChanged={load} />
+          <Row key={qr.code} qr={qr} base={data.base} selected={selected.has(qr.code)} onToggle={() => toggle(qr.code)} onChanged={load} onShareLater={setShareLater} />
         ))}
         {!data.loading && !data.codes.length && (
           <li className="p-10 text-center text-sm text-stone-500">
@@ -332,6 +372,7 @@ export default function AdminQrCodes() {
       {data.codes.length >= 500 && <p className="text-center text-xs text-stone-500">Showing the newest 500. Use search or the filters to find others.</p>}
 
       {printing && <PrintSheet items={printing} base={data.base} onDone={stopPrinting} />}
+      {shareLater && <ShareLinked linked={shareLater} onClose={closeShare} />}
     </div>
   );
 }

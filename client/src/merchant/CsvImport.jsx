@@ -129,16 +129,21 @@ function downloadTemplate(kind) {
           cols.map((c) => c.example),
           ['Amul Butter 500g', '285', '275', 'Dairy', 'Salted butter', '', 'Bestseller,New', 'yes', 'Weight: 500 g', '', '4.8', '2100'],
         ];
-  const csv = Papa.unparse({ fields: cols.map((c) => c.label), data: rows });
+  downloadCsv(kind === 'light' ? 'products-light-template.csv' : 'products-full-template.csv', cols.map((c) => c.label), rows);
+}
+
+/** Saves a CSV template (with a BOM, so Excel opens ₹ and Indian scripts correctly). */
+export function downloadCsv(filename, fields, rows) {
+  const csv = Papa.unparse({ fields, data: rows });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })); // BOM: Excel opens ₹ correctly
-  a.download = kind === 'light' ? 'products-light-template.csv' : 'products-full-template.csv';
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = filename;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 /** Reads .csv or .xlsx into { headers, rows: string[][] }. */
-async function readFile(file) {
+export async function readFile(file) {
   if (/\.xlsx$/i.test(file.name)) {
     const { readSheet } = await import('read-excel-file/browser');
     const data = await readSheet(file);

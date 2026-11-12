@@ -19,6 +19,7 @@ import { authRouter } from './routes/auth.js';
 import { customerRouter } from './routes/customer.js';
 import { publicRouter } from './routes/public.js';
 import { loadTemplate, robots, seoHandler, sitemap } from './seo.js';
+import { storeCardHandler } from './shareCard.js';
 import { scanQrCode } from './qr.js';
 import { qrNotLinkedPage } from './pages/qrNotLinked.js';
 
@@ -120,6 +121,8 @@ export function createApp() {
   // Static legal page (plain HTML so crawlers such as Meta's app review can read it without JavaScript).
   const privacyFile = path.join(path.dirname(fileURLToPath(import.meta.url)), 'pages', 'privacy.html');
   app.get(['/privacy', '/privacy-policy'], (_req, res) => res.set('Cache-Control', 'public, max-age=3600').sendFile(privacyFile));
+  // Link-preview image of a store (og:image on its page): /s/<slug>/card.jpg
+  app.get('/s/:slug/card.jpg', storeCardHandler);
   app.get('/robots.txt', robots);
   app.get('/sitemap.xml', sitemap);
 

@@ -10,6 +10,8 @@
     "close": "बंद करात",
     "back": "फाटीं",
     "share": "शेअर करात",
+    "copyLink": "लिंक कॉपी करात",
+    "linkCopied": "स्टोअराची लिंक कॉपी जाली",
     "search": "सोदात",
     "clearSearch": "सोद पुसात",
     "refresh": "रिफ्रेश करात",
@@ -65,6 +67,8 @@
     "updating": "अपडेट जाता",
     "verified": "पडताळणी केल्लो वेवसाय",
     "directions": "वाट दाखयात",
+    "shareShop": "{name} कडल्यान WhatsApp चेर ऑर्डर करात",
+    "shareAppt": "WhatsApp चेर {name} हांगा अपॉइंटमेंट बुक करात",
     "question": "नमस्कार {name}! म्हाका एक प्रस्न विचारपाचो आसा.",
     "poweredBy": "<b>{brand}</b> वरवीं · शून्य कमिशन WhatsApp स्टोअरां",
     "all": "सगळें",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} ओळींनी चुको आसात",
     "duplicateCode": "आयटम कोड {code} दोन फावटीं आयला",
     "duplicateName": "उत्पादनाचें नांव \"{name}\" दोन फावटीं आयलां",
+    "duplicateService": "सेवेचें नांव \"{name}\" दोन फावटीं आयलां",
     "codeUsed": "आयटम कोड {code} आदींच दुसऱ्या उत्पादना खातीर वापरला",
     "planLimit": "तुमच्या प्लॅनांत {limit} सक्रिय उत्पादनां चलतात. तुमचे कडेन {used} आसात. वापरूंक नाशिल्लीं उत्पादनां आर्काइव्ह करात, वा पेड प्लॅना खातीर ({limit}+ उत्पादनां) आमकां संपर्क करात.",
     "planLimitAdding": "तुमच्या प्लॅनांत {limit} सक्रिय उत्पादनां चलतात. तुमचे कडेन {used} आसात आनी तुमी आनीक {adding} जोडपाचो यत्न केलो. वापरूंक नाशिल्लीं उत्पादनां आर्काइव्ह करात, वा पेड प्लॅना खातीर ({limit}+ उत्पादनां) आमकां संपर्क करात.",
@@ -841,6 +846,37 @@
       "reviews": "review_count पुराय आंकडो आसूंक जाय",
       "descriptionLong": "description चड लांब आसा",
       "duplicateOf": "ओळ {line} ची डुप्लिकेट"
+    },
+    "svc": {
+      "template": "सेवांचें टेम्पलेट",
+      "templateBody": "<b>service_name, duration_mins, price</b> गरजेचें. category आनी description पर्यायी.",
+      "download": "सेवांचें टेम्पलेट डाउनलोड करात",
+      "matching": "सेवा <b>नांवा</b> वयल्यान जुळयतात: आसा त्यो सेवा अपडेट जातल्यो, नव्यो जोडटल्यो. “Service Name”, “Duration” वा “Rate” सारके हेडरय वळखतात.",
+      "noRows": "फायलींत एकूय सेवा ना.",
+      "bulkLink": "खूब सेवा आसात? CSV इम्पोर्टान सगळ्यो एकाच फावटीं जोडात →",
+      "imported_one": "{count} सेवा इम्पोर्ट जाली.",
+      "imported_other": "{count} सेवा इम्पोर्ट जाल्यो.",
+      "importValid_one": "{count} योग्य सेवा इम्पोर्ट करात",
+      "importValid_other": "{count} योग्य सेवा इम्पोर्ट करात",
+      "fmt": {
+        "name": "मजकूर, चडांत चड 80 अक्षरां",
+        "duration": "मिनटां, 5 सावन 480 (देखीक 30, 45 min, 1.5 hr)",
+        "price": "आंकडो (₹), देखीक 300 वा ₹1,200",
+        "category": "मजकूर, देखीक Hair (रितें = Other)",
+        "description": "मजकूर, चडांत चड 1000 अक्षरां"
+      },
+      "e": {
+        "nameRequired": "service_name गरजेचें",
+        "nameLong": "service_name 80 अक्षरां परस लांब आसा",
+        "durationRequired": "duration_mins गरजेचें",
+        "durationNaN": "duration_mins \"{value}\" मिनटांचो आंकडो न्हय",
+        "durationRange": "duration_mins 5 ते 480 मिनटां मदीं आसूंक जाय",
+        "priceRequired": "price गरजेचें",
+        "priceNaN": "price \"{value}\" आंकडो न्हय",
+        "priceNegative": "price उणें आसूंक शकना",
+        "categoryLong": "category 60 अक्षरां परस लांब आसा",
+        "descriptionLong": "description 1000 अक्षरां परस लांब आसा"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "तुमच्या स्टोराक अजून खंयचोच QR स्टिकर जोडिल्लो ना. मेळोवपाक आमकां मेसेज करात.",
     "askMsg": "नमस्कार, उपकार करून म्हज्या स्टोर \"{name}\" ({link}) खातीर QR स्टिकर धाडात.",
     "share": "शेअर करात",
+    "shareQr": "QR शेअर करात",
+    "shareLink": "स्टोअराची लिंक शेअर करात",
+    "linkTitle": "तुमच्या स्टोअराची लिंक",
     "print": "प्रिंट करात",
     "printAll": "सगळें प्रिंट करात",
     "scans": "स्कॅन: {count}",

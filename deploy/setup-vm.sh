@@ -26,7 +26,7 @@ fi
 echo "==> Base packages"
 apt-get update
 apt-get -y upgrade
-apt-get install -y git curl ca-certificates gnupg openssl nginx certbot unattended-upgrades
+apt-get install -y git curl ca-certificates gnupg openssl nginx certbot unattended-upgrades fontconfig fonts-noto-core
 
 echo "==> PostgreSQL 16"
 if ! apt-cache show postgresql-16 >/dev/null 2>&1; then

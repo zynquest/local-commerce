@@ -9,6 +9,7 @@ import ServicesPanel from '../merchant/ServicesPanel.jsx';
 import SpecialistsPanel from '../merchant/SpecialistsPanel.jsx';
 import ProductForm from '../merchant/ProductForm.jsx';
 import CsvImport from '../merchant/CsvImport.jsx';
+import ServicesImport from '../merchant/ServicesImport.jsx';
 import OrdersPanel from '../merchant/OrdersPanel.jsx';
 import StoreSettings from '../merchant/StoreSettings.jsx';
 import MyStoreQr from '../merchant/MyStoreQr.jsx';
@@ -34,6 +35,7 @@ const TABS_APPOINTMENTS = [
   { id: 'services', icon: Scissors },
   { id: 'specialists', icon: Users },
   { id: 'khata', icon: BookOpen },
+  { id: 'import', icon: FileUp },
   { id: 'settings', icon: Settings },
   { id: 'account', icon: UserCog },
 ];
@@ -383,9 +385,10 @@ export default function MerchantDashboard() {
         {tab === 'khata' && <KhataPanel store={store} currency={cur} />}
         {tab === 'orders' && <OrdersPanel currency={cur} onChange={refreshStats} />}
         {tab === 'appointments' && <AppointmentsPanel store={store} currency={cur} onChange={refreshStats} />}
-        {tab === 'services' && <ServicesPanel currency={cur} onChange={() => { refreshStats(); setTimeout(() => get('/merchant/store').then((r) => setStore(r.store)), 0); }} />}
+        {tab === 'services' && <ServicesPanel currency={cur} onBulk={() => setTab('import')} onChange={() => { refreshStats(); setTimeout(() => get('/merchant/store').then((r) => setStore(r.store)), 0); }} />}
         {tab === 'specialists' && <SpecialistsPanel onChange={() => get('/merchant/store').then((r) => setStore(r.store))} />}
-        {tab === 'import' && (
+        {tab === 'import' && isAppt && <ServicesImport onDone={() => { refreshStats(); get('/merchant/store').then((r) => setStore(r.store)); }} />}
+        {tab === 'import' && !isAppt && (
           <CsvImport
             existingProducts={products.items}
             skuUsed={stats?.sku_used || 0}

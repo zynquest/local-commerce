@@ -10,6 +10,8 @@
     "close": "থিংজিনবা",
     "back": "হল্লকপা",
     "share": "শেয়র তৌবা",
+    "copyLink": "লিংক কোপি তৌবিয়ু",
+    "linkCopied": "দুকানগী লিঙ্ক কোপি তৌখ্রে",
     "search": "থীবা",
     "clearSearch": "থীবা মুত্থৎপা",
     "refresh": "রিফ্রেস তৌবা",
@@ -65,6 +67,8 @@
     "updating": "অপদেত তৌরি",
     "verified": "চুমথোকখ্রবা বিজিনেস",
     "directions": "লম্বী",
+    "shareShop": "WhatsAppতা {name}দগী অর্দর তৌবিয়ু",
+    "shareAppt": "WhatsAppতা {name}দা অপোইন্তমেন্ত বুক তৌবিয়ু",
     "question": "খুরুমজরি {name}! ঐগী ৱাহং অমা লৈ।",
     "poweredBy": "<b>{brand}</b>না চলাইবা · কমিসন লৈতবা WhatsApp দুকান",
     "all": "পুম্নমক",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "পরেং {count}দা অশোয়বা লৈ",
     "duplicateCode": "অমুক থোক্লবা আইতেম কোদ {code}",
     "duplicateName": "অমুক থোক্লবা পোত্লমগী মমিং \"{name}\"",
+    "duplicateService": "অমুক থোক্লবা সেবাগী মমিং \"{name}\"",
     "codeUsed": "আইতেম কোদ {code} অসি অতোপ্পা পোত্লম অমনা হান্নদগী শিজিন্নরে",
     "planLimit": "নহাক্কী প্লেন্না এক্তিভ পোত্লম {limit} খক্তা য়াহনই। নহাক্কী {used} লৈরে। শিজিন্নদবা পোত্লমশিং আর্কাইভ তৌবিয়ু, নত্ত্রগা শেল পীবা প্লেনগীদমক ({limit}+ পোত্লম) ঐখোয়দা পাউ থাবিয়ু।",
     "planLimitAdding": "নহাক্কী প্লেন্না এক্তিভ পোত্লম {limit} খক্তা য়াহনই। নহাক্কী {used} লৈরে অমসুং {adding} হাপচিনবা হোৎখি। শিজিন্নদবা পোত্লমশিং আর্কাইভ তৌবিয়ু, নত্ত্রগা শেল পীবা প্লেনগীদমক ({limit}+ পোত্লম) ঐখোয়দা পাউ থাবিয়ু।",
@@ -841,6 +846,37 @@
       "reviews": "review_count মপুং ফাবা মশিং ওইগদবনি",
       "descriptionLong": "description য়াম্না শাংই",
       "duplicateOf": "পরেং {line}গা মান্নবা অমুক থোক্লবা"
+    },
+    "svc": {
+      "template": "সেবাগী তেম্প্লেত",
+      "templateBody": "<b>service_name, duration_mins, price</b> তাদবনি। category অমসুং description পামবদি।",
+      "download": "সেবাগী তেম্প্লেত দাউনলোদ তৌবিয়ু",
+      "matching": "সেবাশিং <b>মমিং</b> না চান্নহল্লি: লৈরিবা সেবাশিং অপদেত ওইগনি, অনৌবাশিং হাপচিনগনি। “Service Name”, “Duration” নত্ত্রগা “Rate” মাদুগুম্বা হেদরশিংসু খঙই।",
+      "noRows": "ফাইলদা সেবা অমত্তা লৈতে।",
+      "bulkLink": "সেবা য়াম্না লৈবরা? CSV ইম্পোর্তনা পুম্নমক অমুকতা হাপচিনবিয়ু →",
+      "imported_one": "সেবা {count} ইম্পোর্ত তৌখ্রে।",
+      "imported_other": "সেবা {count} ইম্পোর্ত তৌখ্রে।",
+      "importValid_one": "চুম্বা সেবা {count} ইম্পোর্ত তৌবিয়ু",
+      "importValid_other": "চুম্বা সেবা {count} ইম্পোর্ত তৌবিয়ু",
+      "fmt": {
+        "name": "তেক্স্ত, হেন্না 80 অক্ষর",
+        "duration": "মিনিত, 5 নি 480 (খুদম ওইনা 30, 45 min, 1.5 hr)",
+        "price": "মশিং (₹), খুদম ওইনা 300 নত্ত্রগা ₹1,200",
+        "category": "তেক্স্ত, খুদম ওইনা Hair (অহাংবা = Other)",
+        "description": "তেক্স্ত, হেন্না 1000 অক্ষর"
+      },
+      "e": {
+        "nameRequired": "service_name তাদবনি",
+        "nameLong": "service_name অক্ষর 80দগী শাংই",
+        "durationRequired": "duration_mins তাদবনি",
+        "durationNaN": "duration_mins \"{value}\" মিনিতকী মশিং নত্তে",
+        "durationRange": "duration_mins মিনিত 5 নি 480গী মনুংদা ওইগদবনি",
+        "priceRequired": "price তাদবনি",
+        "priceNaN": "price \"{value}\" মশিং নত্তে",
+        "priceNegative": "price মাইনস ওইবা ইয়াদে",
+        "categoryLong": "category অক্ষর 60দগী শাংই",
+        "descriptionLong": "description অক্ষর 1000দগী শাংই"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "নহাক্কী দুকানগা হৌজিক ফাওবা QR স্তিকর অমত্তা শম্নদ্রি। ফংনবা ঐখোয়দা মেসেজ থাবিয়ু।",
     "askMsg": "খুরুমজরি, ঐহাক্কী দুকান \"{name}\" ({link})গীদমক QR স্তিকর অমা থাবিয়ু।",
     "share": "শেয়র তৌবা",
+    "shareQr": "QR শেয়র তৌবিয়ু",
+    "shareLink": "দুকানগী লিঙ্ক শেয়র তৌবা",
+    "linkTitle": "নহাক্কী স্তোরগী লিংক",
     "print": "প্রিন্ত তৌবা",
     "printAll": "পুম্নমক প্রিন্ত তৌবা",
     "scans": "স্কেন: {count}",

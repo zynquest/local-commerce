@@ -12,6 +12,12 @@ echo "==> git pull ($BRANCH)"
 as_vfl "git fetch --prune origin && git checkout $BRANCH && git pull --ff-only origin $BRANCH"
 as_vfl "git log -1 --format='    %h %s (%an, %ar)'"
 
+# Fonts for text drawn on the server (store link-preview cards): Noto covers Latin and the Indian scripts.
+if ! fc-list 2>/dev/null | grep -q "NotoSans-"; then
+  echo "==> Install fonts (Noto) for link-preview cards"
+  apt-get update -q >/dev/null && apt-get install -y -q fontconfig fonts-noto-core >/dev/null
+fi
+
 echo "==> npm ci (workspaces: client + server)"
 as_vfl "npm ci --no-audit --no-fund"
 

@@ -12,6 +12,7 @@ const PATTERNS = [
   P(/^(\d+) row\(s\) have errors$/, 'errors.rowsHaveErrors', ['count']),
   P(/^Duplicate item code (.+)$/, 'errors.duplicateCode', ['code']),
   P(/^Duplicate product name "(.+)"$/, 'errors.duplicateName', ['name']),
+  P(/^Duplicate service name "(.+)"$/, 'errors.duplicateService', ['name']),
   P(/^Item code (.+) is already used by another product$/, 'errors.codeUsed', ['code']),
   P(/^Your plan allows (\d+) active products\. You have (\d+) and tried to add (\d+)\..*$/, 'errors.planLimitAdding', ['limit', 'used', 'adding']),
   P(/^Your plan allows (\d+) active products\. You have (\d+)\..*$/, 'errors.planLimit', ['limit', 'used']),

@@ -10,6 +10,8 @@
     "close": "ବନ୍ଦ କରନ୍ତୁ",
     "back": "ପଛକୁ",
     "share": "ସେୟାର୍ କରନ୍ତୁ",
+    "copyLink": "ଲିଙ୍କ କପି କରନ୍ତୁ",
+    "linkCopied": "ଦୋକାନ ଲିଙ୍କ୍ କପି ହେଲା",
     "search": "ଖୋଜନ୍ତୁ",
     "clearSearch": "ଖୋଜା ହଟାନ୍ତୁ",
     "refresh": "ରିଫ୍ରେସ୍ କରନ୍ତୁ",
@@ -65,6 +67,8 @@
     "updating": "ଅପଡେଟ୍ ହେଉଛି",
     "verified": "ଯାଞ୍ଚିତ ବ୍ୟବସାୟ",
     "directions": "ରାସ୍ତା ଦେଖନ୍ତୁ",
+    "shareShop": "WhatsApp ରେ {name} ରୁ ଅର୍ଡର କରନ୍ତୁ",
+    "shareAppt": "WhatsAppରେ {name}ରେ ଆପଏଣ୍ଟମେଣ୍ଟ ବୁକ୍ କରନ୍ତୁ",
     "question": "ନମସ୍କାର {name}! ମୋର ଗୋଟିଏ ପ୍ରଶ୍ନ ଅଛି।",
     "poweredBy": "<b>{brand}</b> ଦ୍ୱାରା ଚାଳିତ · ଶୂନ କମିଶନ୍ WhatsApp ଦୋକାନ",
     "all": "ସବୁ",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count}ଟି ଧାଡ଼ିରେ ଭୁଲ ଅଛି",
     "duplicateCode": "ଦୋହରା ଆଇଟମ୍ କୋଡ୍ {code}",
     "duplicateName": "ଦୋହରା ଜିନିଷ ନାମ \"{name}\"",
+    "duplicateService": "ଦୋହରା ସେବା ନାମ \"{name}\"",
     "codeUsed": "ଆଇଟମ୍ କୋଡ୍ {code} ଅନ୍ୟ ଏକ ଜିନିଷ ପାଇଁ ଆଗରୁ ବ୍ୟବହାର ହୋଇଛି",
     "planLimit": "ଆପଣଙ୍କ ପ୍ଲାନ୍‌ରେ {limit}ଟି ସକ୍ରିୟ ଜିନିଷ ରଖିହେବ। ଆପଣଙ୍କର {used}ଟି ଅଛି। ଅଦରକାରୀ ଜିନିଷ ଆର୍କାଇଭ୍ କରନ୍ତୁ, କିମ୍ବା ପେଡ୍ ପ୍ଲାନ୍ ({limit}+ ଜିନିଷ) ପାଇଁ ଆମ ସହ ଯୋଗାଯୋଗ କରନ୍ତୁ।",
     "planLimitAdding": "ଆପଣଙ୍କ ପ୍ଲାନ୍‌ରେ {limit}ଟି ସକ୍ରିୟ ଜିନିଷ ରଖିହେବ। ଆପଣଙ୍କର {used}ଟି ଅଛି ଏବଂ ଆପଣ ଆଉ {adding}ଟି ଯୋଡ଼ିବାକୁ ଚେଷ୍ଟା କଲେ। ଅଦରକାରୀ ଜିନିଷ ଆର୍କାଇଭ୍ କରନ୍ତୁ, କିମ୍ବା ପେଡ୍ ପ୍ଲାନ୍ ({limit}+ ଜିନିଷ) ପାଇଁ ଆମ ସହ ଯୋଗାଯୋଗ କରନ୍ତୁ।",
@@ -841,6 +846,37 @@
       "reviews": "review_count ପୂର୍ଣ୍ଣ ସଂଖ୍ୟା ହେବା ଦରକାର",
       "descriptionLong": "description ବହୁତ ଲମ୍ବା",
       "duplicateOf": "ଧାଡ଼ି {line} ର ଦୋହରା"
+    },
+    "svc": {
+      "template": "ସେବାର ଟେମ୍ପଲେଟ୍",
+      "templateBody": "<b>service_name, duration_mins, price</b> ଆବଶ୍ୟକ। category ଓ description ଇଚ୍ଛାଧୀନ।",
+      "download": "ସେବାର ଟେମ୍ପଲେଟ୍ ଡାଉନଲୋଡ୍ କରନ୍ତୁ",
+      "matching": "ସେବାଗୁଡ଼ିକୁ <b>ନାମ</b> ଦ୍ୱାରା ମିଳାଯାଏ: ଥିବା ସେବା ଅପଡେଟ୍ ହେବ, ନୂଆ ଯୋଡ଼ାଯିବ। “Service Name”, “Duration” ବା “Rate” ପରି ହେଡର୍ ମଧ୍ୟ ଚିହ୍ନାଯାଏ।",
+      "noRows": "ଫାଇଲରେ କୌଣସି ସେବା ନାହିଁ।",
+      "bulkLink": "ଅନେକ ସେବା ଅଛି କି? CSV ଇମ୍ପୋର୍ଟରେ ସବୁ ଏକାଥରେ ଯୋଡନ୍ତୁ →",
+      "imported_one": "{count}ଟି ସେବା ଇମ୍ପୋର୍ଟ ହେଲା।",
+      "imported_other": "{count}ଟି ସେବା ଇମ୍ପୋର୍ଟ ହେଲା।",
+      "importValid_one": "{count}ଟି ଠିକ୍ ସେବା ଇମ୍ପୋର୍ଟ କରନ୍ତୁ",
+      "importValid_other": "{count}ଟି ଠିକ୍ ସେବା ଇମ୍ପୋର୍ଟ କରନ୍ତୁ",
+      "fmt": {
+        "name": "ଲେଖା, ସର୍ବାଧିକ 80 ଅକ୍ଷର",
+        "duration": "ମିନିଟ୍, 5 ରୁ 480 (ଯେପରି 30, 45 min, 1.5 hr)",
+        "price": "ସଂଖ୍ୟା (₹), ଯେପରି 300 ବା ₹1,200",
+        "category": "ଲେଖା, ଯେପରି Hair (ଖାଲି = Other)",
+        "description": "ଲେଖା, ସର୍ବାଧିକ 1000 ଅକ୍ଷର"
+      },
+      "e": {
+        "nameRequired": "service_name ଆବଶ୍ୟକ",
+        "nameLong": "service_name 80 ଅକ୍ଷରରୁ ଲମ୍ବା",
+        "durationRequired": "duration_mins ଆବଶ୍ୟକ",
+        "durationNaN": "duration_mins \"{value}\" ମିନିଟର ସଂଖ୍ୟା ନୁହେଁ",
+        "durationRange": "duration_mins 5 ରୁ 480 ମିନିଟ ମଧ୍ୟରେ ହେବା ଦରକାର",
+        "priceRequired": "price ଆବଶ୍ୟକ",
+        "priceNaN": "price \"{value}\" ସଂଖ୍ୟା ନୁହେଁ",
+        "priceNegative": "price ଋଣାତ୍ମକ ହୋଇପାରିବ ନାହିଁ",
+        "categoryLong": "category 60 ଅକ୍ଷରରୁ ଲମ୍ବା",
+        "descriptionLong": "description 1000 ଅକ୍ଷରରୁ ଲମ୍ବା"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "ଆପଣଙ୍କ ଷ୍ଟୋର୍ ସହ ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି QR ଷ୍ଟିକର ଯୋଡା ହୋଇନାହିଁ। ପାଇବା ପାଇଁ ଆମକୁ ମେସେଜ୍ କରନ୍ତୁ।",
     "askMsg": "ନମସ୍କାର, ମୋ ଷ୍ଟୋର୍ \"{name}\" ({link}) ପାଇଁ ଏକ QR ଷ୍ଟିକର ପଠାନ୍ତୁ।",
     "share": "ସେୟାର କରନ୍ତୁ",
+    "shareQr": "QR ସେୟାର କରନ୍ତୁ",
+    "shareLink": "ଦୋକାନ ଲିଙ୍କ୍ ସେୟାର୍ କରନ୍ତୁ",
+    "linkTitle": "ଆପଣଙ୍କ ଷ୍ଟୋରର ଲିଙ୍କ",
     "print": "ପ୍ରିଣ୍ଟ କରନ୍ତୁ",
     "printAll": "ସବୁ ପ୍ରିଣ୍ଟ କରନ୍ତୁ",
     "scans": "ସ୍କାନ୍: {count}",

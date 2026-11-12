@@ -10,6 +10,8 @@
     "close": "మూసివేయి",
     "back": "వెనక్కి",
     "share": "షేర్ చేయి",
+    "copyLink": "లింక్ కాపీ చేయండి",
+    "linkCopied": "స్టోర్ లింక్ కాపీ అయింది",
     "search": "వెతకండి",
     "clearSearch": "వెతుకుడు క్లియర్ చేయి",
     "refresh": "రిఫ్రెష్ చేయి",
@@ -65,6 +67,8 @@
     "updating": "అప్‌డేట్ అవుతోంది",
     "verified": "ధృవీకరించిన వ్యాపారం",
     "directions": "దారి చూపించు",
+    "shareShop": "WhatsApp లో {name} నుండి ఆర్డర్ చేయండి",
+    "shareAppt": "WhatsAppలో {name}లో అపాయింట్‌మెంట్ బుక్ చేయండి",
     "question": "నమస్తే {name}! నాకు ఒక ప్రశ్న ఉంది.",
     "poweredBy": "<b>{brand}</b> ద్వారా · కమీషన్ లేని WhatsApp స్టోర్‌లు",
     "all": "అన్నీ",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} వరుసలలో తప్పులు ఉన్నాయి",
     "duplicateCode": "ఐటమ్ కోడ్ {code} రెండుసార్లు ఉంది",
     "duplicateName": "ప్రోడక్ట్ పేరు \"{name}\" రెండుసార్లు ఉంది",
+    "duplicateService": "సేవ పేరు \"{name}\" రెండుసార్లు ఉంది",
     "codeUsed": "ఐటమ్ కోడ్ {code} ను ఇప్పటికే మరో ప్రోడక్ట్ వాడుతోంది",
     "planLimit": "మీ ప్లాన్‌లో {limit} యాక్టివ్ ప్రోడక్ట్‌లు మాత్రమే అనుమతి. మీకు {used} ఉన్నాయి. వాడని ప్రోడక్ట్‌లను ఆర్కైవ్ చేయండి, లేదా పెయిడ్ ప్లాన్ ({limit}+ ప్రోడక్ట్‌లు) కోసం మమ్మల్ని సంప్రదించండి.",
     "planLimitAdding": "మీ ప్లాన్‌లో {limit} యాక్టివ్ ప్రోడక్ట్‌లు మాత్రమే అనుమతి. మీకు {used} ఉన్నాయి, ఇంకా {adding} జోడించడానికి ప్రయత్నించారు. వాడని ప్రోడక్ట్‌లను ఆర్కైవ్ చేయండి, లేదా పెయిడ్ ప్లాన్ ({limit}+ ప్రోడక్ట్‌లు) కోసం మమ్మల్ని సంప్రదించండి.",
@@ -841,6 +846,37 @@
       "reviews": "review_count పూర్ణ సంఖ్య అయి ఉండాలి",
       "descriptionLong": "description చాలా పొడవుగా ఉంది",
       "duplicateOf": "లైన్ {line} కు డూప్లికేట్"
+    },
+    "svc": {
+      "template": "సేవల టెంప్లేట్",
+      "templateBody": "<b>service_name, duration_mins, price</b> తప్పనిసరి. category, description ఐచ్ఛికం.",
+      "download": "సేవల టెంప్లేట్ డౌన్‌లోడ్ చేయండి",
+      "matching": "సేవలను <b>పేరు</b>తో సరిపోలుస్తాం: ఉన్న సేవలు అప్‌డేట్ అవుతాయి, కొత్తవి జోడించబడతాయి. “Service Name”, “Duration” లేదా “Rate” లాంటి హెడర్‌లు కూడా గుర్తిస్తాం.",
+      "noRows": "ఫైల్‌లో ఏ సేవా లేదు.",
+      "bulkLink": "చాలా సేవలు ఉన్నాయా? CSV ఇంపోర్ట్‌తో అన్నీ ఒకేసారి జోడించండి →",
+      "imported_one": "{count} సేవ ఇంపోర్ట్ అయింది.",
+      "imported_other": "{count} సేవలు ఇంపోర్ట్ అయ్యాయి.",
+      "importValid_one": "సరైన {count} సేవను ఇంపోర్ట్ చేయండి",
+      "importValid_other": "సరైన {count} సేవలను ఇంపోర్ట్ చేయండి",
+      "fmt": {
+        "name": "టెక్స్ట్, గరిష్ఠంగా 80 అక్షరాలు",
+        "duration": "నిమిషాలు, 5 నుండి 480 (ఉదా. 30, 45 min, 1.5 hr)",
+        "price": "సంఖ్య (₹), ఉదా. 300 లేదా ₹1,200",
+        "category": "టెక్స్ట్, ఉదా. Hair (ఖాళీ = Other)",
+        "description": "టెక్స్ట్, గరిష్ఠంగా 1000 అక్షరాలు"
+      },
+      "e": {
+        "nameRequired": "service_name తప్పనిసరి",
+        "nameLong": "service_name 80 అక్షరాల కంటే పొడవుగా ఉంది",
+        "durationRequired": "duration_mins తప్పనిసరి",
+        "durationNaN": "duration_mins \"{value}\" నిమిషాల సంఖ్య కాదు",
+        "durationRange": "duration_mins 5 నుండి 480 నిమిషాల మధ్య ఉండాలి",
+        "priceRequired": "price తప్పనిసరి",
+        "priceNaN": "price \"{value}\" సంఖ్య కాదు",
+        "priceNegative": "price మైనస్‌లో ఉండకూడదు",
+        "categoryLong": "category 60 అక్షరాల కంటే పొడవుగా ఉంది",
+        "descriptionLong": "description 1000 అక్షరాల కంటే పొడవుగా ఉంది"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "మీ స్టోర్‌కు ఇంకా QR స్టిక్కర్ జోడించలేదు. పొందడానికి మాకు మెసేజ్ చేయండి.",
     "askMsg": "నమస్తే, నా స్టోర్ \"{name}\" ({link}) కోసం QR స్టిక్కర్ పంపండి.",
     "share": "షేర్ చేయండి",
+    "shareQr": "QR షేర్ చేయండి",
+    "shareLink": "స్టోర్ లింక్ షేర్ చేయి",
+    "linkTitle": "మీ స్టోర్ లింక్",
     "print": "ప్రింట్ చేయండి",
     "printAll": "అన్నీ ప్రింట్ చేయండి",
     "scans": "స్కాన్‌లు: {count}",

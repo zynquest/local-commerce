@@ -10,6 +10,8 @@
     "close": "Close",
     "back": "Back",
     "share": "Share",
+    "copyLink": "Copy link",
+    "linkCopied": "Store link copied",
     "search": "Search",
     "clearSearch": "Clear search",
     "refresh": "Refresh",
@@ -65,6 +67,8 @@
     "updating": "Updating",
     "verified": "Verified business",
     "directions": "Directions",
+    "shareShop": "Order from {name} on WhatsApp",
+    "shareAppt": "Book an appointment at {name} on WhatsApp",
     "question": "Hi {name}! I have a question.",
     "poweredBy": "Powered by <b>{brand}</b> · Zero-commission WhatsApp stores",
     "all": "All",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} rows have errors",
     "duplicateCode": "Duplicate item code {code}",
     "duplicateName": "Duplicate product name \"{name}\"",
+    "duplicateService": "Duplicate service name \"{name}\"",
     "codeUsed": "Item code {code} is already used by another product",
     "planLimit": "Your plan allows {limit} active products. You have {used}. Archive unused products, or contact us for the paid plan ({limit}+ products).",
     "planLimitAdding": "Your plan allows {limit} active products. You have {used} and tried to add {adding}. Archive unused products, or contact us for the paid plan ({limit}+ products).",
@@ -841,6 +846,37 @@
       "reviews": "review_count must be a whole number",
       "descriptionLong": "description is too long",
       "duplicateOf": "duplicate of line {line}"
+    },
+    "svc": {
+      "template": "Services template",
+      "templateBody": "<b>service_name, duration_mins, price</b> are required. category and description are optional.",
+      "download": "Download services template",
+      "matching": "Services are matched by <b>name</b>: existing ones are updated, new ones are added. Headers like “Service Name”, “Duration” or “Rate” are recognised too.",
+      "noRows": "The file has no service rows.",
+      "bulkLink": "Have many services? Add them all at once with CSV Import →",
+      "imported_one": "Imported {count} service.",
+      "imported_other": "Imported {count} services.",
+      "importValid_one": "Import {count} valid service",
+      "importValid_other": "Import {count} valid services",
+      "fmt": {
+        "name": "Text, max 80 characters",
+        "duration": "Minutes, 5 to 480 (e.g. 30, 45 min, 1.5 hr)",
+        "price": "Number (₹), e.g. 300 or ₹1,200",
+        "category": "Text, e.g. Hair (blank = Other)",
+        "description": "Text, max 1000 characters"
+      },
+      "e": {
+        "nameRequired": "service_name is required",
+        "nameLong": "service_name is longer than 80 characters",
+        "durationRequired": "duration_mins is required",
+        "durationNaN": "duration_mins \"{value}\" is not a number of minutes",
+        "durationRange": "duration_mins must be 5 to 480 minutes",
+        "priceRequired": "price is required",
+        "priceNaN": "price \"{value}\" is not a number",
+        "priceNegative": "price cannot be negative",
+        "categoryLong": "category is longer than 60 characters",
+        "descriptionLong": "description is longer than 1000 characters"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "No QR sticker is linked to your store yet. Message us to get one.",
     "askMsg": "Hi, please send a QR sticker for my store \"{name}\" ({link}).",
     "share": "Share",
+    "shareQr": "Share QR",
+    "shareLink": "Share store link",
+    "linkTitle": "Your store link",
     "print": "Print",
     "printAll": "Print all",
     "scans": "Scans: {count}",

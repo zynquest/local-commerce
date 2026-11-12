@@ -378,6 +378,9 @@ export const service = z.object({
   active: z.boolean().default(true),
 });
 
+/** Bulk services import (CSV / Excel): each row is checked with `service`, at most 500 per request. */
+export const serviceImport = z.object({ services: z.array(z.unknown()).min(1).max(500) });
+
 export const specialist = z.object({
   name: z.preprocess(cleanText, z.string().min(1, 'Name is required').max(60, 'Max 60 characters')),
   title: text(80).default(''),

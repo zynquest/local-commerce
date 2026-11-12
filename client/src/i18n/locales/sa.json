@@ -10,6 +10,8 @@
     "close": "पिदधातु",
     "back": "पृष्ठतः",
     "share": "प्रसारयतु",
+    "copyLink": "लिङ्कं प्रतिलिखतु",
+    "linkCopied": "आपणलिङ्क् प्रतिलिपितः",
     "search": "अन्वेषणम्",
     "clearSearch": "अन्वेषणं मार्जयतु",
     "refresh": "नवीकरोतु",
@@ -65,6 +67,8 @@
     "updating": "नवीक्रियते",
     "verified": "सत्यापितः व्यापारः",
     "directions": "मार्गदर्शनम्",
+    "shareShop": "WhatsApp इत्यत्र {name} तः आदिशतु",
+    "shareAppt": "WhatsApp-द्वारा {name} इत्यत्र समयम् आरक्षतु",
     "question": "नमस्ते {name}! मम एकः प्रश्नः अस्ति।",
     "poweredBy": "<b>{brand}</b> द्वारा सञ्चालितम् · कमीशनरहिताः WhatsApp आपणाः",
     "all": "सर्वम्",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} पङ्क्तिषु दोषाः सन्ति",
     "duplicateCode": "पुनरावृत्तः वस्तुसङ्केतः {code}",
     "duplicateName": "पुनरावृत्तम् उत्पादनाम \"{name}\"",
+    "duplicateService": "पुनरावृत्तं सेवानाम \"{name}\"",
     "codeUsed": "वस्तुसङ्केतः {code} अन्येन उत्पादेन पूर्वमेव उपयुक्तः",
     "planLimit": "भवतः योजना {limit} सक्रियोत्पादान् अनुमन्यते। भवतः {used} सन्ति। अनुपयुक्तान् उत्पादान् अभिलेखागारे स्थापयतु, अथवा सशुल्कयोजनायै ({limit}+ उत्पादाः) अस्मान् सम्पर्कयतु।",
     "planLimitAdding": "भवतः योजना {limit} सक्रियोत्पादान् अनुमन्यते। भवतः {used} सन्ति, {adding} च योजयितुं प्रयत्नः कृतः। अनुपयुक्तान् उत्पादान् अभिलेखागारे स्थापयतु, अथवा सशुल्कयोजनायै ({limit}+ उत्पादाः) अस्मान् सम्पर्कयतु।",
@@ -841,6 +846,37 @@
       "reviews": "review_count पूर्णाङ्कः भवेत्",
       "descriptionLong": "description अतिदीर्घम्",
       "duplicateOf": "पङ्क्तेः {line} पुनरावृत्तिः"
+    },
+    "svc": {
+      "template": "सेवानां प्रारूपम्",
+      "templateBody": "<b>service_name, duration_mins, price</b> आवश्यकानि। category description च ऐच्छिके।",
+      "download": "सेवानां प्रारूपं अवारोपयतु",
+      "matching": "सेवाः <b>नाम्ना</b> मेल्यन्ते: विद्यमानाः सेवाः नवीक्रियन्ते, नूतनाः योज्यन्ते। “Service Name”, “Duration”, “Rate” इत्यादयः शीर्षकाः अपि ज्ञायन्ते।",
+      "noRows": "सञ्चिकायां काचित् सेवा नास्ति।",
+      "bulkLink": "बह्व्यः सेवाः सन्ति वा? CSV-आयातेन सर्वाः एकवारं योजयतु →",
+      "imported_one": "{count} सेवाः आयातिताः।",
+      "imported_other": "{count} सेवाः आयातिताः।",
+      "importValid_one": "{count} शुद्धाः सेवाः आयातयतु",
+      "importValid_other": "{count} शुद्धाः सेवाः आयातयतु",
+      "fmt": {
+        "name": "पाठः, अधिकतमं 80 अक्षराणि",
+        "duration": "निमेषाः, 5 तः 480 पर्यन्तम् (यथा 30, 45 min, 1.5 hr)",
+        "price": "सङ्ख्या (₹), यथा 300 अथवा ₹1,200",
+        "category": "पाठः, यथा Hair (रिक्तम् = Other)",
+        "description": "पाठः, अधिकतमं 1000 अक्षराणि"
+      },
+      "e": {
+        "nameRequired": "service_name आवश्यकम्",
+        "nameLong": "service_name 80 अक्षरेभ्यः दीर्घतरम्",
+        "durationRequired": "duration_mins आवश्यकम्",
+        "durationNaN": "duration_mins \"{value}\" निमेषसङ्ख्या नास्ति",
+        "durationRange": "duration_mins 5 तः 480 निमेषपर्यन्तं भवेत्",
+        "priceRequired": "price आवश्यकम्",
+        "priceNaN": "price \"{value}\" सङ्ख्या नास्ति",
+        "priceNegative": "price ऋणात्मकं भवितुं न शक्नोति",
+        "categoryLong": "category 60 अक्षरेभ्यः दीर्घतरम्",
+        "descriptionLong": "description 1000 अक्षरेभ्यः दीर्घतरम्"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "भवतः आपणेन सह अद्यापि कोऽपि QR-चिह्नपत्रं न सम्बद्धम्। प्राप्तुम् अस्मभ्यं सन्देशं प्रेषयतु।",
     "askMsg": "नमस्ते, कृपया मम आपणस्य \"{name}\" ({link}) कृते QR-चिह्नपत्रं प्रेषयतु।",
     "share": "प्रेषयतु",
+    "shareQr": "QR साझां करोतु",
+    "shareLink": "आपणलिङ्क् प्रसारयतु",
+    "linkTitle": "भवतः आपणस्य लिङ्कः",
     "print": "मुद्रयतु",
     "printAll": "सर्वं मुद्रयतु",
     "scans": "स्कैन्: {count}",

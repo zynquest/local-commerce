@@ -10,6 +10,8 @@
     "close": "بنٛد کٔرِو",
     "back": "واپس",
     "share": "شیئر کٔرِو",
+    "copyLink": "لِنک کاپی کٔرِو",
+    "linkCopied": "دُکانہِ ہُنٛد لِنک گوو کاپی",
     "search": "ژھانڈِو",
     "clearSearch": "ژھانڈُن صاف کٔرِو",
     "refresh": "ریفریش کٔرِو",
@@ -65,6 +67,8 @@
     "updating": "اپڈیٹ گژھان",
     "verified": "تصدیق شُدہ کاروبار",
     "directions": "وَتھ",
+    "shareShop": "WhatsApp پیٚٹھ کٔرِو {name} پیٚٹھٕ آرڈر",
+    "shareAppt": "WhatsApp پؠٹھ کٔرِو {name} منٛز اپائنٹمنٹ بُک",
     "question": "سلام {name}! مےٚ چھےٚ اَکھ کَتھ پرٛژھٕنۍ۔",
     "poweredBy": "<b>{brand}</b> کِنۍ · بغیٚر کمیشنٕ WhatsApp دُکانہٕ",
     "all": "سٲری",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} قطارن مَنٛز چھےٚ غلطی",
     "duplicateCode": "آئٹم کوڈ {code} چھُ دوبارٕ آمُت",
     "duplicateName": "پروڈکٹ ناو \"{name}\" چھُ دوبارٕ آمُت",
+    "duplicateService": "سروسُک ناو \"{name}\" چھُ دوبارٕ آمُت",
     "codeUsed": "آئٹم کوڈ {code} چھُ گۄڈےٚ بێیِس پروڈکٹس خٲطرٕ استعمال گژھان",
     "planLimit": "تُہٕنٛدِس پلانس مَنٛز چھےٚ {limit} فعال پروڈکٹن ہٕنٛز اجازت۔ تُہٕنٛدۍ چھِ {used}۔ غٲر ضروٗری پروڈکٹ کٔرِو آرکائیو، یا پیڈ پلانہٕ ({limit}+ پروڈکٹ) خٲطرٕ کٔرِو اَسہِ سٟتۍ رابطہٕ۔",
     "planLimitAdding": "تُہٕنٛدِس پلانس مَنٛز چھےٚ {limit} فعال پروڈکٹن ہٕنٛز اجازت۔ تُہٕنٛدۍ چھِ {used} تہٕ تۄہۍ کۆر {adding} بێیِ شٲمِل کرنُک کوشش۔ غٲر ضروٗری پروڈکٹ کٔرِو آرکائیو، یا پیڈ پلانہٕ ({limit}+ پروڈکٹ) خٲطرٕ کٔرِو اَسہِ سٟتۍ رابطہٕ۔",
@@ -841,6 +846,37 @@
       "reviews": "review_count گژھِ پوٗرٕ نمبر آسُن",
       "descriptionLong": "description چھےٚ واریاہ زیٖٹھ",
       "duplicateOf": "قطار {line} ہُنٛد دوبارٕ"
+    },
+    "svc": {
+      "template": "سروسز ہُنٛد ٹیمپلیٹ",
+      "templateBody": "<b>service_name, duration_mins, price</b> چھِ ضروری۔ category تہٕ description چھِ اختیٲری۔",
+      "download": "سروسز ہُنٛد ٹیمپلیٹ ڈاؤن لوڈ کٔرِو",
+      "matching": "سروسز چھِ <b>ناوَس</b> سٟتۍ مِلاونہٕ یِوان: پرانہٕ سروسز گژھن اپڈیٹ، نٔوۍ گژھن شٲمِل۔ “Service Name”، “Duration” یا “Rate” ہِوۍ ہیڈر تہِ چھِ پَزنٲونہٕ یِوان۔",
+      "noRows": "فایلس منٛز چھےٚ نہٕ کانٛہہ سروس۔",
+      "bulkLink": "واریاہ سروسز چھِ؟ CSV امپورٹ سٟتۍ کٔرِو سٲری اکہِ لَٹہِ شٲمِل ←",
+      "imported_one": "{count} سروسز آیہِ امپورٹ کرنہٕ۔",
+      "imported_other": "{count} سروسز آیہِ امپورٹ کرنہٕ۔",
+      "importValid_one": "{count} صحیح سروسز کٔرِو امپورٹ",
+      "importValid_other": "{count} صحیح سروسز کٔرِو امپورٹ",
+      "fmt": {
+        "name": "ٹیکسٹ، زیادٕ کھۄتہٕ زیادٕ 80 حرف",
+        "duration": "مِنٹ، 5 پیٚٹھہٕ 480 (مثلاً 30, 45 min, 1.5 hr)",
+        "price": "نمبر (₹)، مثلاً 300 یا ₹1,200",
+        "category": "ٹیکسٹ، مثلاً Hair (خٲلی = Other)",
+        "description": "ٹیکسٹ، زیادٕ کھۄتہٕ زیادٕ 1000 حرف"
+      },
+      "e": {
+        "nameRequired": "service_name چھُ ضروری",
+        "nameLong": "service_name چھُ 80 حرفن کھۄتہٕ زیٖٹھ",
+        "durationRequired": "duration_mins چھُ ضروری",
+        "durationNaN": "duration_mins \"{value}\" چھُنہٕ مِنٹن ہُنٛد نمبر",
+        "durationRange": "duration_mins گژھِ 5 پیٚٹھہٕ 480 مِنٹن درمیان آسُن",
+        "priceRequired": "price چھُ ضروری",
+        "priceNaN": "price \"{value}\" چھُنہٕ نمبر",
+        "priceNegative": "price ہیٚکہِ نہٕ مائنس آسِتھ",
+        "categoryLong": "category چھُ 60 حرفن کھۄتہٕ زیٖٹھ",
+        "descriptionLong": "description چھُ 1000 حرفن کھۄتہٕ زیٖٹھ"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "تُہٕنٛدِس سٹورس سٟتۍ چھُ نہٕ وُنی کانٛہہ QR سٹیکر جُڑِتھ۔ حٲصل کرنہٕ خٲطرٕ کٔرِو اَسہِ میسج۔",
     "askMsg": "السلام علیکم، مہربٲنی کٔرِتھ سوٗزِو میٲنِس سٹورس \"{name}\" ({link}) خٲطرٕ QR سٹیکر۔",
     "share": "شیئر کٔرِو",
+    "shareQr": "QR شیئر کٔرِو",
+    "shareLink": "دُکانہِ ہُنٛد لِنک شیئر کٔرِو",
+    "linkTitle": "تُہٕنٛدِ سٹورُک لِنک",
     "print": "پرنٹ کٔرِو",
     "printAll": "سٲری پرنٹ کٔرِو",
     "scans": "سکین: {count}",

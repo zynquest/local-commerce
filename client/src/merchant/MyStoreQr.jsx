@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Loader2, Printer, QrCode, Share2 } from 'lucide-react';
+import { Copy, Link2, Loader2, Printer, QrCode, Share2 } from 'lucide-react';
 import WhatsAppIcon from '../components/WhatsAppIcon.jsx';
+import { CopyLinkButton, ShareLinkButton } from '../components/ShareLink.jsx';
 import { PrintSheet, QrImage, ShareQrButton, ctaFor, scanUrl } from '../components/QrSticker.jsx';
 import { PLATFORM } from '../config.js';
 import { useT } from '../i18n/index.jsx';
@@ -8,10 +9,9 @@ import { get } from '../lib/api.js';
 import { whatsappLink } from '../services/whatsappService.js';
 
 /**
- * The printed QR stickers the platform team linked to this store (the dashboard's "My Store QR" tab, or Store
- * Settings until one is linked, to ask for it), with Print and Share
- * (the sticker as a PNG plus an invitation with the store link). Loaded fresh each time, so links and removals made
- * by the team show up here.
+ * The store link (Share link / Copy link) and the printed QR stickers the platform team linked to this store (the
+ * dashboard's "My Store QR" tab, or Store Settings until one is linked, to ask for it), each with Share QR (the
+ * sticker image alone) and Print. Loaded fresh each time, so links and removals made by the team show up here.
  */
 export default function MyStoreQr({ store }) {
   const t = useT();
@@ -40,6 +40,18 @@ export default function MyStoreQr({ store }) {
       <h2 className="flex items-center gap-2 font-bold">
         <QrCode size={18} className="text-brand" /> {t('myqr.title')}
       </h2>
+      <div className="space-y-2 rounded-2xl bg-stone-50 p-3">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-stone-500"><Link2 size={14} /> {t('myqr.linkTitle')}</p>
+        <p className="font-mono text-sm break-all text-stone-800" dir="ltr">{storeLink.replace(/^https?:\/\//, '')}</p>
+        <div className="flex flex-wrap gap-2">
+          <ShareLinkButton url={storeLink} title={store.name} text={shareText.replace(storeLink, '').replace(/[\s:]+$/, '')} className="btn-whatsapp py-1.5 text-sm">
+            <Share2 size={15} /> {t('myqr.shareLink')}
+          </ShareLinkButton>
+          <CopyLinkButton url={storeLink} className="btn-ghost py-1.5 text-sm">
+            <Copy size={15} /> {t('common.copyLink')}
+          </CopyLinkButton>
+        </div>
+      </div>
       {data.loading && <Loader2 className="mx-auto animate-spin text-stone-400" />}
       {!data.loading && !data.codes.length && (
         <div className="space-y-2 text-sm text-stone-600">
@@ -66,8 +78,8 @@ export default function MyStoreQr({ store }) {
                 <div className="min-w-0 flex-1 space-y-2">
                   <p className="text-xs text-stone-500">{t('myqr.scans', { count: qr.scans })}</p>
                   <div className="flex flex-wrap gap-2">
-                    <ShareQrButton sticker={sticker(qr.code)} text={shareText} onError={(err) => setError(err.message)} className="btn-whatsapp py-1.5 text-sm">
-                      <Share2 size={15} /> {t('myqr.share')}
+                    <ShareQrButton sticker={sticker(qr.code)} onError={(err) => setError(err.message)} className="btn-whatsapp py-1.5 text-sm">
+                      <QrCode size={15} /> {t('myqr.shareQr')}
                     </ShareQrButton>
                     <button type="button" onClick={() => setPrinting([sticker(qr.code)])} className="btn-ghost py-1.5 text-sm">
                       <Printer size={15} /> {t('myqr.print')}

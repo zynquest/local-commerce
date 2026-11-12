@@ -1,12 +1,15 @@
 // Integration tests against the real Postgres (docker compose). Creates uniquely-named fixtures and cleans up.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import { createApp } from '../src/app.js';
 import { config as appConfig } from '../src/config.js';
 import { pool, query } from '../src/db.js';
 import { migrate } from '../src/migrate.js';
 import { adminPasswordProblems } from '../src/cli/admin.js';
+import sharp from 'sharp';
 
 const run = Date.now().toString(36);
 const digits = String(Date.now()).slice(-8);
@@ -499,6 +502,29 @@ describe('appointments: services, specialists, slots, WhatsApp bookings', () => 
     assert.equal((await other('POST', '/api/merchant/specialists', { name: 'Hack', schedule: allWeek, service_ids: [cut.id] })).status, 400, 'other store cannot use these services');
   });
 
+  test('services import (CSV): matches by name, all-or-nothing on bad rows, owner only', async () => {
+    const bad = await pro('POST', '/api/merchant/services/import', {
+      services: [{ name: 'Beard Trim', duration_min: 15, price: 100 }, { name: 'Too Short', duration_min: 2, price: 50 }, { name: 'beard trim', duration_min: 20, price: 120 }],
+    });
+    assert.equal(bad.status, 400);
+    assert.deepEqual(bad.body.fields.rows.map((r) => r.row), [2, 3]);
+    assert.match(bad.body.fields.rows[1].error, /Duplicate service name/);
+
+    const r = await pro('POST', '/api/merchant/services/import', {
+      services: [{ name: 'hair cut', category: 'Hair', duration_min: 30, price: 200 }, { name: 'Beard Trim', duration_min: 15, price: 100 }],
+    });
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.deepEqual(r.body, { inserted: 1, updated: 1 });
+    const { body } = await pro('GET', '/api/merchant/services');
+    assert.equal(body.services.filter((s) => s.name.toLowerCase() === 'hair cut').length, 1, 'matched, not duplicated');
+    const beard = body.services.find((s) => s.name === 'Beard Trim');
+    assert.deepEqual([beard.duration_min, Number(beard.price), beard.category, beard.active], [15, 100, 'Other', true]);
+    assert.equal((await client()('POST', '/api/merchant/services/import', { services: [{ name: 'X', duration_min: 30, price: 1 }] })).status, 401);
+    // Back to the two services the next tests expect.
+    await pro('DELETE', `/api/merchant/services/${beard.id}`);
+    await pro('PUT', `/api/merchant/services/${cut.id}`, { name: 'Hair Cut', category: 'Hair', duration_min: 30, price: 200, active: true });
+  });
+
   test('location + category complete the checklist; admin approves', async () => {
     await pro('PUT', '/api/merchant/store', { category: 'Hair Salon', city: 'Bengaluru', address_text: 'MG Road', lat: 12.9756, lng: 77.6066 });
     const sub = await pro('POST', '/api/merchant/store/submit', {});
@@ -614,6 +640,25 @@ describe('SEO endpoints', () => {
     assert.ok(!html.includes('hreflang='));
     assert.ok(html.includes('"@type":"BreadcrumbList"'));
     for (const [, json] of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) JSON.parse(json);
+  });
+
+  test("link preview: a store without a banner shows its own card (not the platform's), served as a JPEG", async () => {
+    await query('UPDATE stores SET banner_url = NULL WHERE slug = $1', [slug]);
+    const html = await fetch(`${base}/s/${slug}`).then((r) => r.text());
+    const image = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1];
+    assert.match(image, new RegExp(`/s/${slug}/card\\.jpg\\?v=[0-9a-f]{12}$`));
+    assert.match(html, /<meta property="og:image:width" content="1200" \/>/);
+    const card = await fetch(`${base}${new URL(image).pathname}${new URL(image).search}`);
+    assert.equal(card.status, 200);
+    assert.equal(card.headers.get('content-type'), 'image/jpeg');
+    assert.match(card.headers.get('cache-control'), /immutable/);
+    const meta = await sharp(Buffer.from(await card.arrayBuffer())).metadata();
+    assert.deepEqual([meta.width, meta.height], [1200, 630]);
+    assert.equal((await fetch(`${base}/s/no-such-store-${run}/card.jpg`)).status, 404);
+    const dir = path.join(appConfig.uploadDir, '_share');
+    for (const f of fs.readdirSync(dir).filter((n) => n.startsWith(`${storeId}-`))) fs.rmSync(path.join(dir, f));
+    const robots = await fetch(`${base}/robots.txt`).then((r) => r.text());
+    assert.ok(!/Disallow: \/s\//.test(robots), 'crawlers may fetch the card');
   });
 
   test('home has hreflang for every language; private pages are noindex', async () => {

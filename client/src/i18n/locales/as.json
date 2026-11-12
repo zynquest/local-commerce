@@ -10,6 +10,8 @@
     "close": "বন্ধ কৰক",
     "back": "উভতি যাওক",
     "share": "শ্বেয়াৰ কৰক",
+    "copyLink": "লিংক কপি কৰক",
+    "linkCopied": "ষ্ট’ৰ লিংক কপি কৰা হ’ল",
     "search": "বিচাৰক",
     "clearSearch": "বিচৰা আখৰ মচক",
     "refresh": "ৰিফ্ৰেশ্ব কৰক",
@@ -65,6 +67,8 @@
     "updating": "আপডেট হৈ আছে",
     "verified": "সত্যাপিত ব্যৱসায়",
     "directions": "পথ নিৰ্দেশনা",
+    "shareShop": "WhatsAppত {name}ৰ পৰা অৰ্ডাৰ কৰক",
+    "shareAppt": "WhatsAppত {name}ত এপইণ্টমেণ্ট বুক কৰক",
     "question": "নমস্কাৰ {name}! মোৰ এটা প্ৰশ্ন আছে।",
     "poweredBy": "<b>{brand}</b>ৰ দ্বাৰা পৰিচালিত · শূন্য কমিছনৰ WhatsApp ষ্ট’ৰ",
     "all": "সকলো",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count}টা শাৰীত ভুল আছে",
     "duplicateCode": "আইটেম ক’ড {code} দুবাৰ আছে",
     "duplicateName": "সামগ্ৰীৰ নাম \"{name}\" দুবাৰ আছে",
+    "duplicateService": "সেৱাৰ নাম \"{name}\" দুবাৰ আছে",
     "codeUsed": "আইটেম ক’ড {code} ইতিমধ্যে আন এটা সামগ্ৰীত ব্যৱহাৰ হৈছে",
     "planLimit": "আপোনাৰ প্লানত {limit}টা সক্ৰিয় সামগ্ৰী ৰাখিব পাৰি। আপোনাৰ আছে {used}টা। ব্যৱহাৰ নকৰা সামগ্ৰী আৰ্কাইভ কৰক, বা পেইড প্লানৰ ({limit}+ সামগ্ৰী) বাবে আমাৰ সৈতে যোগাযোগ কৰক।",
     "planLimitAdding": "আপোনাৰ প্লানত {limit}টা সক্ৰিয় সামগ্ৰী ৰাখিব পাৰি। আপোনাৰ আছে {used}টা আৰু আপুনি আৰু {adding}টা যোগ কৰিব বিচাৰিছিল। ব্যৱহাৰ নকৰা সামগ্ৰী আৰ্কাইভ কৰক, বা পেইড প্লানৰ ({limit}+ সামগ্ৰী) বাবে আমাৰ সৈতে যোগাযোগ কৰক।",
@@ -841,6 +846,37 @@
       "reviews": "review_count পূৰ্ণ সংখ্যা হ’ব লাগিব",
       "descriptionLong": "description বহুত দীঘল",
       "duplicateOf": "শাৰী {line}ৰ সৈতে একে"
+    },
+    "svc": {
+      "template": "সেৱাৰ টেমপ্লেট",
+      "templateBody": "<b>service_name, duration_mins, price</b> বাধ্যতামূলক। category আৰু description ঐচ্ছিক।",
+      "download": "সেৱাৰ টেমপ্লেট ডাউনলোড কৰক",
+      "matching": "সেৱাসমূহ <b>নাম</b> অনুসৰি মিলোৱা হয়: থকা সেৱা আপডেট হ’ব, নতুনবোৰ যোগ হ’ব। “Service Name”, “Duration” বা “Rate” আদি হেডাৰো চিনি পোৱা যায়।",
+      "noRows": "ফাইলত কোনো সেৱা নাই।",
+      "bulkLink": "বহুত সেৱা আছে নেকি? CSV ইম্পৰ্টেৰে সকলো একেলগে যোগ কৰক →",
+      "imported_one": "{count}টা সেৱা ইমপ’ৰ্ট কৰা হ’ল।",
+      "imported_other": "{count}টা সেৱা ইমপ’ৰ্ট কৰা হ’ল।",
+      "importValid_one": "{count}টা শুদ্ধ সেৱা ইমপ’ৰ্ট কৰক",
+      "importValid_other": "{count}টা শুদ্ধ সেৱা ইমপ’ৰ্ট কৰক",
+      "fmt": {
+        "name": "লিখনি, সৰ্বাধিক 80টা আখৰ",
+        "duration": "মিনিট, 5ৰ পৰা 480 (যেনে 30, 45 min, 1.5 hr)",
+        "price": "সংখ্যা (₹), যেনে 300 বা ₹1,200",
+        "category": "লিখনি, যেনে Hair (খালী = Other)",
+        "description": "লিখনি, সৰ্বাধিক 1000টা আখৰ"
+      },
+      "e": {
+        "nameRequired": "service_name বাধ্যতামূলক",
+        "nameLong": "service_name 80টা আখৰতকৈ দীঘল",
+        "durationRequired": "duration_mins বাধ্যতামূলক",
+        "durationNaN": "duration_mins \"{value}\" মিনিটৰ সংখ্যা নহয়",
+        "durationRange": "duration_mins 5ৰ পৰা 480 মিনিটৰ ভিতৰত হ’ব লাগিব",
+        "priceRequired": "price বাধ্যতামূলক",
+        "priceNaN": "price \"{value}\" সংখ্যা নহয়",
+        "priceNegative": "price ঋণাত্মক হ’ব নোৱাৰে",
+        "categoryLong": "category 60টা আখৰতকৈ দীঘল",
+        "descriptionLong": "description 1000টা আখৰতকৈ দীঘল"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "আপোনাৰ ষ্টোৰৰ সৈতে এতিয়াও কোনো QR ষ্টিকাৰ সংযোগ হোৱা নাই। পাবলৈ আমাক মেছেজ কৰক।",
     "askMsg": "নমস্কাৰ, মোৰ ষ্টোৰ \"{name}\" ({link})ৰ বাবে এখন QR ষ্টিকাৰ পঠিয়াওক।",
     "share": "শ্বেয়াৰ কৰক",
+    "shareQr": "QR শ্বেয়াৰ কৰক",
+    "shareLink": "ষ্ট’ৰ লিংক শ্বেয়াৰ কৰক",
+    "linkTitle": "আপোনাৰ ষ্ট’ৰৰ লিংক",
     "print": "প্ৰিণ্ট কৰক",
     "printAll": "সকলো প্ৰিণ্ট কৰক",
     "scans": "স্কেন: {count}",

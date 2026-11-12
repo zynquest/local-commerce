@@ -243,6 +243,54 @@ merchantAppointmentsRouter.post('/services', async (req, res) => {
   res.status(201).json({ service: serviceOut(row) });
 });
 
+/**
+ * Bulk import (CSV / Excel) for appointment businesses. Rows are matched to existing services by name
+ * (case-insensitive), so re-importing a sheet updates instead of duplicating; imported services are shown to customers.
+ * All-or-nothing: 400 with { rows: [{ row, error }] } when any row is invalid.
+ */
+merchantAppointmentsRouter.post('/services/import', async (req, res) => {
+  const { services: rawRows } = parse(S.serviceImport, req.body);
+  const valid = [];
+  const errors = [];
+  const seen = new Set();
+  rawRows.forEach((raw, i) => {
+    const r = S.service.safeParse({ ...(raw && typeof raw === 'object' ? raw : {}), active: true });
+    if (!r.success) return errors.push({ row: i + 1, error: r.error.issues.map((x) => x.message).join('; ') });
+    const key = r.data.name.toLowerCase();
+    if (seen.has(key)) return errors.push({ row: i + 1, error: `Duplicate service name "${r.data.name}"` });
+    seen.add(key);
+    valid.push(r.data);
+  });
+  if (errors.length) throw badRequest(`${errors.length} row(s) have errors`, { rows: errors.slice(0, 50) });
+
+  const result = await tx(async (client) => {
+    const { rows: existing } = await client.query('SELECT id, lower(name) AS name_key FROM services WHERE store_id = $1', [req.user.store_id]);
+    const byName = new Map(existing.map((e) => [e.name_key, e.id]));
+    let inserted = 0;
+    let updated = 0;
+    for (const s of valid) {
+      const id = byName.get(s.name.toLowerCase());
+      if (id) {
+        await client.query(
+          `UPDATE services SET name = $2, category = $3, description = $4, duration_min = $5, price = $6, active = true, updated_at = now() WHERE id = $1`,
+          [id, s.name, s.category, s.description, s.duration_min, s.price],
+        );
+        updated++;
+      } else {
+        await client.query(
+          `INSERT INTO services (store_id, name, category, description, duration_min, price, active, position)
+           VALUES ($1,$2,$3,$4,$5,$6,true, (SELECT coalesce(max(position), 0) + 1 FROM services WHERE store_id = $1))`,
+          [req.user.store_id, s.name, s.category, s.description, s.duration_min, s.price],
+        );
+        inserted++;
+      }
+    }
+    await touchStore(client, req.user.store_id);
+    return { inserted, updated };
+  });
+  res.json(result);
+});
+
 merchantAppointmentsRouter.put('/services/:id', async (req, res) => {
   const s = parse(S.service, req.body);
   const row = await tx(async (client) => {

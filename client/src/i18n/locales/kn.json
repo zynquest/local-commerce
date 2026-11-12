@@ -10,6 +10,8 @@
     "close": "ಮುಚ್ಚಿ",
     "back": "ಹಿಂದೆ",
     "share": "ಶೇರ್ ಮಾಡಿ",
+    "copyLink": "ಲಿಂಕ್ ಕಾಪಿ ಮಾಡಿ",
+    "linkCopied": "ಸ್ಟೋರ್ ಲಿಂಕ್ ಕಾಪಿ ಆಯಿತು",
     "search": "ಹುಡುಕಿ",
     "clearSearch": "ಹುಡುಕಾಟ ತೆರವುಗೊಳಿಸಿ",
     "refresh": "ರಿಫ್ರೆಶ್ ಮಾಡಿ",
@@ -65,6 +67,8 @@
     "updating": "ಅಪ್‌ಡೇಟ್ ಆಗುತ್ತಿದೆ",
     "verified": "ಪರಿಶೀಲಿಸಿದ ವ್ಯಾಪಾರ",
     "directions": "ದಾರಿ ತೋರಿಸಿ",
+    "shareShop": "WhatsApp ನಲ್ಲಿ {name} ನಿಂದ ಆರ್ಡರ್ ಮಾಡಿ",
+    "shareAppt": "WhatsApp ನಲ್ಲಿ {name} ನಲ್ಲಿ ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್ ಬುಕ್ ಮಾಡಿ",
     "question": "ನಮಸ್ಕಾರ {name}! ನನಗೊಂದು ಪ್ರಶ್ನೆ ಇದೆ.",
     "poweredBy": "<b>{brand}</b> ಮೂಲಕ · ಕಮಿಷನ್ ಇಲ್ಲದ WhatsApp ಸ್ಟೋರ್‌ಗಳು",
     "all": "ಎಲ್ಲಾ",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} ಸಾಲುಗಳಲ್ಲಿ ತಪ್ಪುಗಳಿವೆ",
     "duplicateCode": "ಐಟಂ ಕೋಡ್ {code} ಎರಡು ಬಾರಿ ಇದೆ",
     "duplicateName": "ಪ್ರಾಡಕ್ಟ್ ಹೆಸರು \"{name}\" ಎರಡು ಬಾರಿ ಇದೆ",
+    "duplicateService": "ಸೇವೆಯ ಹೆಸರು \"{name}\" ಎರಡು ಬಾರಿ ಇದೆ",
     "codeUsed": "ಐಟಂ ಕೋಡ್ {code} ಅನ್ನು ಈಗಾಗಲೇ ಬೇರೆ ಪ್ರಾಡಕ್ಟ್ ಬಳಸುತ್ತಿದೆ",
     "planLimit": "ನಿಮ್ಮ ಪ್ಲಾನ್‌ನಲ್ಲಿ {limit} ಆ್ಯಕ್ಟಿವ್ ಪ್ರಾಡಕ್ಟ್‌ಗಳಿಗೆ ಮಾತ್ರ ಅವಕಾಶ. ನಿಮ್ಮಲ್ಲಿ {used} ಇವೆ. ಬಳಸದ ಪ್ರಾಡಕ್ಟ್‌ಗಳನ್ನು ಆರ್ಕೈವ್ ಮಾಡಿ, ಅಥವಾ ಪೇಯ್ಡ್ ಪ್ಲಾನ್‌ಗಾಗಿ ({limit}+ ಪ್ರಾಡಕ್ಟ್‌ಗಳು) ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ.",
     "planLimitAdding": "ನಿಮ್ಮ ಪ್ಲಾನ್‌ನಲ್ಲಿ {limit} ಆ್ಯಕ್ಟಿವ್ ಪ್ರಾಡಕ್ಟ್‌ಗಳಿಗೆ ಮಾತ್ರ ಅವಕಾಶ. ನಿಮ್ಮಲ್ಲಿ {used} ಇವೆ ಮತ್ತು ಇನ್ನೂ {adding} ಸೇರಿಸಲು ಪ್ರಯತ್ನಿಸಿದ್ದೀರಿ. ಬಳಸದ ಪ್ರಾಡಕ್ಟ್‌ಗಳನ್ನು ಆರ್ಕೈವ್ ಮಾಡಿ, ಅಥವಾ ಪೇಯ್ಡ್ ಪ್ಲಾನ್‌ಗಾಗಿ ({limit}+ ಪ್ರಾಡಕ್ಟ್‌ಗಳು) ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ.",
@@ -841,6 +846,37 @@
       "reviews": "review_count ಪೂರ್ಣ ಸಂಖ್ಯೆ ಆಗಿರಬೇಕು",
       "descriptionLong": "description ತುಂಬಾ ಉದ್ದವಾಗಿದೆ",
       "duplicateOf": "ಸಾಲು {line} ರ ನಕಲು"
+    },
+    "svc": {
+      "template": "ಸೇವೆಗಳ ಟೆಂಪ್ಲೇಟ್",
+      "templateBody": "<b>service_name, duration_mins, price</b> ಕಡ್ಡಾಯ. category ಮತ್ತು description ಐಚ್ಛಿಕ.",
+      "download": "ಸೇವೆಗಳ ಟೆಂಪ್ಲೇಟ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+      "matching": "ಸೇವೆಗಳನ್ನು <b>ಹೆಸರಿನಿಂದ</b> ಹೊಂದಿಸಲಾಗುತ್ತದೆ: ಇರುವ ಸೇವೆಗಳು ಅಪ್‌ಡೇಟ್ ಆಗುತ್ತವೆ, ಹೊಸವು ಸೇರುತ್ತವೆ. “Service Name”, “Duration” ಅಥವಾ “Rate” ರೀತಿಯ ಹೆಡರ್‌ಗಳನ್ನೂ ಗುರುತಿಸಲಾಗುತ್ತದೆ.",
+      "noRows": "ಫೈಲ್‌ನಲ್ಲಿ ಯಾವುದೇ ಸೇವೆ ಇಲ್ಲ.",
+      "bulkLink": "ಹೆಚ್ಚು ಸೇವೆಗಳಿವೆಯೇ? CSV ಇಂಪೋರ್ಟ್‌ನಿಂದ ಎಲ್ಲವನ್ನೂ ಒಮ್ಮೆಗೆ ಸೇರಿಸಿ →",
+      "imported_one": "{count} ಸೇವೆ ಇಂಪೋರ್ಟ್ ಆಯಿತು.",
+      "imported_other": "{count} ಸೇವೆಗಳು ಇಂಪೋರ್ಟ್ ಆದವು.",
+      "importValid_one": "{count} ಸರಿಯಾದ ಸೇವೆ ಇಂಪೋರ್ಟ್ ಮಾಡಿ",
+      "importValid_other": "{count} ಸರಿಯಾದ ಸೇವೆಗಳನ್ನು ಇಂಪೋರ್ಟ್ ಮಾಡಿ",
+      "fmt": {
+        "name": "ಪಠ್ಯ, ಗರಿಷ್ಠ 80 ಅಕ್ಷರ",
+        "duration": "ನಿಮಿಷ, 5 ರಿಂದ 480 (ಉದಾ. 30, 45 min, 1.5 hr)",
+        "price": "ಸಂಖ್ಯೆ (₹), ಉದಾ. 300 ಅಥವಾ ₹1,200",
+        "category": "ಪಠ್ಯ, ಉದಾ. Hair (ಖಾಲಿ = Other)",
+        "description": "ಪಠ್ಯ, ಗರಿಷ್ಠ 1000 ಅಕ್ಷರ"
+      },
+      "e": {
+        "nameRequired": "service_name ಕಡ್ಡಾಯ",
+        "nameLong": "service_name 80 ಅಕ್ಷರಗಳಿಗಿಂತ ಉದ್ದವಾಗಿದೆ",
+        "durationRequired": "duration_mins ಕಡ್ಡಾಯ",
+        "durationNaN": "duration_mins \"{value}\" ನಿಮಿಷಗಳ ಸಂಖ್ಯೆ ಅಲ್ಲ",
+        "durationRange": "duration_mins 5 ರಿಂದ 480 ನಿಮಿಷಗಳ ನಡುವೆ ಇರಬೇಕು",
+        "priceRequired": "price ಕಡ್ಡಾಯ",
+        "priceNaN": "price \"{value}\" ಸಂಖ್ಯೆ ಅಲ್ಲ",
+        "priceNegative": "price ಋಣಾತ್ಮಕ ಆಗುವಂತಿಲ್ಲ",
+        "categoryLong": "category 60 ಅಕ್ಷರಗಳಿಗಿಂತ ಉದ್ದವಾಗಿದೆ",
+        "descriptionLong": "description 1000 ಅಕ್ಷರಗಳಿಗಿಂತ ಉದ್ದವಾಗಿದೆ"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "ನಿಮ್ಮ ಅಂಗಡಿಗೆ ಇನ್ನೂ ಯಾವುದೇ QR ಸ್ಟಿಕರ್ ಜೋಡಿಸಿಲ್ಲ. ಪಡೆಯಲು ನಮಗೆ ಮೆಸೇಜ್ ಮಾಡಿ.",
     "askMsg": "ನಮಸ್ಕಾರ, ನನ್ನ ಅಂಗಡಿ \"{name}\" ({link}) ಗಾಗಿ QR ಸ್ಟಿಕರ್ ಕಳುಹಿಸಿ.",
     "share": "ಹಂಚಿಕೊಳ್ಳಿ",
+    "shareQr": "QR ಹಂಚಿಕೊಳ್ಳಿ",
+    "shareLink": "ಸ್ಟೋರ್ ಲಿಂಕ್ ಶೇರ್ ಮಾಡಿ",
+    "linkTitle": "ನಿಮ್ಮ ಸ್ಟೋರ್ ಲಿಂಕ್",
     "print": "ಪ್ರಿಂಟ್ ಮಾಡಿ",
     "printAll": "ಎಲ್ಲವನ್ನೂ ಪ್ರಿಂಟ್ ಮಾಡಿ",
     "scans": "ಸ್ಕ್ಯಾನ್‌ಗಳು: {count}",

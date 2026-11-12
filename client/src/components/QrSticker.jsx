@@ -137,8 +137,8 @@ export async function shareQrNow(sticker, text) {
 }
 
 /**
- * Share button: the phone's share sheet with the sticker PNG and `text` (pick WhatsApp there). Where files can't be
- * shared (most desktops), the PNG is downloaded and WhatsApp opens with the text. The PNG is drawn when the finger or
+ * Share button: the phone's share sheet with the sticker PNG, and `text` when given (pick WhatsApp there). Where files
+ * can't be shared (most desktops), the PNG is downloaded, and WhatsApp opens with the text when there is one. The PNG is drawn when the finger or
  * pointer arrives, so the share call still counts as part of the tap (iPhones require that).
  */
 export function ShareQrButton({ sticker, text, className, children, onError }) {
@@ -156,7 +156,7 @@ export function ShareQrButton({ sticker, text, className, children, onError }) {
       const png = await prepare();
       if (navigator.canShare?.({ files: [png] })) {
         try {
-          await navigator.share({ files: [png], text });
+          await navigator.share(text ? { files: [png], text } : { files: [png] });
           return;
         } catch (err) {
           if (err?.name === 'AbortError') return; // closed the share sheet
@@ -170,7 +170,7 @@ export function ShareQrButton({ sticker, text, className, children, onError }) {
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
-      window.open(whatsappLink('', text), '_blank', 'noopener');
+      if (text) window.open(whatsappLink('', text), '_blank', 'noopener');
     } catch (err) {
       onError?.(err);
     }

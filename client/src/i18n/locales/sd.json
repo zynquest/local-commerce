@@ -10,6 +10,8 @@
     "close": "بند ڪريو",
     "back": "واپس",
     "share": "شيئر ڪريو",
+    "copyLink": "لنڪ ڪاپي ڪريو",
+    "linkCopied": "اسٽور جي لنڪ ڪاپي ٿي وئي",
     "search": "ڳوليو",
     "clearSearch": "ڳولا صاف ڪريو",
     "refresh": "ريفريش ڪريو",
@@ -65,6 +67,8 @@
     "updating": "اپڊيٽ ٿي رهيو آهي",
     "verified": "تصديق ٿيل ڪاروبار",
     "directions": "رستو ڏسو",
+    "shareShop": "WhatsApp تي {name} کان آرڊر ڪريو",
+    "shareAppt": "WhatsApp تي {name} ۾ اپائنٽمينٽ بڪ ڪريو",
     "question": "سلام {name}! مون کي هڪ سوال پڇڻو آهي.",
     "poweredBy": "<b>{brand}</b> پاران · بنا ڪميشن WhatsApp اسٽور",
     "all": "سڀ",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} قطارن ۾ غلطيون آهن",
     "duplicateCode": "آئٽم ڪوڊ {code} ٻه ڀيرا آهي",
     "duplicateName": "پراڊڪٽ جو نالو \"{name}\" ٻه ڀيرا آهي",
+    "duplicateService": "سروس جو نالو \"{name}\" ٻه ڀيرا آهي",
     "codeUsed": "آئٽم ڪوڊ {code} اڳ ۾ ئي ٻي پراڊڪٽ لاءِ استعمال ٿيل آهي",
     "planLimit": "توهان جي پلان ۾ {limit} فعال پراڊڪٽس جي اجازت آهي. توهان وٽ {used} آهن. غير استعمال ٿيل پراڊڪٽس آرڪائيو ڪريو، يا پيڊ پلان ({limit}+ پراڊڪٽس) لاءِ اسان سان رابطو ڪريو.",
     "planLimitAdding": "توهان جي پلان ۾ {limit} فعال پراڊڪٽس جي اجازت آهي. توهان وٽ {used} آهن ۽ توهان {adding} شامل ڪرڻ جي ڪوشش ڪئي. غير استعمال ٿيل پراڊڪٽس آرڪائيو ڪريو، يا پيڊ پلان ({limit}+ پراڊڪٽس) لاءِ اسان سان رابطو ڪريو.",
@@ -841,6 +846,37 @@
       "reviews": "review_count پورو انگ هجڻ گهرجي",
       "descriptionLong": "description تمام ڊگهو آهي",
       "duplicateOf": "قطار {line} جو نقل"
+    },
+    "svc": {
+      "template": "سروسز جو ٽيمپليٽ",
+      "templateBody": "<b>service_name, duration_mins, price</b> لازمي آهن. category ۽ description اختياري.",
+      "download": "سروسز جو ٽيمپليٽ ڊائونلوڊ ڪريو",
+      "matching": "سروسز <b>نالي</b> سان ملايون وينديون آهن: موجود سروسز اپڊيٽ ٿينديون، نيون شامل ٿينديون. “Service Name”، “Duration” يا “Rate” جهڙا هيڊر به سڃاتا وڃن ٿا.",
+      "noRows": "فائل ۾ ڪا سروس ناهي.",
+      "bulkLink": "گهڻيون سروسز آهن؟ CSV امپورٽ سان سڀ هڪ ئي وقت شامل ڪريو ←",
+      "imported_one": "{count} سروسز امپورٽ ٿيون.",
+      "imported_other": "{count} سروسز امپورٽ ٿيون.",
+      "importValid_one": "{count} صحيح سروسز امپورٽ ڪريو",
+      "importValid_other": "{count} صحيح سروسز امپورٽ ڪريو",
+      "fmt": {
+        "name": "ٽيڪسٽ، وڌ ۾ وڌ 80 اکر",
+        "duration": "منٽ، 5 کان 480 (جيئن 30, 45 min, 1.5 hr)",
+        "price": "نمبر (₹)، جيئن 300 يا ₹1,200",
+        "category": "ٽيڪسٽ، جيئن Hair (خالي = Other)",
+        "description": "ٽيڪسٽ، وڌ ۾ وڌ 1000 اکر"
+      },
+      "e": {
+        "nameRequired": "service_name لازمي آهي",
+        "nameLong": "service_name 80 اکرن کان ڊگهو آهي",
+        "durationRequired": "duration_mins لازمي آهي",
+        "durationNaN": "duration_mins \"{value}\" منٽن جو نمبر ناهي",
+        "durationRange": "duration_mins 5 کان 480 منٽن جي وچ ۾ هجڻ گهرجي",
+        "priceRequired": "price لازمي آهي",
+        "priceNaN": "price \"{value}\" نمبر ناهي",
+        "priceNegative": "price مائنس نٿو ٿي سگهي",
+        "categoryLong": "category 60 اکرن کان ڊگهي آهي",
+        "descriptionLong": "description 1000 اکرن کان ڊگهو آهي"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "توهان جي اسٽور سان اڃا ڪو QR اسٽيڪر ڳنڍيل ناهي. حاصل ڪرڻ لاءِ اسان کي ميسيج ڪريو.",
     "askMsg": "سلام، مهرباني ڪري منهنجي اسٽور \"{name}\" ({link}) لاءِ QR اسٽيڪر موڪليو.",
     "share": "شيئر ڪريو",
+    "shareQr": "QR شيئر ڪريو",
+    "shareLink": "اسٽور جي لنڪ شيئر ڪريو",
+    "linkTitle": "توهان جي اسٽور جي لنڪ",
     "print": "پرنٽ ڪريو",
     "printAll": "سڀ پرنٽ ڪريو",
     "scans": "اسڪين: {count}",

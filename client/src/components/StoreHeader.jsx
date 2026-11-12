@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BadgeCheck, Clock, DoorClosed, FlaskConical, Home, MapPin, Navigation, RefreshCw, Sprout } from 'lucide-react';
+import { BadgeCheck, Clock, DoorClosed, FlaskConical, Home, MapPin, Navigation, RefreshCw, Share2, Sprout } from 'lucide-react';
 import { PLATFORM } from '../config.js';
 import SmartImage from './SmartImage.jsx';
 import { useStore } from '../context/StoreContext.jsx';
@@ -8,9 +8,10 @@ import { rich, useI18n } from '../i18n/index.jsx';
 import LanguageSwitcher from './LanguageSwitcher.jsx';
 import VegMark from './VegMark.jsx';
 import UpiPay from './UpiPay.jsx';
+import { ShareLinkButton } from './ShareLink.jsx';
 import { whatsappLink } from '../services/whatsappService.js';
 
-/** Store header: banner, logo, name, verified badge, open/closed status, address + Maps shortcut. */
+/** Store header: banner, logo, name, verified badge, open/closed status, address + Maps shortcut, Share (the store link). */
 export default function StoreHeader() {
   const { t, formatDay } = useI18n();
   const { store: config, refreshing, basePath } = useStore();
@@ -22,6 +23,17 @@ export default function StoreHeader() {
     ? { open: false, key: reopens ? 'closure.statusUntil' : 'closure.statusClosed', vars: { date: reopens } }
     : getOpenStatus(config.opening_hours, config.closed_days);
   const maps = mapsLink(config.maps_url, config.address_text);
+  // The store's link for the share sheet (the installed app has no address bar to copy it from).
+  const share = (
+    <ShareLinkButton
+      url={`${window.location.origin}${basePath || '/'}`}
+      title={config.name}
+      text={t(config.business_type === 'appointments' ? 'store.shareAppt' : 'store.shareShop', { name: config.name })}
+      className="flex flex-none items-center justify-center gap-1 rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand"
+    >
+      <Share2 size={12} /> {t('common.share')}
+    </ShareLinkButton>
+  );
 
   return (
     <>
@@ -120,18 +132,22 @@ export default function StoreHeader() {
           <div className="mt-3 flex items-start gap-2 text-sm text-stone-600">
             <MapPin size={16} className="mt-0.5 flex-none text-brand" />
             <span className="flex-1 whitespace-pre-line">{config.address_text}</span>
-            {maps && (
-              <a
-                href={maps}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-none items-center gap-1 rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand"
-              >
-                <Navigation size={12} /> {t('store.directions')}
-              </a>
-            )}
+            <div className="flex flex-none flex-col items-stretch gap-1.5">
+              {maps && (
+                <a
+                  href={maps}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-none items-center justify-center gap-1 rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand"
+                >
+                  <Navigation size={12} /> {t('store.directions')}
+                </a>
+              )}
+              {share}
+            </div>
           </div>
         )}
+        {!config.address_text && <div className="mt-3 flex justify-end">{share}</div>}
         <UpiPay id={config.upi_id} name={config.name} className="mt-3" />
       </div>
     </header>

@@ -10,6 +10,8 @@
     "close": "বন্ধ করুন",
     "back": "পিছনে",
     "share": "শেয়ার করুন",
+    "copyLink": "লিংক কপি করুন",
+    "linkCopied": "স্টোর লিংক কপি হয়েছে",
     "search": "খুঁজুন",
     "clearSearch": "খোঁজা মুছুন",
     "refresh": "রিফ্রেশ করুন",
@@ -65,6 +67,8 @@
     "updating": "আপডেট হচ্ছে",
     "verified": "যাচাই করা ব্যবসা",
     "directions": "রাস্তা দেখুন",
+    "shareShop": "WhatsApp-এ {name} থেকে অর্ডার করুন",
+    "shareAppt": "WhatsApp-এ {name}-এ অ্যাপয়েন্টমেন্ট বুক করুন",
     "question": "নমস্কার {name}! আমার একটা প্রশ্ন আছে।",
     "poweredBy": "<b>{brand}</b> দ্বারা চালিত · শূন্য কমিশনের WhatsApp স্টোর",
     "all": "সব",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count}টি সারিতে ভুল আছে",
     "duplicateCode": "আইটেম কোড {code} দুবার আছে",
     "duplicateName": "পণ্যের নাম \"{name}\" দুবার আছে",
+    "duplicateService": "সার্ভিসের নাম \"{name}\" দুবার আছে",
     "codeUsed": "আইটেম কোড {code} আগেই অন্য একটি পণ্যে ব্যবহার হয়েছে",
     "planLimit": "আপনার প্ল্যানে {limit}টি সক্রিয় পণ্য রাখা যায়। আপনার আছে {used}টি। অপ্রয়োজনীয় পণ্য আর্কাইভ করুন, অথবা পেইড প্ল্যানের ({limit}+ পণ্য) জন্য আমাদের সাথে যোগাযোগ করুন।",
     "planLimitAdding": "আপনার প্ল্যানে {limit}টি সক্রিয় পণ্য রাখা যায়। আপনার আছে {used}টি এবং আপনি আরও {adding}টি যোগ করতে চেয়েছেন। অপ্রয়োজনীয় পণ্য আর্কাইভ করুন, অথবা পেইড প্ল্যানের ({limit}+ পণ্য) জন্য আমাদের সাথে যোগাযোগ করুন।",
@@ -841,6 +846,37 @@
       "reviews": "review_count পূর্ণ সংখ্যা হতে হবে",
       "descriptionLong": "description খুব লম্বা",
       "duplicateOf": "লাইন {line}-এর সাথে একই"
+    },
+    "svc": {
+      "template": "সার্ভিসের টেমপ্লেট",
+      "templateBody": "<b>service_name, duration_mins, price</b> আবশ্যক। category ও description ঐচ্ছিক।",
+      "download": "সার্ভিসের টেমপ্লেট ডাউনলোড করুন",
+      "matching": "সার্ভিস <b>নাম</b> দিয়ে মেলানো হয়: আগের সার্ভিস আপডেট হবে, নতুনগুলো যোগ হবে। “Service Name”, “Duration” বা “Rate” এর মতো হেডারও চেনা যায়।",
+      "noRows": "ফাইলে কোনো সার্ভিস নেই।",
+      "bulkLink": "অনেক সার্ভিস? CSV ইমপোর্ট দিয়ে সব একসাথে যোগ করুন →",
+      "imported_one": "{count}টি সার্ভিস ইমপোর্ট হয়েছে।",
+      "imported_other": "{count}টি সার্ভিস ইমপোর্ট হয়েছে।",
+      "importValid_one": "{count}টি সঠিক সার্ভিস ইমপোর্ট করুন",
+      "importValid_other": "{count}টি সঠিক সার্ভিস ইমপোর্ট করুন",
+      "fmt": {
+        "name": "লেখা, সর্বোচ্চ 80 অক্ষর",
+        "duration": "মিনিট, 5 থেকে 480 (যেমন 30, 45 min, 1.5 hr)",
+        "price": "সংখ্যা (₹), যেমন 300 বা ₹1,200",
+        "category": "লেখা, যেমন Hair (খালি = Other)",
+        "description": "লেখা, সর্বোচ্চ 1000 অক্ষর"
+      },
+      "e": {
+        "nameRequired": "service_name আবশ্যক",
+        "nameLong": "service_name 80 অক্ষরের বেশি লম্বা",
+        "durationRequired": "duration_mins আবশ্যক",
+        "durationNaN": "duration_mins \"{value}\" মিনিটের সংখ্যা নয়",
+        "durationRange": "duration_mins 5 থেকে 480 মিনিটের মধ্যে হতে হবে",
+        "priceRequired": "price আবশ্যক",
+        "priceNaN": "price \"{value}\" সংখ্যা নয়",
+        "priceNegative": "price ঋণাত্মক হতে পারে না",
+        "categoryLong": "category 60 অক্ষরের বেশি লম্বা",
+        "descriptionLong": "description 1000 অক্ষরের বেশি লম্বা"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "আপনার স্টোরে এখনও কোনো QR স্টিকার যুক্ত নেই। পেতে আমাদের মেসেজ করুন।",
     "askMsg": "নমস্কার, আমার স্টোর \"{name}\" ({link})-এর জন্য একটি QR স্টিকার পাঠান।",
     "share": "শেয়ার করুন",
+    "shareQr": "QR শেয়ার করুন",
+    "shareLink": "স্টোর লিংক শেয়ার করুন",
+    "linkTitle": "আপনার স্টোরের লিংক",
     "print": "প্রিন্ট করুন",
     "printAll": "সব প্রিন্ট করুন",
     "scans": "স্ক্যান: {count}",

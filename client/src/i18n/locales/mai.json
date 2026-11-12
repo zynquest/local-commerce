@@ -10,6 +10,8 @@
     "close": "बंद करू",
     "back": "पाछाँ",
     "share": "शेयर करू",
+    "copyLink": "लिंक कॉपी करू",
+    "linkCopied": "स्टोर लिंक कॉपी भ' गेल",
     "search": "खोजू",
     "clearSearch": "खोज हटाउ",
     "refresh": "रिफ्रेश करू",
@@ -65,6 +67,8 @@
     "updating": "अपडेट भ' रहल अछि",
     "verified": "वेरिफाइड बिजनेस",
     "directions": "रस्ता देखू",
+    "shareShop": "{name} सँ WhatsApp पर ऑर्डर करू",
+    "shareAppt": "WhatsApp पर {name} मे अपॉइंटमेंट बुक करू",
     "question": "प्रणाम {name}! हमरा एकटा सवाल अछि।",
     "poweredBy": "<b>{brand}</b> द्वारा · बिना कमीशन बला WhatsApp स्टोर",
     "all": "सभ",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} लाइन मे गलती अछि",
     "duplicateCode": "आइटम कोड {code} दोहरायल अछि",
     "duplicateName": "प्रोडक्टक नाम \"{name}\" दोहरायल अछि",
+    "duplicateService": "सेवाक नाम \"{name}\" दोहरायल अछि",
     "codeUsed": "आइटम कोड {code} पहिने सँ कोनो आन प्रोडक्ट मे अछि",
     "planLimit": "अहाँक प्लान मे {limit} चालू प्रोडक्टक छूट अछि। अहाँ लग {used} अछि। काज नहि अबयबला प्रोडक्ट आर्काइव करू, वा पेड प्लान ({limit}+ प्रोडक्ट) लेल हमरा सँ संपर्क करू।",
     "planLimitAdding": "अहाँक प्लान मे {limit} चालू प्रोडक्टक छूट अछि। अहाँ लग {used} अछि आ अहाँ {adding} आओर जोड़बाक कोशिश कयलहुँ। काज नहि अबयबला प्रोडक्ट आर्काइव करू, वा पेड प्लान ({limit}+ प्रोडक्ट) लेल हमरा सँ संपर्क करू।",
@@ -841,6 +846,37 @@
       "reviews": "review_count पूरा संख्या हेबाक चाही",
       "descriptionLong": "description बहुत नमगर अछि",
       "duplicateOf": "लाइन {line} जकाँ एके अछि"
+    },
+    "svc": {
+      "template": "सेवाक टेम्पलेट",
+      "templateBody": "<b>service_name, duration_mins, price</b> जरूरी अछि। category आ description वैकल्पिक।",
+      "download": "सेवाक टेम्पलेट डाउनलोड करू",
+      "matching": "सेवा सभ <b>नाम</b> सँ मिलाओल जाइत अछि: पहिने सँ जे अछि से अपडेट होएत, नव जुड़त। “Service Name”, “Duration” वा “Rate” सन हेडर सेहो चिन्हल जाइत अछि।",
+      "noRows": "फाइलमे कोनो सेवा नहि अछि।",
+      "bulkLink": "बहुत सेवा अछि? CSV इम्पोर्टसँ सभ एक्के बेर जोड़ू →",
+      "imported_one": "{count} सेवा इम्पोर्ट भेल।",
+      "imported_other": "{count} सेवा इम्पोर्ट भेल।",
+      "importValid_one": "{count} सही सेवा इम्पोर्ट करू",
+      "importValid_other": "{count} सही सेवा इम्पोर्ट करू",
+      "fmt": {
+        "name": "टेक्स्ट, बेसी सँ बेसी 80 अक्षर",
+        "duration": "मिनट, 5 सँ 480 (जेना 30, 45 min, 1.5 hr)",
+        "price": "नंबर (₹), जेना 300 वा ₹1,200",
+        "category": "टेक्स्ट, जेना Hair (खाली = Other)",
+        "description": "टेक्स्ट, बेसी सँ बेसी 1000 अक्षर"
+      },
+      "e": {
+        "nameRequired": "service_name जरूरी अछि",
+        "nameLong": "service_name 80 अक्षर सँ बेसी नमगर अछि",
+        "durationRequired": "duration_mins जरूरी अछि",
+        "durationNaN": "duration_mins \"{value}\" मिनटक संख्या नहि अछि",
+        "durationRange": "duration_mins 5 सँ 480 मिनटक बीच होएबाक चाही",
+        "priceRequired": "price जरूरी अछि",
+        "priceNaN": "price \"{value}\" नंबर नहि अछि",
+        "priceNegative": "price माइनसमे नहि भ’ सकैत अछि",
+        "categoryLong": "category 60 अक्षर सँ बेसी नमगर अछि",
+        "descriptionLong": "description 1000 अक्षर सँ बेसी नमगर अछि"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "अहाँक स्टोरसँ एखन धरि कोनो QR स्टिकर नहि जुड़ल अछि। पएबाक लेल हमरा सभकेँ मैसेज करू।",
     "askMsg": "नमस्कार, कृपया हमर स्टोर \"{name}\" ({link}) लेल QR स्टिकर पठाउ।",
     "share": "शेयर करू",
+    "shareQr": "QR शेयर करू",
+    "shareLink": "स्टोर लिंक शेयर करू",
+    "linkTitle": "अहाँक स्टोरक लिंक",
     "print": "प्रिंट करू",
     "printAll": "सभ प्रिंट करू",
     "scans": "स्कैन: {count}",

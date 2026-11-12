@@ -10,6 +10,8 @@
     "close": "बन्द खालाम",
     "back": "उनथिंनाय",
     "share": "शेयार खालाम",
+    "copyLink": "लिंक कपि खालाम",
+    "linkCopied": "दोकाननि लिंक कपि जाबाय",
     "search": "नागिर",
     "clearSearch": "नागिरनाय होखार",
     "refresh": "रिफ्रेस खालाम",
@@ -65,6 +67,8 @@
     "updating": "आपडेट जागासिनो दं",
     "verified": "फोरमान जानाय बेपार",
     "directions": "लामा दिन्थि",
+    "shareShop": "WhatsApp-आव {name}-निफ्राय ऑर्डर हो",
+    "shareAppt": "WhatsApp आव {name} आव एपइन्टमेन्ट बुक खालाम",
     "question": "{name}, खुलुम! आंनि मोनसे सोंनाय दं।",
     "poweredBy": "<b>{brand}</b>-नि हेफाजाबजों · कमिसन गैयै WhatsApp दोकान",
     "all": "गासै",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} सारियाव भुल दं",
     "duplicateCode": "आइटेम कोड {code} नैबार दं",
     "duplicateName": "मुवानि मुं \"{name}\" नैबार दं",
+    "duplicateService": "सेवानि मुं \"{name}\" नैबार दं",
     "codeUsed": "आइटेम कोड {code}खौ गुबुन मुवा मोनसेआ बाहायबाय",
     "planLimit": "नोंनि प्लानआव {limit} सक्रिय मुवा ल' दोननो हायो। नोंनि {used} दं। बाहायै मुवाफोरखौ आर्काइभ खालाम, एबा रां होनांगौ प्लान ({limit}+ मुवा) नि थाखाय जोंजों सोमोन्दो दाजाब।",
     "planLimitAdding": "नोंनि प्लानआव {limit} सक्रिय मुवा ल' दोननो हायो। नोंनि {used} दं आरो नों {adding} दाजाबनो नाजादों। बाहायै मुवाफोरखौ आर्काइभ खालाम, एबा रां होनांगौ प्लान ({limit}+ मुवा) नि थाखाय जोंजों सोमोन्दो दाजाब।",
@@ -841,6 +846,37 @@
       "reviews": "review_count आबुं अनजिमा जानांगौ",
       "descriptionLong": "description जोबोद गोलाव",
       "duplicateOf": "सारि {line}-नि नैबार"
+    },
+    "svc": {
+      "template": "सेवानि टेम्प्लेट",
+      "templateBody": "<b>service_name, duration_mins, price</b> गोनांथार। category आरो description नागिरोब्ला।",
+      "download": "सेवानि टेम्प्लेट डाउनल’ड खालाम",
+      "matching": "सेवाफोरखौ <b>मुं</b> जों गोरोबहोनाय जायो: दङ्गा सेवाफोरा आपडेट जागोन, गोदान सेवाफोरा दाजाबगोन। “Service Name”, “Duration” एबा “Rate” बादि हेडारफोरखौबो सिनायनो हायो।",
+      "noRows": "फाइलआव जेबो सेवा गैया।",
+      "bulkLink": "बांसिन सेवा दं नामा? CSV इम्पर्टजों गासैखौ मोनसेथिं सान →",
+      "imported_one": "{count} सेवा इम्पर्ट जाबाय।",
+      "imported_other": "{count} सेवा इम्पर्ट जाबाय।",
+      "importValid_one": "{count} थार सेवा इम्पर्ट खालाम",
+      "importValid_other": "{count} थार सेवा इम्पर्ट खालाम",
+      "fmt": {
+        "name": "लिरनाय, गोबां सिम 80 हांखो",
+        "duration": "मिनिट, 5 निफ्राय 480 (जेरै 30, 45 min, 1.5 hr)",
+        "price": "अनजिमा (₹), जेरै 300 एबा ₹1,200",
+        "category": "लिरनाय, जेरै Hair (लांदां = Other)",
+        "description": "लिरनाय, गोबां सिम 1000 हांखो"
+      },
+      "e": {
+        "nameRequired": "service_name गोनांथार",
+        "nameLong": "service_name 80 हांखोनिख्रुइ गोलाव",
+        "durationRequired": "duration_mins गोनांथार",
+        "durationNaN": "duration_mins \"{value}\" मिनिटनि अनजिमा नङा",
+        "durationRange": "duration_mins 5 निफ्राय 480 मिनिटनि गेजेराव जानांगोन",
+        "priceRequired": "price गोनांथार",
+        "priceNaN": "price \"{value}\" अनजिमा नङा",
+        "priceNegative": "price माइनास जानो हाया",
+        "categoryLong": "category 60 हांखोनिख्रुइ गोलाव",
+        "descriptionLong": "description 1000 हांखोनिख्रुइ गोलाव"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "नोंथांनि स्टोरजों दासिमबो जेबो QR स्टिकार सोमोनदो जायाखै। मोननो थाखाय जोंखौ मेसेज दिहोन।",
     "askMsg": "नमस्कार, अननानै आंनि स्टोर \"{name}\" ({link}) नि थाखाय मोनसे QR स्टिकार दिहोन।",
     "share": "शेयार खालाम",
+    "shareQr": "QR शेयार खालाम",
+    "shareLink": "दोकाननि लिंक शेयार खालाम",
+    "linkTitle": "नोंथांनि स्टरनि लिंक",
     "print": "प्रिन्ट खालाम",
     "printAll": "गासैखौ प्रिन्ट खालाम",
     "scans": "स्कैन: {count}",

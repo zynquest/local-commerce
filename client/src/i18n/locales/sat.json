@@ -10,6 +10,8 @@
     "close": "ᱵᱚᱸᱫᱚ ᱢᱮ",
     "back": "ᱛᱟᱭᱚᱢ ᱛᱮ",
     "share": "ᱥᱮᱭᱟᱨ ᱢᱮ",
+    "copyLink": "ᱞᱤᱝᱠ ᱠᱚᱯᱤ ᱢᱮ",
+    "linkCopied": "ᱫᱚᱠᱟᱱ ᱞᱤᱝᱠ ᱠᱚᱯᱤ ᱮᱱᱟ",
     "search": "ᱯᱟᱱᱛᱮ ᱢᱮ",
     "clearSearch": "ᱯᱟᱱᱛᱮ ᱢᱮᱴᱟᱣ ᱢᱮ",
     "refresh": "ᱨᱤᱯᱷᱨᱮᱥ ᱢᱮ",
@@ -65,6 +67,8 @@
     "updating": "ᱟᱯᱰᱮᱴ ᱦᱩᱭᱩᱜ ᱠᱟᱱᱟ",
     "verified": "ᱡᱟᱸᱪ ᱟᱠᱟᱱ ᱵᱮᱯᱟᱨ",
     "directions": "ᱦᱚᱨ ᱧᱮᱞ ᱢᱮ",
+    "shareShop": "WhatsApp ᱨᱮ {name} ᱠᱷᱚᱱ ᱚᱨᱰᱟᱨ ᱢᱮ",
+    "shareAppt": "WhatsApp ᱛᱮ {name} ᱨᱮ ᱮᱯᱚᱭᱮᱱᱴᱢᱮᱱᱴ ᱵᱩᱠ ᱢᱮ",
     "question": "ᱡᱚᱦᱟᱨ {name}! ᱤᱧ ᱫᱚ ᱢᱤᱫ ᱠᱩᱠᱞᱤ ᱢᱮᱱᱟᱜ ᱛᱤᱧᱟ᱾",
     "poweredBy": "<b>{brand}</b> ᱛᱮ ᱪᱟᱞᱟᱜ ᱠᱟᱱᱟ · ᱵᱮᱜᱚᱨ ᱠᱚᱢᱤᱥᱚᱱ WhatsApp ᱫᱚᱠᱟᱱ",
     "all": "ᱡᱚᱛᱚ",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} ᱞᱟᱭᱤᱱ ᱨᱮ ᱵᱷᱩᱞ ᱢᱮᱱᱟᱜᱼᱟ",
     "duplicateCode": "ᱵᱟᱨ ᱫᱷᱟᱣ ᱟᱭᱴᱚᱢ ᱠᱚᱰ {code}",
     "duplicateName": "ᱵᱟᱨ ᱫᱷᱟᱣ ᱡᱤᱱᱤᱥ ᱧᱩᱛᱩᱢ \"{name}\"",
+    "duplicateService": "ᱵᱟᱨ ᱫᱷᱟᱣ ᱥᱮᱵᱟ ᱧᱩᱛᱩᱢ \"{name}\"",
     "codeUsed": "ᱟᱭᱴᱚᱢ ᱠᱚᱰ {code} ᱫᱚ ᱮᱴᱟᱜ ᱡᱤᱱᱤᱥ ᱞᱟᱹᱜᱤᱫ ᱢᱟᱲᱟᱝ ᱠᱷᱚᱱ ᱵᱮᱵᱷᱟᱨ ᱟᱠᱟᱱᱟ",
     "planLimit": "ᱟᱢᱟᱜ ᱯᱞᱟᱱ ᱨᱮ {limit} ᱜᱚᱴᱟᱝ ᱪᱟᱹᱞᱩ ᱡᱤᱱᱤᱥ ᱫᱚᱦᱚ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾ ᱟᱢᱟᱜ {used} ᱜᱚᱴᱟᱝ ᱢᱮᱱᱟᱜᱼᱟ᱾ ᱵᱟᱝ ᱞᱟᱹᱠᱛᱤ ᱡᱤᱱᱤᱥ ᱟᱨᱠᱟᱭᱤᱵᱷ ᱢᱮ, ᱥᱮ ᱯᱮᱰ ᱯᱞᱟᱱ ({limit}+ ᱡᱤᱱᱤᱥ) ᱞᱟᱹᱜᱤᱫ ᱟᱞᱮ ᱥᱟᱶ ᱡᱩᱲᱟᱹᱣ ᱢᱮ᱾",
     "planLimitAdding": "ᱟᱢᱟᱜ ᱯᱞᱟᱱ ᱨᱮ {limit} ᱜᱚᱴᱟᱝ ᱪᱟᱹᱞᱩ ᱡᱤᱱᱤᱥ ᱫᱚᱦᱚ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ᱾ ᱟᱢᱟᱜ {used} ᱜᱚᱴᱟᱝ ᱢᱮᱱᱟᱜᱼᱟ ᱟᱨ ᱟᱢ ᱟᱨᱦᱚᱸ {adding} ᱜᱚᱴᱟᱝ ᱥᱮᱞᱮᱫ ᱪᱮᱥᱴᱟ ᱠᱮᱫᱟ᱾ ᱵᱟᱝ ᱞᱟᱹᱠᱛᱤ ᱡᱤᱱᱤᱥ ᱟᱨᱠᱟᱭᱤᱵᱷ ᱢᱮ, ᱥᱮ ᱯᱮᱰ ᱯᱞᱟᱱ ({limit}+ ᱡᱤᱱᱤᱥ) ᱞᱟᱹᱜᱤᱫ ᱟᱞᱮ ᱥᱟᱶ ᱡᱩᱲᱟᱹᱣ ᱢᱮ᱾",
@@ -841,6 +846,37 @@
       "reviews": "review_count ᱫᱚ ᱯᱩᱨᱟᱹ ᱮᱞ ᱦᱩᱭ ᱞᱟᱹᱠᱛᱤᱭᱟ",
       "descriptionLong": "description ᱫᱚ ᱟᱹᱰᱤ ᱡᱤᱞᱤᱧ",
       "duplicateOf": "ᱞᱟᱭᱤᱱ {line} ᱨᱮᱭᱟᱜ ᱫᱚᱦᱲᱟ"
+    },
+    "svc": {
+      "template": "ᱥᱮᱵᱟ ᱨᱮᱭᱟᱜ ᱴᱮᱢᱯᱞᱮᱴ",
+      "templateBody": "<b>service_name, duration_mins, price</b> ᱫᱚᱨᱠᱟᱨ᱾ category ᱟᱨ description ᱢᱚᱱᱮ ᱞᱮᱠᱟ᱾",
+      "download": "ᱥᱮᱵᱟ ᱨᱮᱭᱟᱜ ᱴᱮᱢᱯᱞᱮᱴ ᱰᱟᱩᱱᱞᱚᱰ ᱢᱮ",
+      "matching": "ᱥᱮᱵᱟ ᱠᱚ <b>ᱧᱩᱛᱩᱢ</b> ᱛᱮ ᱢᱤᱞᱟᱹᱣ ᱦᱩᱭᱩᱜᱼᱟ: ᱢᱮᱱᱟᱜ ᱥᱮᱵᱟ ᱠᱚ ᱟᱯᱰᱮᱴ ᱦᱩᱭᱩᱜᱼᱟ, ᱱᱟᱣᱟ ᱠᱚ ᱥᱮᱞᱮᱫᱚᱜᱼᱟ᱾ “Service Name”, “Duration” ᱟᱨᱵᱟᱝ “Rate” ᱞᱮᱠᱟᱱ ᱦᱮᱰᱟᱨ ᱦᱚᱸ ᱪᱤᱱᱦᱟᱹᱣ ᱦᱩᱭᱩᱜᱼᱟ᱾",
+      "noRows": "ᱯᱷᱟᱭᱤᱞ ᱨᱮ ᱡᱟᱦᱟᱱ ᱥᱮᱵᱟ ᱵᱟᱹᱱᱩᱜᱼᱟ᱾",
+      "bulkLink": "ᱟᱹᱰᱤ ᱥᱮᱵᱟ ᱢᱮᱱᱟᱜᱼᱟ? CSV ᱤᱢᱯᱚᱨᱴ ᱛᱮ ᱡᱚᱛᱚ ᱢᱤᱫ ᱫᱷᱟᱣ ᱛᱮ ᱥᱮᱞᱮᱫ ᱢᱮ →",
+      "imported_one": "{count} ᱜᱚᱴᱟᱝ ᱥᱮᱵᱟ ᱤᱢᱯᱚᱨᱴ ᱮᱱᱟ᱾",
+      "imported_other": "{count} ᱜᱚᱴᱟᱝ ᱥᱮᱵᱟ ᱤᱢᱯᱚᱨᱴ ᱮᱱᱟ᱾",
+      "importValid_one": "{count} ᱜᱚᱴᱟᱝ ᱴᱷᱤᱠ ᱥᱮᱵᱟ ᱤᱢᱯᱚᱨᱴ ᱢᱮ",
+      "importValid_other": "{count} ᱜᱚᱴᱟᱝ ᱴᱷᱤᱠ ᱥᱮᱵᱟ ᱤᱢᱯᱚᱨᱴ ᱢᱮ",
+      "fmt": {
+        "name": "ᱚᱞ, ᱡᱟᱹᱥᱛᱤ ᱠᱷᱚᱱ ᱡᱟᱹᱥᱛᱤ 80 ᱟᱠᱷᱚᱨ",
+        "duration": "ᱢᱤᱱᱤᱴ, 5 ᱠᱷᱚᱱ 480 (ᱡᱮᱞᱠᱟ 30, 45 min, 1.5 hr)",
+        "price": "ᱮᱞ (₹), ᱡᱮᱞᱠᱟ 300 ᱟᱨᱵᱟᱝ ₹1,200",
+        "category": "ᱚᱞ, ᱡᱮᱞᱠᱟ Hair (ᱠᱷᱟᱹᱞᱤ = Other)",
+        "description": "ᱚᱞ, ᱡᱟᱹᱥᱛᱤ ᱠᱷᱚᱱ ᱡᱟᱹᱥᱛᱤ 1000 ᱟᱠᱷᱚᱨ"
+      },
+      "e": {
+        "nameRequired": "service_name ᱫᱚᱨᱠᱟᱨ",
+        "nameLong": "service_name ᱫᱚ 80 ᱟᱠᱷᱚᱨ ᱠᱷᱚᱱ ᱡᱤᱞᱤᱧ",
+        "durationRequired": "duration_mins ᱫᱚᱨᱠᱟᱨ",
+        "durationNaN": "duration_mins \"{value}\" ᱫᱚ ᱢᱤᱱᱤᱴ ᱨᱮᱭᱟᱜ ᱮᱞ ᱵᱟᱝ ᱠᱟᱱᱟ",
+        "durationRange": "duration_mins ᱫᱚ 5 ᱠᱷᱚᱱ 480 ᱢᱤᱱᱤᱴ ᱛᱟᱞᱟ ᱨᱮ ᱦᱩᱭ ᱦᱚᱨᱚᱜ ᱠᱟᱱᱟ",
+        "priceRequired": "price ᱫᱚᱨᱠᱟᱨ",
+        "priceNaN": "price \"{value}\" ᱫᱚ ᱮᱞ ᱵᱟᱝ ᱠᱟᱱᱟ",
+        "priceNegative": "price ᱫᱚ ᱢᱟᱭᱤᱱᱟᱥ ᱵᱟᱝ ᱦᱩᱭ ᱫᱟᱲᱮᱭᱟᱜᱼᱟ",
+        "categoryLong": "category ᱫᱚ 60 ᱟᱠᱷᱚᱨ ᱠᱷᱚᱱ ᱡᱤᱞᱤᱧ",
+        "descriptionLong": "description ᱫᱚ 1000 ᱟᱠᱷᱚᱨ ᱠᱷᱚᱱ ᱡᱤᱞᱤᱧ"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "ᱟᱢᱟᱜ ᱫᱚᱠᱟᱱ ᱥᱟᱶ ᱱᱤᱛ ᱦᱟᱹᱵᱤᱡ ᱡᱟᱦᱟᱱ QR ᱥᱴᱤᱠᱟᱨ ᱵᱟᱝ ᱡᱚᱲᱟᱣ ᱟᱠᱟᱱᱟ᱾ ᱧᱟᱢ ᱞᱟᱹᱜᱤᱫ ᱟᱞᱮ ᱴᱷᱮᱱ ᱢᱮᱥᱮᱡᱽ ᱢᱮ᱾",
     "askMsg": "ᱡᱚᱦᱟᱨ, ᱤᱧᱟᱜ ᱫᱚᱠᱟᱱ \"{name}\" ({link}) ᱞᱟᱹᱜᱤᱫ ᱢᱤᱫᱴᱟᱹᱝ QR ᱥᱴᱤᱠᱟᱨ ᱠᱩᱞ ᱢᱮ᱾",
     "share": "ᱦᱟᱹᱴᱤᱧ ᱢᱮ",
+    "shareQr": "QR ᱦᱟᱹᱴᱤᱧ ᱢᱮ",
+    "shareLink": "ᱫᱚᱠᱟᱱ ᱞᱤᱝᱠ ᱥᱮᱭᱟᱨ ᱢᱮ",
+    "linkTitle": "ᱟᱢᱟᱜ ᱥᱴᱚᱨ ᱨᱮᱭᱟᱜ ᱞᱤᱝᱠ",
     "print": "ᱯᱨᱤᱱᱴ ᱢᱮ",
     "printAll": "ᱡᱚᱛᱚ ᱯᱨᱤᱱᱴ ᱢᱮ",
     "scans": "ᱥᱠᱮᱱ: {count}",

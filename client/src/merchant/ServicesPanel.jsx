@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Clock, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Clock, FileUp, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { del, get, post, put } from '../lib/api.js';
 import SmartImage from '../components/SmartImage.jsx';
 import { formatMoney } from '../lib/format.js';
@@ -75,7 +75,7 @@ function ServiceForm({ service, onSave, onCancel }) {
 }
 
 /** Services an appointment business offers: name, duration, price (e.g. Hair Cut · 30 min · ₹200). */
-export default function ServicesPanel({ currency, onChange }) {
+export default function ServicesPanel({ currency, onChange, onBulk }) {
   const t = useT();
   const [list, setList] = useState({ loading: true, items: [], error: '' });
   const [editing, setEditing] = useState(null); // null | 'new' | service
@@ -132,6 +132,12 @@ export default function ServicesPanel({ currency, onChange }) {
         {list.loading && <li className="flex justify-center p-6"><Loader2 className="animate-spin text-stone-400" /></li>}
         {!list.loading && !list.items.length && <li className="p-8 text-center text-sm text-stone-500">{t('appt.noServices')}</li>}
       </ul>
+      {onBulk && (
+        <button type="button" onClick={onBulk} className="flex w-full items-center gap-2 rounded-2xl border border-dashed border-stone-300 px-4 py-3 text-start text-sm text-stone-600 hover:border-brand hover:text-brand">
+          <FileUp size={18} className="flex-none text-brand" />
+          <span className="flex-1">{t('imp.svc.bulkLink')}</span>
+        </button>
+      )}
     </div>
   );
 }

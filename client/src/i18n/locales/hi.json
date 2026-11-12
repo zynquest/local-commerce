@@ -10,6 +10,8 @@
     "close": "बंद करें",
     "back": "वापस",
     "share": "शेयर करें",
+    "copyLink": "लिंक कॉपी करें",
+    "linkCopied": "स्टोर लिंक कॉपी हो गया",
     "search": "खोजें",
     "clearSearch": "खोज हटाएँ",
     "refresh": "रिफ्रेश करें",
@@ -65,6 +67,8 @@
     "updating": "अपडेट हो रहा है",
     "verified": "वेरिफ़ाइड बिज़नेस",
     "directions": "रास्ता देखें",
+    "shareShop": "{name} से WhatsApp पर ऑर्डर करें",
+    "shareAppt": "{name} पर WhatsApp से अपॉइंटमेंट बुक करें",
     "question": "नमस्ते {name}! मेरा एक सवाल है।",
     "poweredBy": "<b>{brand}</b> द्वारा · बिना कमीशन वाले WhatsApp स्टोर",
     "all": "सभी",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} लाइनों में ग़लती है",
     "duplicateCode": "आइटम कोड {code} दोबारा आया है",
     "duplicateName": "प्रोडक्ट का नाम \"{name}\" दोबारा आया है",
+    "duplicateService": "सेवा का नाम \"{name}\" दोबारा आया है",
     "codeUsed": "आइटम कोड {code} पहले से किसी और प्रोडक्ट में है",
     "planLimit": "आपके प्लान में {limit} चालू प्रोडक्ट की छूट है। आपके पास {used} हैं। काम में न आने वाले प्रोडक्ट आर्काइव करें, या पेड प्लान ({limit}+ प्रोडक्ट) के लिए हमसे संपर्क करें।",
     "planLimitAdding": "आपके प्लान में {limit} चालू प्रोडक्ट की छूट है। आपके पास {used} हैं और आपने {adding} और जोड़ने की कोशिश की। काम में न आने वाले प्रोडक्ट आर्काइव करें, या पेड प्लान ({limit}+ प्रोडक्ट) के लिए हमसे संपर्क करें।",
@@ -841,6 +846,37 @@
       "reviews": "review_count पूरी संख्या होनी चाहिए",
       "descriptionLong": "description बहुत लंबा है",
       "duplicateOf": "लाइन {line} जैसा ही है"
+    },
+    "svc": {
+      "template": "सेवाओं का टेम्पलेट",
+      "templateBody": "<b>service_name, duration_mins, price</b> ज़रूरी हैं। category और description ज़रूरी नहीं।",
+      "download": "सेवाओं का टेम्पलेट डाउनलोड करें",
+      "matching": "सेवाएँ <b>नाम</b> से मिलाई जाती हैं: पहले से मौजूद सेवाएँ अपडेट होंगी, नई जुड़ जाएँगी। “Service Name”, “Duration” या “Rate” जैसे हेडर भी पहचाने जाते हैं।",
+      "noRows": "फ़ाइल में कोई सेवा नहीं है।",
+      "bulkLink": "कई सेवाएँ हैं? CSV इम्पोर्ट से सब एक साथ जोड़ें →",
+      "imported_one": "{count} सेवा इम्पोर्ट हुई।",
+      "imported_other": "{count} सेवाएँ इम्पोर्ट हुईं।",
+      "importValid_one": "{count} सही सेवा इम्पोर्ट करें",
+      "importValid_other": "{count} सही सेवाएँ इम्पोर्ट करें",
+      "fmt": {
+        "name": "टेक्स्ट, ज़्यादा से ज़्यादा 80 अक्षर",
+        "duration": "मिनट, 5 से 480 (जैसे 30, 45 min, 1.5 hr)",
+        "price": "नंबर (₹), जैसे 300 या ₹1,200",
+        "category": "टेक्स्ट, जैसे Hair (खाली = Other)",
+        "description": "टेक्स्ट, ज़्यादा से ज़्यादा 1000 अक्षर"
+      },
+      "e": {
+        "nameRequired": "service_name ज़रूरी है",
+        "nameLong": "service_name 80 अक्षर से ज़्यादा लंबा है",
+        "durationRequired": "duration_mins ज़रूरी है",
+        "durationNaN": "duration_mins \"{value}\" मिनट की संख्या नहीं है",
+        "durationRange": "duration_mins 5 से 480 मिनट के बीच होना चाहिए",
+        "priceRequired": "price ज़रूरी है",
+        "priceNaN": "price \"{value}\" नंबर नहीं है",
+        "priceNegative": "price माइनस में नहीं हो सकता",
+        "categoryLong": "category 60 अक्षर से ज़्यादा लंबी है",
+        "descriptionLong": "description 1000 अक्षर से ज़्यादा लंबा है"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "आपके स्टोर से अभी कोई QR स्टिकर नहीं जुड़ा है। पाने के लिए हमें मैसेज करें।",
     "askMsg": "नमस्ते, कृपया मेरे स्टोर \"{name}\" ({link}) के लिए QR स्टिकर भेजें।",
     "share": "शेयर करें",
+    "shareQr": "QR शेयर करें",
+    "shareLink": "स्टोर लिंक शेयर करें",
+    "linkTitle": "आपके स्टोर का लिंक",
     "print": "प्रिंट करें",
     "printAll": "सभी प्रिंट करें",
     "scans": "स्कैन: {count}",

@@ -7,6 +7,7 @@ import { config } from './config.js';
 import { query } from './db.js';
 import { CLOSED_NOW_SQL, isUnclaimedSeed } from './serialize.js';
 import { RTL, availableLanguages, makeServerT, pickLanguage } from './i18n.js';
+import { cardUrl } from './shareCard.js';
 
 const BRAND = config.platformName;
 const PRIVATE_PATHS = /^\/(merchant|motiveboss|account|login)(\/|$)/;
@@ -31,6 +32,12 @@ function shareImage(base, url) {
   }
   return abs(base, url);
 }
+
+/** Link preview of a store: its banner when it has one, otherwise its own card (logo or initials, name, type, city). */
+const storeImage = (base, store) => {
+  const banner = shareImage(base, store.banner_url);
+  return banner ? { image: banner } : { image: cardUrl(base, store), imageSize: [1200, 630] };
+};
 
 let template = null;
 export function loadTemplate(file = path.join(config.clientDist, 'index.html')) {
@@ -510,7 +517,7 @@ ${store.address_text ? `<address>${esc(store.address_text)}</address>` : ''}
     title,
     description: trim(store.description || t('book.seoDesc', { name: store.name }), 160),
     canonical: url,
-    image: shareImage(base, store.banner_url) || shareImage(base, store.logo_url) || `${base}/og-image.png`,
+    ...storeImage(base, store),
     noindex: store.is_demo || isUnclaimedSeed(store),
     type: 'business.business',
     imageAlt: store.name,
@@ -573,7 +580,7 @@ ${store.address_text ? `<address>${esc(store.address_text)}</address>` : ''}
     title,
     description,
     canonical: `${url}`,
-    image: shareImage(base, store.banner_url) || shareImage(base, store.logo_url) || `${base}/og-image.png`,
+    ...storeImage(base, store),
     noindex: store.is_demo || isUnclaimedSeed(store), // demo stores are for trying the app; unclaimed seeds aren't the owner's yet
     type: 'business.business',
     imageAlt: store.name,
@@ -630,7 +637,7 @@ async function productPage(base, slug, sku, t) {
     title: `${p.name} — ₹${p.offer_price} | ${store.name}`,
     description: trim(p.description || t('seo.productDesc', { name: p.name, store: store.name }), 160),
     canonical: url,
-    image: shareImage(base, p.images[0]) || shareImage(base, store.logo_url) || `${base}/og-image.png`,
+    ...(shareImage(base, p.images[0]) ? { image: shareImage(base, p.images[0]) } : storeImage(base, store)),
     type: 'product',
     imageAlt: p.name,
     keywords: [p.name, p.category !== 'Other' && p.category, store.name, store.category, store.locality || store.city, 'price', 'order on WhatsApp', 'home delivery', BRAND],

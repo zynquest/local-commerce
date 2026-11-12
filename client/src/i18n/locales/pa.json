@@ -10,6 +10,8 @@
     "close": "ਬੰਦ ਕਰੋ",
     "back": "ਪਿੱਛੇ",
     "share": "ਸਾਂਝਾ ਕਰੋ",
+    "copyLink": "ਲਿੰਕ ਕਾਪੀ ਕਰੋ",
+    "linkCopied": "ਸਟੋਰ ਲਿੰਕ ਕਾਪੀ ਹੋ ਗਿਆ",
     "search": "ਖੋਜੋ",
     "clearSearch": "ਖੋਜ ਹਟਾਓ",
     "refresh": "ਰਿਫ੍ਰੈਸ਼ ਕਰੋ",
@@ -65,6 +67,8 @@
     "updating": "ਅੱਪਡੇਟ ਹੋ ਰਿਹਾ ਹੈ",
     "verified": "ਪ੍ਰਮਾਣਿਤ ਕਾਰੋਬਾਰ",
     "directions": "ਰਸਤਾ",
+    "shareShop": "WhatsApp 'ਤੇ {name} ਤੋਂ ਆਰਡਰ ਕਰੋ",
+    "shareAppt": "WhatsApp 'ਤੇ {name} ਵਿੱਚ ਅਪੌਇੰਟਮੈਂਟ ਬੁੱਕ ਕਰੋ",
     "question": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ {name}! ਮੈਂ ਇੱਕ ਗੱਲ ਪੁੱਛਣੀ ਹੈ।",
     "poweredBy": "<b>{brand}</b> ਵੱਲੋਂ · ਬਿਨਾਂ ਕਮਿਸ਼ਨ ਵਾਲੇ WhatsApp ਸਟੋਰ",
     "all": "ਸਾਰੇ",
@@ -567,6 +571,7 @@
     "rowsHaveErrors_other": "{count} ਲਾਈਨਾਂ ਵਿੱਚ ਗ਼ਲਤੀਆਂ ਹਨ",
     "duplicateCode": "ਆਈਟਮ ਕੋਡ {code} ਦੋ ਵਾਰ ਹੈ",
     "duplicateName": "ਪ੍ਰੋਡਕਟ ਦਾ ਨਾਮ \"{name}\" ਦੋ ਵਾਰ ਹੈ",
+    "duplicateService": "ਸੇਵਾ ਦਾ ਨਾਮ \"{name}\" ਦੋ ਵਾਰ ਹੈ",
     "codeUsed": "ਆਈਟਮ ਕੋਡ {code} ਪਹਿਲਾਂ ਹੀ ਕਿਸੇ ਹੋਰ ਪ੍ਰੋਡਕਟ ਲਈ ਵਰਤਿਆ ਗਿਆ ਹੈ",
     "planLimit": "ਤੁਹਾਡੇ ਪਲਾਨ ਵਿੱਚ {limit} ਚਾਲੂ ਪ੍ਰੋਡਕਟ ਹੋ ਸਕਦੇ ਹਨ। ਤੁਹਾਡੇ ਕੋਲ {used} ਹਨ। ਨਾ ਵਰਤੇ ਜਾਣ ਵਾਲੇ ਪ੍ਰੋਡਕਟ ਆਰਕਾਈਵ ਕਰੋ, ਜਾਂ ਪੇਡ ਪਲਾਨ ({limit}+ ਪ੍ਰੋਡਕਟ) ਲਈ ਸਾਡੇ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
     "planLimitAdding": "ਤੁਹਾਡੇ ਪਲਾਨ ਵਿੱਚ {limit} ਚਾਲੂ ਪ੍ਰੋਡਕਟ ਹੋ ਸਕਦੇ ਹਨ। ਤੁਹਾਡੇ ਕੋਲ {used} ਹਨ ਅਤੇ ਤੁਸੀਂ {adding} ਹੋਰ ਜੋੜਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕੀਤੀ। ਨਾ ਵਰਤੇ ਜਾਣ ਵਾਲੇ ਪ੍ਰੋਡਕਟ ਆਰਕਾਈਵ ਕਰੋ, ਜਾਂ ਪੇਡ ਪਲਾਨ ({limit}+ ਪ੍ਰੋਡਕਟ) ਲਈ ਸਾਡੇ ਨਾਲ ਸੰਪਰਕ ਕਰੋ।",
@@ -841,6 +846,37 @@
       "reviews": "review_count ਪੂਰਾ ਅੰਕ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ",
       "descriptionLong": "description ਬਹੁਤ ਲੰਮਾ ਹੈ",
       "duplicateOf": "ਲਾਈਨ {line} ਵਾਲਾ ਹੀ ਦੁਬਾਰਾ ਹੈ"
+    },
+    "svc": {
+      "template": "ਸੇਵਾਵਾਂ ਦਾ ਟੈਂਪਲੇਟ",
+      "templateBody": "<b>service_name, duration_mins, price</b> ਲਾਜ਼ਮੀ ਹਨ। category ਅਤੇ description ਵਿਕਲਪਿਕ।",
+      "download": "ਸੇਵਾਵਾਂ ਦਾ ਟੈਂਪਲੇਟ ਡਾਊਨਲੋਡ ਕਰੋ",
+      "matching": "ਸੇਵਾਵਾਂ <b>ਨਾਮ</b> ਨਾਲ ਮਿਲਾਈਆਂ ਜਾਂਦੀਆਂ ਹਨ: ਮੌਜੂਦਾ ਸੇਵਾਵਾਂ ਅੱਪਡੇਟ ਹੋਣਗੀਆਂ, ਨਵੀਆਂ ਜੁੜ ਜਾਣਗੀਆਂ। “Service Name”, “Duration” ਜਾਂ “Rate” ਵਰਗੇ ਹੈਡਰ ਵੀ ਪਛਾਣੇ ਜਾਂਦੇ ਹਨ।",
+      "noRows": "ਫ਼ਾਈਲ ਵਿੱਚ ਕੋਈ ਸੇਵਾ ਨਹੀਂ ਹੈ।",
+      "bulkLink": "ਕਈ ਸੇਵਾਵਾਂ ਹਨ? CSV ਇੰਪੋਰਟ ਨਾਲ ਸਾਰੀਆਂ ਇੱਕੋ ਵਾਰ ਜੋੜੋ →",
+      "imported_one": "{count} ਸੇਵਾ ਇੰਪੋਰਟ ਹੋਈ।",
+      "imported_other": "{count} ਸੇਵਾਵਾਂ ਇੰਪੋਰਟ ਹੋਈਆਂ।",
+      "importValid_one": "{count} ਸਹੀ ਸੇਵਾ ਇੰਪੋਰਟ ਕਰੋ",
+      "importValid_other": "{count} ਸਹੀ ਸੇਵਾਵਾਂ ਇੰਪੋਰਟ ਕਰੋ",
+      "fmt": {
+        "name": "ਟੈਕਸਟ, ਵੱਧ ਤੋਂ ਵੱਧ 80 ਅੱਖਰ",
+        "duration": "ਮਿੰਟ, 5 ਤੋਂ 480 (ਜਿਵੇਂ 30, 45 min, 1.5 hr)",
+        "price": "ਨੰਬਰ (₹), ਜਿਵੇਂ 300 ਜਾਂ ₹1,200",
+        "category": "ਟੈਕਸਟ, ਜਿਵੇਂ Hair (ਖਾਲੀ = Other)",
+        "description": "ਟੈਕਸਟ, ਵੱਧ ਤੋਂ ਵੱਧ 1000 ਅੱਖਰ"
+      },
+      "e": {
+        "nameRequired": "service_name ਲਾਜ਼ਮੀ ਹੈ",
+        "nameLong": "service_name 80 ਅੱਖਰਾਂ ਤੋਂ ਲੰਮਾ ਹੈ",
+        "durationRequired": "duration_mins ਲਾਜ਼ਮੀ ਹੈ",
+        "durationNaN": "duration_mins \"{value}\" ਮਿੰਟਾਂ ਦਾ ਨੰਬਰ ਨਹੀਂ ਹੈ",
+        "durationRange": "duration_mins 5 ਤੋਂ 480 ਮਿੰਟ ਦੇ ਵਿਚਕਾਰ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ",
+        "priceRequired": "price ਲਾਜ਼ਮੀ ਹੈ",
+        "priceNaN": "price \"{value}\" ਨੰਬਰ ਨਹੀਂ ਹੈ",
+        "priceNegative": "price ਮਾਈਨਸ ਨਹੀਂ ਹੋ ਸਕਦਾ",
+        "categoryLong": "category 60 ਅੱਖਰਾਂ ਤੋਂ ਲੰਮੀ ਹੈ",
+        "descriptionLong": "description 1000 ਅੱਖਰਾਂ ਤੋਂ ਲੰਮਾ ਹੈ"
+      }
     }
   },
   "plan": {
@@ -1142,6 +1178,9 @@
     "empty": "ਤੁਹਾਡੇ ਸਟੋਰ ਨਾਲ ਅਜੇ ਕੋਈ QR ਸਟਿੱਕਰ ਨਹੀਂ ਜੁੜਿਆ। ਲੈਣ ਲਈ ਸਾਨੂੰ ਮੈਸੇਜ ਕਰੋ।",
     "askMsg": "ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ਕਿਰਪਾ ਕਰਕੇ ਮੇਰੇ ਸਟੋਰ \"{name}\" ({link}) ਲਈ QR ਸਟਿੱਕਰ ਭੇਜੋ।",
     "share": "ਸ਼ੇਅਰ ਕਰੋ",
+    "shareQr": "QR ਸਾਂਝਾ ਕਰੋ",
+    "shareLink": "ਸਟੋਰ ਲਿੰਕ ਸਾਂਝਾ ਕਰੋ",
+    "linkTitle": "ਤੁਹਾਡੇ ਸਟੋਰ ਦਾ ਲਿੰਕ",
     "print": "ਪ੍ਰਿੰਟ ਕਰੋ",
     "printAll": "ਸਾਰੇ ਪ੍ਰਿੰਟ ਕਰੋ",
     "scans": "ਸਕੈਨ: {count}",

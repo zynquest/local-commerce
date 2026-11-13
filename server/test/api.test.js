@@ -577,6 +577,32 @@ describe('appointments: services, specialists, slots, WhatsApp bookings', () => 
     assert.equal((await shopper('POST', `/api/stores/${apSlug}/orders`, { order_code: 'ORD-APPT01', items: [], notes: 'x' })).status, 400);
   });
 
+  test('the platform admin sees bookings across stores and opens one in full; owners cannot', async () => {
+    const stats = await admin('GET', '/api/platform/stats');
+    assert.ok(stats.body.bookings_7d >= 2, JSON.stringify(stats.body));
+    const list = await admin('GET', '/api/platform/bookings?days=7');
+    assert.equal(list.status, 200, JSON.stringify(list.body));
+    const mine = list.body.bookings.filter((b) => b.store_slug === apSlug);
+    assert.ok(mine.length >= 2);
+    const b = mine.find((x) => x.time === '14:00');
+    assert.deepEqual([b.service_name, b.specialist_name, b.date, b.end_time], ['Hair Spa', 'Asha', tomorrow(), '15:00']);
+    const one = await admin('GET', `/api/platform/bookings/${b.id}`);
+    assert.equal(one.status, 200, JSON.stringify(one.body));
+    assert.equal(one.body.booking.code, b.code);
+    assert.equal(one.body.booking.duration_min, 60);
+    assert.match(one.body.booking.customer_phone, /^9198765000/);
+    assert.equal(one.body.booking.store_id, apId);
+    const store = await admin('GET', `/api/platform/stores/${apId}`);
+    assert.ok(store.body.counts.bookings >= 2);
+    assert.equal(store.body.counts.services, 2);
+    for (const path of ['/api/platform/bookings', `/api/platform/bookings/${b.id}`]) {
+      assert.equal((await pro('GET', path)).status, 401, path);
+      assert.equal((await shopper('GET', path)).status, 401, path);
+    }
+    assert.equal((await admin('GET', '/api/platform/bookings/00000000-0000-4000-8000-000000000000')).status, 404);
+    assert.equal((await admin('GET', '/api/platform/bookings/not-a-uuid')).status, 404);
+  });
+
   test('booking needs no phone number (the request goes out on WhatsApp); a bad number is still refused', async () => {
     const body = { service_id: spa.id, date: tomorrow(), time: '16:00', name: `No Phone ${run}`, language: 'en' };
     const r = await shopper('POST', `/api/stores/${apSlug}/appointments`, body);

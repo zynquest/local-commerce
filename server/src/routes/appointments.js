@@ -196,7 +196,7 @@ publicAppointmentsRouter.post('/stores/:slug/appointments', bookingLimiter, opti
   }));
 });
 
-const appointmentOut = (a) => ({
+export const appointmentOut = (a) => ({
   id: a.id,
   code: a.code,
   status: a.status,

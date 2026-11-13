@@ -261,8 +261,17 @@ function StoreDetail({ id, onClose, onChanged, isStaff = false }) {
                 <p className="label">WhatsApp orders</p>
                 <p className="flex items-center gap-1"><WaLink phone={s.whatsapp_number} /> {s.whatsapp_verified && <BadgeCheck size={14} className="text-emerald-600" aria-label="Verified" />}</p>
               </div>
-              <div><p className="label">Products</p><p className="font-semibold">{data.counts.products}</p></div>
-              <div><p className="label">Orders</p><p className="font-semibold">{data.counts.orders}</p></div>
+              {s.business_type === 'appointments' ? (
+                <>
+                  <div><p className="label">Services</p><p className="font-semibold">{data.counts.services}</p></div>
+                  <div><p className="label">Bookings</p><p className="font-semibold">{data.counts.bookings}</p></div>
+                </>
+              ) : (
+                <>
+                  <div><p className="label">Products</p><p className="font-semibold">{data.counts.products}</p></div>
+                  <div><p className="label">Orders</p><p className="font-semibold">{data.counts.orders}</p></div>
+                </>
+              )}
               <div>
                 <p className="label">Sales rep</p>
                 <p className="font-semibold">
@@ -502,6 +511,138 @@ function OrderDetail({ id, onClose, onOpenStore }) {
   );
 }
 
+const BOOKING_STATUS = {
+  requested: ['Requested', 'bg-amber-100 text-amber-800'],
+  confirmed: ['Confirmed', 'bg-emerald-100 text-emerald-800'],
+  completed: ['Done', 'bg-stone-200 text-stone-700'],
+  cancelled: ['Cancelled', 'bg-rose-100 text-rose-700'],
+  no_show: ['No-show', 'bg-rose-100 text-rose-700'],
+};
+const BookingStatus = ({ status }) => {
+  const [label, cls] = BOOKING_STATUS[status] || [status, 'bg-stone-100'];
+  return <span className={`flex-none rounded-full px-2 py-0.5 text-[11px] font-semibold ${cls}`}>{label}</span>;
+};
+/** "Sat, 15 Nov · 10:00–11:00" (the booking's own date and times are India time, from the server). */
+const slotText = (b) =>
+  `${new Date(`${b.date}T00:00:00`).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })} · ${b.time}–${b.end_time}`;
+
+/** One booking in full, opened from Recent bookings: who booked, what, with whom and when. */
+function BookingDetail({ id, onClose, onOpenStore }) {
+  const [booking, setBooking] = useState(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    get(`/platform/bookings/${id}`).then((d) => setBooking(d.booking), (err) => setError(err.message));
+  }, [id]);
+  // The phone typed on the booking, else the one on the customer's account (the same for the name).
+  const name = booking?.customer_name || booking?.account_name;
+  const phone = booking?.customer_phone || booking?.account_phone;
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true" aria-label="Booking details">
+      <div className="h-full w-full max-w-2xl animate-slide-in overflow-y-auto bg-stone-50">
+        <header className="sticky top-0 z-10 flex items-center gap-1 border-b border-stone-200 bg-white px-2 py-3">
+          <button onClick={onClose} aria-label="Back to bookings" className="rounded-full p-2 hover:bg-stone-100"><ArrowLeft size={20} className="rtl:rotate-180" /></button>
+          <h2 className="font-bold">{booking ? booking.code : 'Booking'}</h2>
+        </header>
+        {!booking && !error && <Loader2 className="mx-auto mt-10 animate-spin text-stone-400" />}
+        {error && <p className="m-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+        {booking && (
+          <div className="space-y-4 p-4">
+            <section className="card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold break-words">{booking.store_name}</p>
+                  <p className="text-xs text-stone-500">Booked {new Date(booking.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                </div>
+                <BookingStatus status={booking.status} />
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <button onClick={() => onOpenStore(booking.store_id)} className="inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
+                  <Store size={14} /> Open store
+                </button>
+                {booking.store_whatsapp && <span className="text-sm text-stone-600">Store WhatsApp: <WaLink phone={booking.store_whatsapp} /></span>}
+              </div>
+            </section>
+
+            <section className="card space-y-3 p-4">
+              <h3 className="font-bold">Appointment</h3>
+              <div><p className="label">When</p><p className="font-semibold">{slotText(booking)}</p></div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div><p className="label">Service</p><p className="font-semibold break-words">{booking.service_name}</p><p className="text-xs text-stone-500">{booking.duration_min} min</p></div>
+                <div><p className="label">Price</p><p className="font-semibold">{formatMoney(booking.price, booking.currency_symbol)}</p></div>
+                <div><p className="label">Specialist</p><p className="font-semibold break-words">{booking.specialist_name || '—'}</p></div>
+                <div><p className="label">Message language</p><p className="font-semibold uppercase">{booking.language}</p></div>
+              </div>
+            </section>
+
+            <section className="card space-y-3 p-4">
+              <h3 className="font-bold">Customer</h3>
+              <div><p className="label">Name</p><p className="font-semibold break-words">{name || '—'}</p></div>
+              <div>
+                <p className="label">Phone</p>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <WaLink phone={phone} />
+                  {phone && (
+                    <a href={`tel:+${phone}`} className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"><Phone size={14} /> Call</a>
+                  )}
+                </div>
+              </div>
+              {booking.account_email && (
+                <div><p className="label">Email</p><a href={`mailto:${booking.account_email}`} className="font-semibold break-all text-brand hover:underline">{booking.account_email}</a></div>
+              )}
+              <div><p className="label">Account</p><p>{booking.has_account ? 'Signed-in customer' : 'Guest booking'}</p></div>
+            </section>
+
+            {booking.notes && <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm break-words whitespace-pre-line text-amber-900">📝 {booking.notes}</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Recent bookings across all stores (from the "Bookings (7 days)" tile). Tapping one opens its details. */
+function RecentBookings({ onClose, onOpenBooking }) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    get('/platform/bookings?days=7').then(setData, (err) => setError(err.message));
+  }, []);
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/40" role="dialog" aria-modal="true" aria-label="Recent bookings">
+      <div className="h-full w-full max-w-2xl animate-slide-in overflow-y-auto bg-stone-50">
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3">
+          <h2 className="font-bold">Bookings · last 7 days</h2>
+          <button onClick={onClose} aria-label="Close" className="rounded-full p-2 hover:bg-stone-100"><X size={20} /></button>
+        </header>
+        {!data && !error && <Loader2 className="mx-auto mt-10 animate-spin text-stone-400" />}
+        {error && <p className="m-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+        {data && (
+          <ul className="card m-4 divide-y divide-stone-100">
+            {data.bookings.map((b) => (
+              <li key={b.id}>
+                <button onClick={() => onOpenBooking(b.id)} className="flex w-full items-start gap-3 p-3 text-start hover:bg-stone-50">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold break-words">{b.store_name}</p>
+                    <p className="text-sm break-words text-stone-700">{b.service_name}{b.specialist_name ? ` · ${b.specialist_name}` : ''}</p>
+                    <p className="text-xs text-stone-500">
+                      {slotText(b)} · {b.code}{b.customer_name ? ` · ${b.customer_name}` : ''} · booked {ago(b.created_at)}
+                    </p>
+                  </div>
+                  <div className="flex flex-none flex-col items-end gap-1">
+                    <span className="font-bold">{formatMoney(b.price, b.currency_symbol)}</span>
+                    <BookingStatus status={b.status} />
+                  </div>
+                </button>
+              </li>
+            ))}
+            {!data.bookings.length && <li className="p-10 text-center text-sm text-stone-500">No bookings in the last 7 days.</li>}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** Recent orders across all stores (from the "Orders (7 days)" tile). Tapping one opens its details. */
 function RecentOrders({ onClose, onOpenOrder }) {
   const [data, setData] = useState(null);
@@ -552,6 +693,8 @@ export default function AdminConsole() {
   const [sort, setSort] = useState(''); // 'products' from the Active products tile
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const [bookingsOpen, setBookingsOpen] = useState(false);
+  const [bookingId, setBookingId] = useState(null);
   const [newStore, setNewStore] = useState(false);
   const listRef = useRef(null);
   const [query, setQuery] = useState('');
@@ -656,7 +799,7 @@ export default function AdminConsole() {
         ) : (
           <>
         {stats && (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
             {[
               ['Waiting for approval', count('pending_review'), 'text-amber-600', () => show('pending_review')],
               ['Live stores', count('approved'), 'text-emerald-700', () => show('approved')],
@@ -664,6 +807,7 @@ export default function AdminConsole() {
               ['Seeds claimed', stats.seeds_claimed, 'text-lime-700', () => show('seed_claimed')],
               ['Active products', stats.products, '', () => show('approved', 'products')],
               ['Orders (7 days)', stats.orders_7d, '', () => setOrdersOpen(true)],
+              ['Bookings (7 days)', stats.bookings_7d, '', () => setBookingsOpen(true)],
             ].map(([k, v, cls, onClick]) => (
               <button key={k} type="button" onClick={onClick} className="card p-3 text-start transition hover:border-stone-400 hover:shadow-sm">
                 <p className="text-[11px] font-semibold text-stone-500 uppercase">{k}</p>
@@ -764,6 +908,8 @@ export default function AdminConsole() {
       {openId && <StoreDetail id={openId} onClose={() => setOpenId(null)} onChanged={load} isStaff={isStaff} />}
       {ordersOpen && !openId && <RecentOrders onClose={() => setOrdersOpen(false)} onOpenOrder={setOrderId} />}
       {ordersOpen && orderId && !openId && <OrderDetail id={orderId} onClose={() => setOrderId(null)} onOpenStore={setOpenId} />}
+      {bookingsOpen && !openId && <RecentBookings onClose={() => setBookingsOpen(false)} onOpenBooking={setBookingId} />}
+      {bookingsOpen && bookingId && !openId && <BookingDetail id={bookingId} onClose={() => setBookingId(null)} onOpenStore={setOpenId} />}
     </div>
   );
 }

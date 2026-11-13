@@ -6,6 +6,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { COOKIES, createSession, destroySession, destroyAllSessions, hashPassword, requireAdmin, verifyPassword } from '../auth.js';
 import { createOwnerByEmail } from './auth.js';
+import { appointmentOut } from './appointments.js';
 import { issueOtp, verifyOtp } from '../otp/otp.js';
 import { ownersUseEmail, providerFor } from '../otp/providers.js';
 import { clientKey } from '../clientIp.js';
@@ -97,6 +98,7 @@ platformRouter.get('/stats', async (_req, res) => {
        (SELECT count(*)::int FROM products p JOIN stores s ON s.id = p.store_id
          WHERE p.status = 'active' AND NOT (s.origin = 'seed' AND s.claimed_at IS NULL)) AS products,
        (SELECT count(*)::int FROM orders WHERE created_at > now() - interval '7 days') AS orders_7d,
+       (SELECT count(*)::int FROM appointments WHERE created_at > now() - interval '7 days') AS bookings_7d,
        (SELECT count(*)::int FROM customers) AS customers`,
   );
   const by = rows[0].by_status || {};
@@ -269,6 +271,54 @@ platformRouter.get('/orders/:id', async (req, res) => {
   res.json({ order: rows[0] });
 });
 
+/** Recent appointment bookings across all stores (the "Bookings" tile), newest first. days: 1–90, default 7. */
+platformRouter.get('/bookings', async (req, res) => {
+  const days = Math.min(90, Math.max(1, Number(req.query.days) || 7));
+  const { rows } = await query(
+    `SELECT a.*, s.name AS store_name, s.slug AS store_slug, s.currency_symbol
+       FROM appointments a JOIN stores s ON s.id = a.store_id
+      WHERE a.created_at > now() - make_interval(days => $1)
+      ORDER BY a.created_at DESC
+      LIMIT 200`,
+    [days],
+  );
+  res.json({ bookings: rows.map((a) => ({ ...appointmentOut(a), store_id: a.store_id, store_name: a.store_name, store_slug: a.store_slug, currency_symbol: a.currency_symbol })), days });
+});
+
+/** One booking in full: the customer (and their account), the service, specialist and time. Platform admin only. */
+platformRouter.get('/bookings/:id', async (req, res) => {
+  if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) throw notFound('Booking not found');
+  const { rows } = await query(
+    `SELECT a.*, s.name AS store_name, s.slug AS store_slug, s.currency_symbol, s.whatsapp_number AS store_whatsapp,
+            sv.duration_min, a.customer_id IS NOT NULL AS has_account,
+            c.name AS account_name, c.phone AS account_phone, c.email AS account_email
+       FROM appointments a
+       JOIN stores s ON s.id = a.store_id
+       LEFT JOIN services sv ON sv.id = a.service_id
+       LEFT JOIN customers c ON c.id = a.customer_id
+      WHERE a.id = $1`,
+    [req.params.id],
+  );
+  const a = rows[0];
+  if (!a) throw notFound('Booking not found');
+  res.json({
+    booking: {
+      ...appointmentOut(a),
+      duration_min: a.duration_min ?? Math.round((new Date(a.ends_at) - new Date(a.starts_at)) / 60_000),
+      store_id: a.store_id,
+      store_name: a.store_name,
+      store_slug: a.store_slug,
+      store_whatsapp: a.store_whatsapp,
+      currency_symbol: a.currency_symbol,
+      has_account: a.has_account,
+      account_name: a.account_name,
+      account_phone: a.account_phone,
+      account_email: a.account_email,
+      updated_at: a.updated_at,
+    },
+  });
+});
+
 platformRouter.get('/stores/:id', async (req, res) => {
   await assertStaffStore(req, req.params.id);
   const { rows } = await query(
@@ -291,7 +341,9 @@ platformRouter.get('/stores/:id', async (req, res) => {
     ),
     query(
       `SELECT (SELECT count(*)::int FROM products WHERE store_id = $1 AND status = 'active') AS products,
-              (SELECT count(*)::int FROM orders WHERE store_id = $1) AS orders`,
+              (SELECT count(*)::int FROM orders WHERE store_id = $1) AS orders,
+              (SELECT count(*)::int FROM appointments WHERE store_id = $1) AS bookings,
+              (SELECT count(*)::int FROM services WHERE store_id = $1 AND active) AS services`,
       [req.params.id],
     ),
   ]);

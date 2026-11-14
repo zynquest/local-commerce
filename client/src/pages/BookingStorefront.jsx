@@ -64,12 +64,10 @@ export default function BookingStorefront() {
                       <p className="font-semibold">{s.name}</p>
                       {s.description && <p className="line-clamp-2 text-xs text-stone-500">{s.description}</p>}
                       <p className="mt-0.5 flex items-center gap-1 text-xs text-stone-500"><Clock size={11} /> {t('appt.minutes', { count: s.duration_min })}</p>
+                      {/* "Price on request" is too long for the price column: it gets its own line under the service. */}
+                      {s.price == null && <p className="mt-0.5 text-xs font-semibold text-stone-600">{t('price.onRequest')}</p>}
                     </div>
-                    {s.price == null ? (
-                      <span className="flex-none text-xs font-semibold text-stone-500">{t('price.onRequest')}</span>
-                    ) : (
-                      <span className="flex-none font-bold">{formatMoney(s.price, config.currency_symbol)}</span>
-                    )}
+                    {s.price != null && <span className="flex-none font-bold">{formatMoney(s.price, config.currency_symbol)}</span>}
                     <button type="button" disabled={!canBook} onClick={() => setBooking({ serviceId: s.id })} className="btn-brand flex-none px-3 py-1.5 text-sm">
                       {t('book.book')}
                     </button>

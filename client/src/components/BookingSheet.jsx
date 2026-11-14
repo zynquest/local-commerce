@@ -172,12 +172,9 @@ export default function BookingSheet({ initialServiceId, onClose }) {
                     <span className="min-w-0 flex-1">
                       <span className="block font-semibold">{s.name}</span>
                       <span className="block text-xs text-stone-500">{t('appt.minutes', { count: s.duration_min })}</span>
+                      {s.price == null && <span className="mt-0.5 block text-xs font-semibold text-stone-600">{t('price.onRequest')}</span>}
                     </span>
-                    {s.price == null ? (
-                      <span className="flex-none text-xs font-semibold text-stone-500">{t('price.onRequest')}</span>
-                    ) : (
-                      <span className="flex-none font-bold">{formatMoney(s.price, store.currency_symbol)}</span>
-                    )}
+                    {s.price != null && <span className="flex-none font-bold">{formatMoney(s.price, store.currency_symbol)}</span>}
                   </button>
                 </li>
               ))}

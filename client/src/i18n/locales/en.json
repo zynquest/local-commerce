@@ -1315,5 +1315,16 @@
     "addedOrder": "Added to {name}’s khata",
     "inKhata": "In khata",
     "addToKhata": "Add to Khata"
+  },
+  "price": {
+    "onRequest": "Price on request",
+    "plusOnRequest": "{amount} + price on request",
+    "pendingNote": "The store will tell you the price of items marked “Price on request” on WhatsApp.",
+    "hideOne": "Hide the price (show “Price on request”)",
+    "hideOneHint": "Customers can still order or book; you tell them the price on WhatsApp. The price can be left blank.",
+    "hideAll": "Hide all prices in my store",
+    "hideAllHint": "Every product and service shows “Price on request”, and customers can still order or book. Turn it off to use each item’s own setting.",
+    "hiddenBadge": "Price hidden",
+    "allHiddenNote": "All prices are hidden right now (Store Settings), so this one is hidden too."
   }
 }

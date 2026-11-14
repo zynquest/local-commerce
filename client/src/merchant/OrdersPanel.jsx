@@ -131,7 +131,11 @@ export default function OrdersPanel({ currency, onChange }) {
                   <span>
                     {i.quantity} × {i.name}
                   </span>
-                  <span className="font-medium">{formatMoney(i.line_total, currency)}</span>
+                  {i.price_hidden ? (
+                    <span className="text-xs font-semibold text-amber-700">{t('price.onRequest')}</span>
+                  ) : (
+                    <span className="font-medium">{formatMoney(i.line_total, currency)}</span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -147,7 +151,13 @@ export default function OrdersPanel({ currency, onChange }) {
             </div>
             <div className="text-end">
               {o.delivery_fee > 0 && <p className="text-xs text-stone-500">{t('orders.inclDelivery', { amount: formatMoney(o.delivery_fee, currency) })}</p>}
-              <p className="text-base font-bold">{formatMoney(o.total, currency)}</p>
+              <p className="text-base font-bold">
+                {!o.price_on_request
+                  ? formatMoney(o.total, currency)
+                  : Number(o.total) > 0
+                    ? t('price.plusOnRequest', { amount: formatMoney(o.total, currency) })
+                    : t('price.onRequest')}
+              </p>
             </div>
           </div>
           {o.customer_phone && (

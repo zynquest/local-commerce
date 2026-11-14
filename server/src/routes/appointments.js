@@ -9,7 +9,7 @@ import { clientKey } from '../clientIp.js';
 import { query, tx } from '../db.js';
 import { badRequest, conflict, notFound, parse } from '../errors.js';
 import * as S from '../schemas.js';
-import { CLOSED_NOW_SQL } from '../serialize.js';
+import { CLOSED_NOW_SQL, priceHidden } from '../serialize.js';
 import { notifyStoreOwner } from '../push.js';
 import { addDays, appointmentCode, computeSlots, hasHours, istDate, istToMs, normaliseSchedule } from '../appointments/slots.js';
 
@@ -26,10 +26,21 @@ const serviceOut = (s) => ({
   price: num(s.price),
   active: s.active,
   position: s.position,
+  hide_price: Boolean(s.hide_price),
 });
 
-/** Services + specialists shown on a public booking page (active ones only; schedules stay private). */
-export async function publicBookingCatalog(storeId) {
+/** A service as customers get it: a hidden price is left out, and price_hidden shows "Price on request". */
+const publicService = (s, store) => {
+  const { hide_price, ...out } = serviceOut(s);
+  return priceHidden(store, s) ? { ...out, price: null, price_hidden: true } : { ...out, price_hidden: false };
+};
+
+/**
+ * Services + specialists shown on a public booking page (active ones only; schedules stay private).
+ * `store` needs id and hide_prices.
+ */
+export async function publicBookingCatalog(store) {
+  const storeId = store.id;
   const [services, specialists] = await Promise.all([
     query(`SELECT * FROM services WHERE store_id = $1 AND active ORDER BY position, created_at`, [storeId]),
     query(
@@ -44,7 +55,7 @@ export async function publicBookingCatalog(storeId) {
     ),
   ]);
   return {
-    services: services.rows.map(serviceOut),
+    services: services.rows.map((s) => publicService(s, store)),
     specialists: specialists.rows
       .filter((sp) => hasHours(sp.schedule) && sp.service_ids.length)
       .map(({ schedule, ...sp }) => ({ ...sp, days: Object.keys(schedule).filter((d) => schedule[d]?.length) })),
@@ -165,6 +176,7 @@ publicAppointmentsRouter.post('/stores/:slug/appointments', bookingLimiter, opti
     const load = (id) => booked.filter((x) => x.specialist_id === id).length;
     const chosenId = b.specialist_id || [...slot.specialists].sort((x, y) => load(x) - load(y))[0];
     const specialist = specialists.find((s) => s.id === chosenId);
+    const hidden = priceHidden(store, service);
     const startsAt = new Date(istToMs(b.date, b.time));
     const endsAt = new Date(startsAt.getTime() + service.duration_min * 60_000);
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -172,10 +184,11 @@ publicAppointmentsRouter.post('/stores/:slug/appointments', bookingLimiter, opti
         await client.query('SAVEPOINT book');
         const { rows } = await client.query(
           `INSERT INTO appointments (store_id, specialist_id, service_id, code, service_name, specialist_name, price,
-                                     starts_at, ends_at, customer_name, customer_phone, customer_id, notes, language)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
-          [store.id, specialist.id, service.id, appointmentCode(), service.name, specialist.name, service.price,
-            startsAt, endsAt, b.name, b.phone || null, req.customer?.id || null, b.notes, b.language],
+                                     starts_at, ends_at, customer_name, customer_phone, customer_id, notes, language, price_hidden)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
+          // A hidden price isn't fixed on the booking: "Price on request", confirmed by the business.
+          [store.id, specialist.id, service.id, appointmentCode(), service.name, specialist.name, hidden ? 0 : service.price,
+            startsAt, endsAt, b.name, b.phone || null, req.customer?.id || null, b.notes, b.language, hidden],
         );
         return rows[0];
       } catch (err) {
@@ -204,7 +217,9 @@ export const appointmentOut = (a) => ({
   service_name: a.service_name,
   specialist_id: a.specialist_id,
   specialist_name: a.specialist_name,
-  price: num(a.price),
+  // null when the price was hidden at booking time ("Price on request").
+  price: a.price_hidden ? null : num(a.price),
+  price_hidden: Boolean(a.price_hidden),
   starts_at: a.starts_at,
   ends_at: a.ends_at,
   date: istDate(new Date(a.starts_at).getTime()),
@@ -233,9 +248,9 @@ merchantAppointmentsRouter.post('/services', async (req, res) => {
   const s = parse(S.service, req.body);
   const row = await tx(async (client) => {
     const { rows } = await client.query(
-      `INSERT INTO services (store_id, name, category, description, duration_min, price, active, position)
-       VALUES ($1,$2,$3,$4,$5,$6,$7, (SELECT coalesce(max(position), 0) + 1 FROM services WHERE store_id = $1)) RETURNING *`,
-      [req.user.store_id, s.name, s.category, s.description, s.duration_min, s.price, s.active],
+      `INSERT INTO services (store_id, name, category, description, duration_min, price, active, hide_price, position)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8, (SELECT coalesce(max(position), 0) + 1 FROM services WHERE store_id = $1)) RETURNING *`,
+      [req.user.store_id, s.name, s.category, s.description, s.duration_min, s.price, s.active, s.hide_price],
     );
     await touchStore(client, req.user.store_id);
     return rows[0];
@@ -295,9 +310,10 @@ merchantAppointmentsRouter.put('/services/:id', async (req, res) => {
   const s = parse(S.service, req.body);
   const row = await tx(async (client) => {
     const { rows } = await client.query(
-      `UPDATE services SET name = $3, category = $4, description = $5, duration_min = $6, price = $7, active = $8, updated_at = now()
+      `UPDATE services SET name = $3, category = $4, description = $5, duration_min = $6, price = $7, active = $8, hide_price = $9,
+              updated_at = now()
         WHERE id = $1 AND store_id = $2 RETURNING *`,
-      [req.params.id, req.user.store_id, s.name, s.category, s.description, s.duration_min, s.price, s.active],
+      [req.params.id, req.user.store_id, s.name, s.category, s.description, s.duration_min, s.price, s.active, s.hide_price],
     );
     if (!rows[0]) throw notFound('Service not found');
     await touchStore(client, req.user.store_id);

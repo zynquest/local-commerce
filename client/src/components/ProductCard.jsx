@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { discountPercent, formatMoney } from '../lib/format.js';
 import { useT } from '../i18n/index.jsx';
+import { isPriceHidden } from '../services/whatsappService.js';
 
 /** Product Listing Page card: image carousel, pricing, discount, tags, and cart stepper. */
 export default function ProductCard({ product }) {
@@ -13,7 +14,8 @@ export default function ProductCard({ product }) {
   const { store: config, link } = useStore();
   const cart = useCart();
   const cur = config?.currency_symbol || '₹';
-  const off = discountPercent(product.mrp, product.offer_price);
+  const hidden = isPriceHidden(product); // "Price on request"
+  const off = hidden ? 0 : discountPercent(product.mrp, product.offer_price);
   const qty = cart.qtyOf(product.sku_id);
 
   return (
@@ -51,8 +53,14 @@ export default function ProductCard({ product }) {
           </div>
         )}
         <div className="mt-auto flex items-baseline gap-1.5 pt-1">
-          <span className="text-base font-bold">{formatMoney(product.offer_price, cur)}</span>
-          {off > 0 && <span className="text-xs text-stone-400 line-through">{formatMoney(product.mrp, cur)}</span>}
+          {hidden ? (
+            <span className="text-sm font-semibold text-stone-600">{t('price.onRequest')}</span>
+          ) : (
+            <>
+              <span className="text-base font-bold">{formatMoney(product.offer_price, cur)}</span>
+              {off > 0 && <span className="text-xs text-stone-400 line-through">{formatMoney(product.mrp, cur)}</span>}
+            </>
+          )}
         </div>
         <QuantityStepper
           quantity={qty}

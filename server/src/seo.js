@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from './config.js';
 import { query } from './db.js';
-import { CLOSED_NOW_SQL, isUnclaimedSeed } from './serialize.js';
+import { CLOSED_NOW_SQL, isUnclaimedSeed, priceHidden } from './serialize.js';
 import { RTL, availableLanguages, makeServerT, pickLanguage } from './i18n.js';
 import { cardUrl } from './shareCard.js';
 
@@ -481,7 +481,7 @@ function bookingBusinessType(category = '') {
 
 async function bookingPage(base, store, t) {
   const { rows: services } = await query(
-    `SELECT name, category, description, duration_min, price FROM services WHERE store_id = $1 AND active ORDER BY position LIMIT 100`,
+    `SELECT name, category, description, duration_min, price, hide_price FROM services WHERE store_id = $1 AND active ORDER BY position LIMIT 100`,
     [store.id],
   );
   const url = `${base}/s/${store.slug}`;
@@ -493,10 +493,10 @@ async function bookingPage(base, store, t) {
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: `${store.name} services`,
+      // A hidden price ("Price on request") is left out of the page and its data.
       itemListElement: services.map((sv) => ({
         '@type': 'Offer',
-        price: sv.price,
-        priceCurrency: 'INR',
+        ...(priceHidden(store, sv) ? {} : { price: sv.price, priceCurrency: 'INR' }),
         itemOffered: {
           '@type': 'Service',
           name: sv.name,
@@ -512,7 +512,7 @@ async function bookingPage(base, store, t) {
 ${store.description ? `<p>${esc(store.description)}</p>` : ''}
 ${store.address_text ? `<address>${esc(store.address_text)}</address>` : ''}
 <h2>${esc(t('book.services'))}</h2><ul>${services
-    .map((sv) => `<li>${esc(sv.name)} — ${esc(t('appt.minutes', { count: sv.duration_min }))} — ₹${Number(sv.price)}</li>`)
+    .map((sv) => `<li>${esc(sv.name)} — ${esc(t('appt.minutes', { count: sv.duration_min }))} — ${priceHidden(store, sv) ? esc(t('price.onRequest')) : `₹${Number(sv.price)}`}</li>`)
     .join('')}</ul></main>`;
   return {
     title,
@@ -535,7 +535,7 @@ async function storePage(base, slug, t) {
   if (!store) return null;
   if (store.business_type === 'appointments') return bookingPage(base, store, t);
   const { rows: products } = await query(
-    `SELECT sku_id, name, category, mrp, offer_price, images, description, in_stock FROM products
+    `SELECT sku_id, name, category, mrp, offer_price, images, description, in_stock, hide_price FROM products
       WHERE store_id = $1 AND status = 'active' ORDER BY position LIMIT 100`,
     [store.id],
   );
@@ -555,8 +555,7 @@ async function storePage(base, slug, t) {
       numberOfItems: products.length,
       itemListElement: products.slice(0, 50).map((p) => ({
         '@type': 'Offer',
-        price: p.offer_price,
-        priceCurrency: 'INR',
+        ...(priceHidden(store, p) ? {} : { price: p.offer_price, priceCurrency: 'INR' }),
         availability: p.in_stock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         url: `${url}/p/${encodeURIComponent(p.sku_id)}`,
         itemOffered: {
@@ -574,7 +573,12 @@ async function storePage(base, slug, t) {
 ${store.description ? `<p>${esc(store.description)}</p>` : ''}
 ${store.address_text ? `<address>${esc(store.address_text)}</address>` : ''}
 <h2>${esc(t('merchant.tabs.products'))}</h2><ul>${products
-    .map((p) => `<li><a href="/s/${esc(store.slug)}/p/${esc(encodeURIComponent(p.sku_id))}">${esc(p.name)}</a> — ₹${p.offer_price}${p.mrp > p.offer_price ? ` (MRP ₹${p.mrp})` : ''}</li>`)
+    .map(
+      (p) =>
+        `<li><a href="/s/${esc(store.slug)}/p/${esc(encodeURIComponent(p.sku_id))}">${esc(p.name)}</a> — ${
+          priceHidden(store, p) ? esc(t('price.onRequest')) : `₹${p.offer_price}${p.mrp > p.offer_price ? ` (MRP ₹${p.mrp})` : ''}`
+        }</li>`,
+    )
     .join('')}</ul></main>`;
   // Store pages are merchant-written, so every ?lang= variant has the same content: one canonical URL, no hreflang.
   return {
@@ -597,7 +601,7 @@ async function productPage(base, slug, sku, t) {
   const store = await loadApprovedStore(slug);
   if (!store) return null;
   const { rows } = await query(
-    `SELECT sku_id, name, category, mrp, offer_price, images, description, in_stock, rating, review_count
+    `SELECT sku_id, name, category, mrp, offer_price, images, description, in_stock, rating, review_count, hide_price
        FROM products WHERE store_id = $1 AND sku_id = $2 AND status = 'active'`,
     [store.id, sku],
   );
@@ -605,6 +609,7 @@ async function productPage(base, slug, sku, t) {
   if (!p) return null;
   const url = `${base}/s/${store.slug}/p/${encodeURIComponent(p.sku_id)}`;
   const images = p.images.map((i) => abs(base, i));
+  const hidden = priceHidden(store, p); // "Price on request": no price in the title, tags or product data
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -614,7 +619,7 @@ async function productPage(base, slug, sku, t) {
     sku: p.sku_id,
     category: p.category || undefined,
     url,
-    offers: {
+    offers: hidden ? undefined : {
       '@type': 'Offer',
       url,
       itemCondition: 'https://schema.org/NewCondition',
@@ -635,7 +640,7 @@ async function productPage(base, slug, sku, t) {
     // Owner-typed star ratings are not real customer reviews, so they are left out (search engines penalise them).
   };
   return {
-    title: `${p.name} — ₹${p.offer_price} | ${store.name}`,
+    title: hidden ? `${p.name} | ${store.name}` : `${p.name} — ₹${p.offer_price} | ${store.name}`,
     description: trim(p.description || t('seo.productDesc', { name: p.name, store: store.name }), 160),
     canonical: url,
     ...(shareImage(base, p.images[0]) ? { image: shareImage(base, p.images[0]) } : storeImage(base, store)),
@@ -644,21 +649,19 @@ async function productPage(base, slug, sku, t) {
     keywords: [p.name, p.category !== 'Other' && p.category, store.name, store.category, store.locality || store.city, 'price', 'order on WhatsApp', 'home delivery', BRAND],
     geo: businessGeo(store),
     og: [
-      ['product:price:amount', p.offer_price],
-      ['product:price:currency', 'INR'],
+      ...(hidden ? [] : [['product:price:amount', p.offer_price], ['product:price:currency', 'INR']]),
       ['product:availability', p.in_stock ? 'in stock' : 'out of stock'],
       ['product:condition', 'new'],
       ['product:retailer_item_id', p.sku_id],
       ['product:category', p.category !== 'Other' ? p.category : ''],
-      ['og:price:amount', p.offer_price],
-      ['og:price:currency', 'INR'],
+      ...(hidden ? [] : [['og:price:amount', p.offer_price], ['og:price:currency', 'INR']]),
     ],
     noindex: store.is_demo || isUnclaimedSeed(store),
     jsonLd: [
       ld,
       breadcrumbs(base, t, [[t('stores.title'), '/stores'], [store.name, `/s/${store.slug}`], [p.name, `/s/${store.slug}/p/${encodeURIComponent(p.sku_id)}`]]),
     ],
-    body: `<main><h1>${esc(p.name)}</h1><p>₹${p.offer_price}${p.mrp > p.offer_price ? ` (MRP ₹${p.mrp})` : ''}</p>${p.description ? `<p>${esc(p.description)}</p>` : ''}<p>Sold by <a href="/s/${esc(store.slug)}">${esc(store.name)}</a></p></main>`,
+    body: `<main><h1>${esc(p.name)}</h1><p>${hidden ? esc(t('price.onRequest')) : `₹${p.offer_price}${p.mrp > p.offer_price ? ` (MRP ₹${p.mrp})` : ''}`}</p>${p.description ? `<p>${esc(p.description)}</p>` : ''}<p>Sold by <a href="/s/${esc(store.slug)}">${esc(store.name)}</a></p></main>`,
   };
 }
 

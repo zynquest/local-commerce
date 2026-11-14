@@ -239,7 +239,7 @@ platformRouter.post('/stores/:id/open-as-owner', async (req, res) => {
 platformRouter.get('/orders', async (req, res) => {
   const days = Math.min(90, Math.max(1, Number(req.query.days) || 7));
   const { rows } = await query(
-    `SELECT o.id, o.order_code, o.status, o.total, o.created_at, o.customer_name, o.customer_phone, o.placed_offline,
+    `SELECT o.id, o.order_code, o.status, o.total, o.created_at, o.customer_name, o.customer_phone, o.placed_offline, o.price_on_request,
             s.id AS store_id, s.name AS store_name, s.slug AS store_slug, s.currency_symbol,
             (SELECT count(*)::int FROM order_items i WHERE i.order_id = o.id) AS items
        FROM orders o JOIN stores s ON s.id = o.store_id
@@ -254,12 +254,12 @@ platformRouter.get('/orders', async (req, res) => {
 /** One order in full: the customer, the delivery details and every line item. Platform admin only (staffGate). */
 platformRouter.get('/orders/:id', async (req, res) => {
   const { rows } = await query(
-    `SELECT o.id, o.order_code, o.status, o.customer_name, o.customer_phone, o.delivery_address, o.notes,
+    `SELECT o.id, o.order_code, o.status, o.customer_name, o.customer_phone, o.delivery_address, o.notes, o.price_on_request,
             o.subtotal, o.delivery_fee, o.savings, o.total, o.price_mismatch, o.placed_offline, o.created_at,
             o.customer_id IS NOT NULL AS has_account, c.name AS account_name, c.phone AS account_phone, c.email AS account_email,
             s.id AS store_id, s.name AS store_name, s.slug AS store_slug, s.currency_symbol,
             coalesce((SELECT json_agg(json_build_object('sku_id', i.sku_id, 'name', i.name, 'quantity', i.quantity,
-                        'unit_price', i.unit_price, 'mrp', i.mrp, 'line_total', i.line_total) ORDER BY i.id)
+                        'unit_price', i.unit_price, 'mrp', i.mrp, 'line_total', i.line_total, 'price_hidden', i.price_hidden) ORDER BY i.id)
                         FROM order_items i WHERE i.order_id = o.id), '[]') AS items
        FROM orders o
        JOIN stores s ON s.id = o.store_id

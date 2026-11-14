@@ -10,7 +10,7 @@ import { query, tx } from '../db.js';
 import { badRequest, notFound, parse } from '../errors.js';
 import * as S from '../schemas.js';
 import { notifyStoreOwner, pushEnabled } from '../push.js';
-import { PRODUCT_COLUMNS, PUBLIC_STORE_COLUMNS, deliveryFeeFor, product as serializeProduct, publicStore, round2 } from '../serialize.js';
+import { PRODUCT_COLUMNS, PUBLIC_STORE_COLUMNS, deliveryFeeFor, priceHidden, publicProduct, publicStore, round2 } from '../serialize.js';
 import { publicBookingCatalog } from './appointments.js';
 
 export const publicRouter = Router();
@@ -125,9 +125,10 @@ publicRouter.get('/stores/:slug', async (req, res) => {
     preview = true;
   }
 
-  // b2: payload shape version (appointment stores added services/specialists) so old device caches refetch.
+  // Payload shape version (b2: appointment stores added services/specialists) so old device caches refetch.
   // The closure state is part of it: a holiday ends on its own on the reopening date, without a store update.
-  const version = `${store.id}-${new Date(store.updated_at).getTime()}-${store.status}-${store.closed_now ? 'c' : 'o'}-b2`;
+  // b3: products and services carry price_hidden ("Price on request").
+  const version = `${store.id}-${new Date(store.updated_at).getTime()}-${store.status}-${store.closed_now ? 'c' : 'o'}-b3`;
   const etag = `"${version}"`;
   res.set('ETag', etag);
   res.set('Cache-Control', 'no-cache');
@@ -137,14 +138,14 @@ publicRouter.get('/stores/:slug', async (req, res) => {
   const pub = publicStore(store);
   if (preview) Object.assign(pub, { preview: true, status: store.status, accepting_orders: false });
   if (store.business_type === 'appointments') {
-    const { services, specialists } = await publicBookingCatalog(store.id);
+    const { services, specialists } = await publicBookingCatalog(store);
     return res.json({ store: pub, products: [], services, specialists, version: etag });
   }
   const products = await query(
     `SELECT ${PRODUCT_COLUMNS} FROM products p WHERE p.store_id = $1 AND p.status = 'active' ORDER BY p.position, p.created_at`,
     [store.id],
   );
-  res.json({ store: pub, products: products.rows.map(serializeProduct), version: etag });
+  res.json({ store: pub, products: products.rows.map((p) => publicProduct(p, store)), version: etag });
 });
 
 const orderLimiter = rateLimit({ windowMs: 60_000, limit: 20, standardHeaders: 'draft-8', legacyHeaders: false, keyGenerator: clientKey });
@@ -152,13 +153,14 @@ const orderLimiter = rateLimit({ windowMs: 60_000, limit: 20, standardHeaders: '
 /**
  * Records an order. Idempotent on (store, order_code) so the offline outbox can safely retry.
  * Prices come from the device (they're what the shopper saw and sent on WhatsApp); any difference
- * from the live catalog is flagged with price_mismatch for the merchant.
+ * from the live catalog is flagged with price_mismatch for the merchant. A line whose price is hidden
+ * ("Price on request") records no price; the order is marked price_on_request and its total leaves it out.
  */
 publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async (req, res) => {
   const o = parse(S.placeOrder, req.body);
   if (!o.items.length && !o.notes) throw badRequest('Add at least one item or a note');
 
-  const storeRes = await query(`SELECT id, delivery_fee, free_delivery_above, whatsapp_number, business_type, is_demo, currency_symbol FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
+  const storeRes = await query(`SELECT id, delivery_fee, free_delivery_above, whatsapp_number, business_type, is_demo, currency_symbol, hide_prices FROM stores WHERE slug = $1 AND status = 'approved'`, [req.params.slug]);
   const store = storeRes.rows[0];
   if (!store) throw notFound('Store not found');
   if (store.business_type === 'appointments') throw badRequest('This business takes appointments, not orders');
@@ -171,7 +173,7 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
   if (existing.rows[0]) return res.json({ order: existing.rows[0], duplicate: true });
 
   const live = await query(
-    `SELECT id, sku_id, name, mrp, offer_price, in_stock, status FROM products WHERE store_id = $1 AND sku_id = ANY($2)`,
+    `SELECT id, sku_id, name, mrp, offer_price, in_stock, status, hide_price FROM products WHERE store_id = $1 AND sku_id = ANY($2)`,
     [store.id, o.items.map((i) => i.sku_id)],
   );
   const bySku = new Map(live.rows.map((p) => [p.sku_id, p]));
@@ -179,18 +181,15 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
   let mismatch = false;
   const lines = o.items.map((item) => {
     const p = bySku.get(item.sku_id);
-    if (!p || p.status !== 'active' || !p.in_stock || p.offer_price !== item.unit_price) mismatch = true;
+    // Hidden now, or sent without a price (hidden when the shopper's device loaded the catalog).
+    const hidden = (p ? priceHidden(store, p) : store.hide_prices) || item.unit_price == null;
+    if (!p || p.status !== 'active' || !p.in_stock || (!hidden && p.offer_price !== item.unit_price)) mismatch = true;
+    const base = { product_id: p?.id || null, sku_id: item.sku_id, name: p?.name || item.name || item.sku_id, quantity: item.quantity };
+    if (hidden) return { ...base, mrp: 0, unit_price: 0, line_total: 0, price_hidden: true };
     const unit = round2(item.unit_price);
-    return {
-      product_id: p?.id || null,
-      sku_id: item.sku_id,
-      name: p?.name || item.name || item.sku_id,
-      mrp: round2(Math.max(p?.mrp ?? item.mrp ?? unit, unit)),
-      unit_price: unit,
-      quantity: item.quantity,
-      line_total: round2(unit * item.quantity),
-    };
+    return { ...base, mrp: round2(Math.max(p?.mrp ?? item.mrp ?? unit, unit)), unit_price: unit, line_total: round2(unit * item.quantity), price_hidden: false };
   });
+  const priceOnRequest = lines.some((l) => l.price_hidden);
   const subtotal = round2(lines.reduce((s, l) => s + l.line_total, 0));
   const savings = round2(lines.reduce((s, l) => s + (l.mrp - l.unit_price) * l.quantity, 0));
   const deliveryFee = deliveryFeeFor(store, subtotal, lines.length > 0);
@@ -205,19 +204,19 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
   const order = await tx(async (client) => {
     const { rows } = await client.query(
       `INSERT INTO orders (store_id, order_code, customer_id, customer_name, customer_phone, delivery_address, notes,
-                           subtotal, delivery_fee, savings, total, price_mismatch, placed_offline, client_created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+                           subtotal, delivery_fee, savings, total, price_mismatch, placed_offline, client_created_at, price_on_request)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
        ON CONFLICT (store_id, order_code) DO NOTHING
-       RETURNING id, order_code, total, status, price_mismatch`,
+       RETURNING id, order_code, total, status, price_mismatch, price_on_request`,
       [store.id, o.order_code, req.customerId, name, phone, o.delivery_address, o.notes, subtotal, deliveryFee, savings,
-        round2(subtotal + deliveryFee), mismatch, o.placed_offline, o.client_created_at || null],
+        round2(subtotal + deliveryFee), mismatch, o.placed_offline, o.client_created_at || null, priceOnRequest],
     );
     if (!rows[0]) return null; // a concurrent retry won the race
     for (const l of lines) {
       await client.query(
-        `INSERT INTO order_items (order_id, product_id, sku_id, name, mrp, unit_price, quantity, line_total)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
-        [rows[0].id, l.product_id, l.sku_id, l.name, l.mrp, l.unit_price, l.quantity, l.line_total],
+        `INSERT INTO order_items (order_id, product_id, sku_id, name, mrp, unit_price, quantity, line_total, price_hidden)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+        [rows[0].id, l.product_id, l.sku_id, l.name, l.mrp, l.unit_price, l.quantity, l.line_total, l.price_hidden],
       );
     }
     return rows[0];
@@ -230,7 +229,8 @@ publicRouter.post('/stores/:slug/orders', orderLimiter, optionalCustomer, async 
   // Owner's phones: a notification per new order (not for retries of one already recorded).
   notifyStoreOwner(store.id, (t) => ({
     title: t('push.newOrderTitle', { code: order.order_code }),
-    body: t('push.newOrderBody', { name: name || t('push.customer'), total: `${store.currency_symbol || '₹'}${order.total}` }),
+    // "₹120 + price on request" when some lines have no price yet.
+    body: t('push.newOrderBody', { name: name || t('push.customer'), total: `${store.currency_symbol || '₹'}${order.total}${priceOnRequest ? ` + ${t('price.onRequest')}` : ''}` }),
     url: '/merchant?tab=orders',
     tag: `order-${order.order_code}`,
   }));

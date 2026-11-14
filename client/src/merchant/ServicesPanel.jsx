@@ -6,11 +6,12 @@ import { formatMoney } from '../lib/format.js';
 import { useT } from '../i18n/index.jsx';
 
 const DURATIONS = [10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180, 240];
-const EMPTY = { name: '', category: '', duration_min: 30, price: '', description: '', active: true };
+const EMPTY = { name: '', category: '', duration_min: 30, price: '', description: '', active: true, hide_price: false };
 
-function ServiceForm({ service, onSave, onCancel }) {
+function ServiceForm({ service, onSave, onCancel, storeHidesPrices = false }) {
   const t = useT();
-  const [form, setForm] = useState(() => (service ? { ...EMPTY, ...service, price: String(service.price) } : EMPTY));
+  // A hidden price saved blank is stored as 0: show it blank again.
+  const [form, setForm] = useState(() => (service ? { ...EMPTY, ...service, price: service.hide_price && !Number(service.price) ? '' : String(service.price) } : EMPTY));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [fields, setFields] = useState({});
@@ -52,7 +53,7 @@ function ServiceForm({ service, onSave, onCancel }) {
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="sv-price">{t('appt.price')} <span className="text-rose-500">*</span></label>
+          <label className="label" htmlFor="sv-price">{t('appt.price')} {!form.hide_price && <span className="text-rose-500">*</span>}</label>
           <input id="sv-price" className="input" type="number" min="0" inputMode="decimal" value={form.price} onChange={set('price')} placeholder="300" />
           {fields.price && <p className="mt-1 text-xs text-rose-600">{fields.price}</p>}
         </div>
@@ -65,6 +66,14 @@ function ServiceForm({ service, onSave, onCancel }) {
         <label className="label" htmlFor="sv-description">{t('appt.serviceDescription')}</label>
         <textarea id="sv-description" className="input" rows={2} value={form.description} onChange={set('description')} maxLength={1000} />
       </div>
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" checked={Boolean(form.hide_price)} onChange={set('hide_price')} className="mt-0.5 h-4 w-4 flex-none accent-[var(--brand)]" />
+        <span>
+          <span className="block">{t('price.hideOne')}</span>
+          <span className="block text-xs text-stone-500">{t('price.hideOneHint')}</span>
+          {storeHidesPrices && <span className="block text-xs text-amber-700">{t('price.allHiddenNote')}</span>}
+        </span>
+      </label>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={form.active} onChange={set('active')} className="h-4 w-4 accent-[var(--brand)]" /> {t('appt.serviceActive')}
       </label>
@@ -75,7 +84,7 @@ function ServiceForm({ service, onSave, onCancel }) {
 }
 
 /** Services an appointment business offers: name, duration, price (e.g. Hair Cut · 30 min · ₹200). */
-export default function ServicesPanel({ currency, onChange, onBulk }) {
+export default function ServicesPanel({ currency, onChange, onBulk, storeHidesPrices = false }) {
   const t = useT();
   const [list, setList] = useState({ loading: true, items: [], error: '' });
   const [editing, setEditing] = useState(null); // null | 'new' | service
@@ -103,7 +112,7 @@ export default function ServicesPanel({ currency, onChange, onBulk }) {
     onChange?.();
   };
 
-  if (editing) return <ServiceForm service={editing === 'new' ? null : editing} onSave={save} onCancel={() => setEditing(null)} />;
+  if (editing) return <ServiceForm service={editing === 'new' ? null : editing} onSave={save} onCancel={() => setEditing(null)} storeHidesPrices={storeHidesPrices} />;
 
   return (
     <div className="space-y-3">
@@ -120,7 +129,8 @@ export default function ServicesPanel({ currency, onChange, onBulk }) {
               <p className="truncate text-sm font-semibold">{s.name}</p>
               <p className="flex flex-wrap items-center gap-x-2 text-xs text-stone-500">
                 <span className="flex items-center gap-1"><Clock size={11} /> {t('appt.minutes', { count: s.duration_min })}</span>
-                <span className="font-semibold text-stone-700">{formatMoney(s.price, currency)}</span>
+                <span className="font-semibold text-stone-700">{s.hide_price && !Number(s.price) ? t('price.onRequest') : formatMoney(s.price, currency)}</span>
+                {(s.hide_price || storeHidesPrices) && <span className="rounded-full bg-amber-100 px-1.5 text-[10px] font-bold text-amber-800">{t('price.hiddenBadge')}</span>}
                 {s.category && s.category !== 'Other' && <span>{s.category}</span>}
                 {!s.active && <span className="rounded-full bg-stone-200 px-1.5 text-[10px] font-bold">{t('appt.hidden')}</span>}
               </p>

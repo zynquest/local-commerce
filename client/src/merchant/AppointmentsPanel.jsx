@@ -109,7 +109,7 @@ export default function AppointmentsPanel({ store, currency, onChange }) {
                     <Clock size={14} className="text-brand" />
                     <span dir="ltr">{formatClock(a.time)} – {formatClock(a.end_time)}</span>
                   </p>
-                  <p className="text-sm">{a.service_name} <span className="text-stone-500">· {formatMoney(a.price, currency)}</span></p>
+                  <p className="text-sm">{a.service_name} <span className="text-stone-500">· {a.price == null ? t('price.onRequest') : formatMoney(a.price, currency)}</span></p>
                   <p className="flex items-center gap-1 text-xs text-stone-500"><UserRound size={12} /> {a.specialist_name}</p>
                 </div>
                 <span className={`flex-none rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS_STYLE[a.status]}`}>{t(`appt.status.${a.status}`)}</span>

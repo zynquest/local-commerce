@@ -19,6 +19,8 @@ export const merchantRouter = Router();
 merchantRouter.use(requireOwner);
 
 const PRODUCT_FIELDS = ['name', 'category', 'mrp', 'offer_price', 'images', 'description', 'specs', 'tags', 'rating', 'review_count', 'in_stock'];
+// The product form also sets hide_price ("Price on request"); the CSV import leaves it as it is.
+const FORM_FIELDS = [...PRODUCT_FIELDS, 'hide_price'];
 
 const skuLimitError = (limit, used, adding) =>
   conflict(
@@ -290,11 +292,11 @@ merchantRouter.post('/products', async (req, res) => {
       p.sku_id = await nextSku(client, req.user.store_id);
     }
     const { rows } = await client.query(
-      `INSERT INTO products (store_id, sku_id, ${PRODUCT_FIELDS.join(', ')}, position)
-       VALUES ($1, $2, ${PRODUCT_FIELDS.map((_, i) => `$${i + 3}`).join(', ')},
+      `INSERT INTO products (store_id, sku_id, ${FORM_FIELDS.join(', ')}, position)
+       VALUES ($1, $2, ${FORM_FIELDS.map((_, i) => `$${i + 3}`).join(', ')},
                (SELECT coalesce(max(position), 0) + 1 FROM products WHERE store_id = $1))
        RETURNING ${PRODUCT_COLUMNS.replaceAll('p.', '')}`,
-      [req.user.store_id, p.sku_id, ...PRODUCT_FIELDS.map((f) => (f === 'specs' ? JSON.stringify(p[f]) : p[f]))],
+      [req.user.store_id, p.sku_id, ...FORM_FIELDS.map((f) => (f === 'specs' ? JSON.stringify(p[f]) : p[f]))],
     );
     await client.query('UPDATE stores SET updated_at = now() WHERE id = $1', [req.user.store_id]);
     return rows[0];
@@ -305,10 +307,10 @@ merchantRouter.post('/products', async (req, res) => {
 merchantRouter.put('/products/:id', async (req, res) => {
   const p = parse(S.product, req.body); // sku_id is immutable; the body's value is ignored
   const { rows } = await query(
-    `UPDATE products SET ${PRODUCT_FIELDS.map((f, i) => `${f} = $${i + 3}`).join(', ')}, updated_at = now()
+    `UPDATE products SET ${FORM_FIELDS.map((f, i) => `${f} = $${i + 3}`).join(', ')}, updated_at = now()
       WHERE id = $1 AND store_id = $2
       RETURNING ${PRODUCT_COLUMNS.replaceAll('p.', '')}`,
-    [req.params.id, req.user.store_id, ...PRODUCT_FIELDS.map((f) => (f === 'specs' ? JSON.stringify(p[f]) : p[f]))],
+    [req.params.id, req.user.store_id, ...FORM_FIELDS.map((f) => (f === 'specs' ? JSON.stringify(p[f]) : p[f]))],
   );
   if (!rows[0]) throw notFound('Product not found');
   await query('UPDATE stores SET updated_at = now() WHERE id = $1', [req.user.store_id]);
@@ -463,7 +465,7 @@ merchantRouter.get('/orders', async (req, res) => {
     `SELECT o.*, c.name AS account_name, EXISTS (SELECT 1 FROM khata_entries k WHERE k.order_id = o.id) AS in_khata,
             coalesce(json_agg(json_build_object(
               'sku_id', i.sku_id, 'name', i.name, 'quantity', i.quantity,
-              'unit_price', i.unit_price, 'mrp', i.mrp, 'line_total', i.line_total) ORDER BY i.id)
+              'unit_price', i.unit_price, 'mrp', i.mrp, 'line_total', i.line_total, 'price_hidden', i.price_hidden) ORDER BY i.id)
               FILTER (WHERE i.id IS NOT NULL), '[]') AS items
        FROM orders o
        LEFT JOIN order_items i ON i.order_id = o.id

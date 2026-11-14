@@ -119,7 +119,13 @@ export default function CustomerAccount() {
             <p className="mt-2 text-sm text-stone-600">
               {o.items.map((i) => `${i.quantity} × ${i.name}`).join(', ') || o.notes}
             </p>
-            <p className="mt-1 text-end font-bold">{formatMoney(o.total, o.currency_symbol)}</p>
+            <p className="mt-1 text-end font-bold">
+              {!o.price_on_request
+                ? formatMoney(o.total, o.currency_symbol)
+                : Number(o.total) > 0
+                  ? t('price.plusOnRequest', { amount: formatMoney(o.total, o.currency_symbol) })
+                  : t('price.onRequest')}
+            </p>
           </article>
         ))}
       </section>

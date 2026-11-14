@@ -8,7 +8,7 @@ import { rich, useT } from '../i18n/index.jsx';
 
 function StoreGate() {
   const t = useT();
-  const { status, error, slug, store, expiresAt, refresh, refreshing } = useStore();
+  const { status, error, slug, store, products, expiresAt, refresh, refreshing } = useStore();
   const retry = (
     <button onClick={refresh} disabled={refreshing} className="btn-brand mt-4">
       <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} /> {t('common.tryAgain')}
@@ -40,7 +40,7 @@ function StoreGate() {
       </MessageScreen>
     );
   return (
-    <CartProvider key={slug} slug={slug} store={store}>
+    <CartProvider key={slug} slug={slug} store={store} products={products}>
       <OfflineBanner expiresAt={expiresAt} />
       <Outlet />
       <CartDrawer />

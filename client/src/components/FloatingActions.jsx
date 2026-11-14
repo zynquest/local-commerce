@@ -23,7 +23,7 @@ export default function FloatingActions({ hideCartBar = false }) {
             <span className="flex items-center gap-2 text-sm font-semibold">
               <ShoppingBag size={20} />
               {cart.count > 0 ? t('cart.items', { count: cart.count }) : t('cart.customList')}
-              {cart.count > 0 && <span className="opacity-80">· {formatMoney(cart.totals.subtotal, config.currency_symbol)}</span>}
+              {cart.count > 0 && !cart.totals.allUnpriced && <span className="opacity-80">· {formatMoney(cart.totals.subtotal, config.currency_symbol)}{cart.totals.unpriced ? '+' : ''}</span>}
             </span>
             <span className="text-sm font-bold">{t('cart.viewBag')} <span className="inline-block rtl:rotate-180">→</span></span>
           </button>

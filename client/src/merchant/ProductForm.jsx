@@ -19,6 +19,7 @@ const EMPTY = {
   rating: '',
   review_count: '',
   in_stock: true,
+  hide_price: false, // customers see "Price on request"; the prices may then be left blank
 };
 
 /** Form state → API payload. Only name, MRP and list price are required; the item code is auto-assigned if blank. */
@@ -36,6 +37,7 @@ export function toPayload(f, isNew) {
     rating: f.rating === '' ? null : Number(f.rating),
     review_count: f.review_count === '' ? 0 : Number(f.review_count),
     in_stock: f.in_stock,
+    hide_price: Boolean(f.hide_price),
   };
 }
 
@@ -45,11 +47,15 @@ function validate(t, f, isNew, existingSkus) {
   const e = {};
   if (!f.name.trim()) e.name = t('errors.nameRequired');
   else if (f.name.length > 100) e.name = t('errors.maxChars', { n: 100 });
-  if (String(f.mrp).trim() === '') e.mrp = t('errors.fieldRequired', { field: t('errors.labelMrp') });
-  else if (!(num(f.mrp) >= 0)) e.mrp = t('errors.fieldNumber', { field: t('errors.labelMrp') });
-  if (String(f.list_price).trim() === '') e.list_price = t('errors.fieldRequired', { field: t('errors.labelListPrice') });
-  else if (!(num(f.list_price) >= 0)) e.list_price = t('errors.fieldNumber', { field: t('errors.labelListPrice') });
-  else if (!e.mrp && num(f.list_price) > num(f.mrp)) e.list_price = t('errors.listOverMrp');
+  // With the price hidden ("Price on request"), the prices may be left blank.
+  const blank = (v) => String(v).trim() === '';
+  if (blank(f.mrp)) {
+    if (!f.hide_price) e.mrp = t('errors.fieldRequired', { field: t('errors.labelMrp') });
+  } else if (!(num(f.mrp) >= 0)) e.mrp = t('errors.fieldNumber', { field: t('errors.labelMrp') });
+  if (blank(f.list_price)) {
+    if (!f.hide_price) e.list_price = t('errors.fieldRequired', { field: t('errors.labelListPrice') });
+  } else if (!(num(f.list_price) >= 0)) e.list_price = t('errors.fieldNumber', { field: t('errors.labelListPrice') });
+  else if (!e.mrp && !blank(f.mrp) && num(f.list_price) > num(f.mrp)) e.list_price = t('errors.listOverMrp');
   if (isNew && f.sku_id.trim()) {
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/.test(f.sku_id.trim())) e.sku_id = t('errors.itemCodeFormat');
     else if (existingSkus.has(f.sku_id.trim())) e.sku_id = t('pf.codeUsed');
@@ -69,7 +75,7 @@ const SERVER_FIELD = { offer_price: 'list_price' };
 /**
  * Photos: up to MAX_PHOTOS, each edited (crop, light, text) then uploaded. onBulk: opens CSV Import.
  */
-export default function ProductForm({ product, categories, existingSkus, onSave, onCancel, onBulk }) {
+export default function ProductForm({ product, categories, existingSkus, onSave, onCancel, onBulk, storeHidesPrices = false }) {
   const t = useT();
   const isNew = !product;
   const [f, setF] = useState(() =>
@@ -78,8 +84,9 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
           ...EMPTY,
           ...product,
           sku_id: product.sku_id,
-          mrp: String(product.mrp ?? ''),
-          list_price: String(product.offer_price ?? ''),
+          // A hidden price saved blank is stored as 0: show it blank again.
+          mrp: product.hide_price && !Number(product.mrp) ? '' : String(product.mrp ?? ''),
+          list_price: product.hide_price && !Number(product.offer_price) ? '' : String(product.offer_price ?? ''),
           rating: product.rating ? String(product.rating) : '',
           review_count: product.review_count ? String(product.review_count) : '',
         }
@@ -200,21 +207,29 @@ export default function ProductForm({ product, categories, existingSkus, onSave,
             {err('name')}
           </div>
           <div>
-            {reqLabel('pf-mrp', t('pf.mrp'))}
+            {f.hide_price ? <label className="label" htmlFor="pf-mrp">{t('pf.mrp')}</label> : reqLabel('pf-mrp', t('pf.mrp'))}
             <input maxLength={10} id="pf-mrp" className="input" value={f.mrp} onChange={set('mrp')} inputMode="decimal" placeholder="260" aria-invalid={!!errors.mrp} />
             {err('mrp')}
           </div>
           <div>
-            {reqLabel('pf-list_price', t('pf.listPrice'))}
+            {f.hide_price ? <label className="label" htmlFor="pf-list_price">{t('pf.listPrice')}</label> : reqLabel('pf-list_price', t('pf.listPrice'))}
             <input maxLength={10} id="pf-list_price" className="input" value={f.list_price} onChange={set('list_price')} inputMode="decimal" placeholder="235" aria-invalid={!!errors.list_price} />
             {err('list_price')}
           </div>
         </div>
-        {off > 0 && !errors.list_price && (
+        {off > 0 && !errors.list_price && !f.hide_price && (
           <p className="mt-3 text-xs text-emerald-800">
             {rich(t('pf.discountPreview', { pct: off, amount: formatMoney(num(f.mrp) - num(f.list_price)) }), { b: (x) => <b>{x}</b> })}
           </p>
         )}
+        <label className="mt-4 flex items-start gap-3 rounded-xl bg-stone-50 p-3">
+          <input type="checkbox" checked={Boolean(f.hide_price)} onChange={set('hide_price')} className="mt-0.5 h-5 w-5 flex-none accent-[var(--brand)]" />
+          <span>
+            <span className="block text-sm font-medium">{t('price.hideOne')}</span>
+            <span className="block text-xs text-stone-500">{t('price.hideOneHint')}</span>
+          </span>
+        </label>
+        {storeHidesPrices && <p className="mt-2 text-xs text-amber-700">{t('price.allHiddenNote')}</p>}
       </section>
 
       {/* Optional */}

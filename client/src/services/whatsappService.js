@@ -10,11 +10,19 @@ export function generateOrderId() {
   return `ORD-${rand.padStart(6, '0').slice(-6)}`;
 }
 
+/** A cart line or product whose price the store hides ("Price on request"): it adds nothing to the totals. */
+export const isPriceHidden = (item) => Boolean(item?.price_hidden) || item?.offer_price == null;
+
 export function computeTotals(cartItems, storeConfig) {
   let subtotal = 0;
   let mrpSubtotal = 0;
   let savings = 0;
+  let unpriced = 0;
   for (const item of cartItems) {
+    if (isPriceHidden(item)) {
+      unpriced += 1;
+      continue;
+    }
     subtotal += item.offer_price * item.quantity;
     mrpSubtotal += Math.max(Number(item.mrp) || 0, item.offer_price) * item.quantity;
     if (item.mrp > item.offer_price) savings += (item.mrp - item.offer_price) * item.quantity;
@@ -32,10 +40,20 @@ export function computeTotals(cartItems, storeConfig) {
     savings: round2(savings),
     deliveryFee,
     freeDelivery, // fee waived by the threshold rule
-    // How much more to add for free delivery (0 when there is no rule or it's already met).
-    freeDeliveryGap: fee > 0 && threshold != null && !freeDelivery ? round2(threshold - subtotal) : 0,
+    // How much more to add for free delivery (0 when there is no rule or it's already met, or some prices are hidden).
+    freeDeliveryGap: fee > 0 && threshold != null && !freeDelivery && !unpriced ? round2(threshold - subtotal) : 0,
     total: round2(subtotal + deliveryFee),
+    // Lines with "Price on request": the totals leave them out and the store confirms them on WhatsApp.
+    unpriced,
+    allUnpriced: hasItems && unpriced === cartItems.length,
   };
+}
+
+/** The total as customers see it: "₹120", "₹120 + price on request", or "Price on request" when nothing has a price. */
+export function totalText(totals, money, t) {
+  if (!totals.unpriced) return money(totals.total);
+  if (totals.total > 0) return t('price.plusOnRequest', { amount: money(totals.total) });
+  return t('price.onRequest');
 }
 
 /** Language of the WhatsApp order message: the store's fixed choice, or the customer's language when 'auto'. */
@@ -63,6 +81,11 @@ export function buildOrderMessage(storeConfig, cartItems, unlistedNotes, custome
   if (cartItems.length) {
     m += `📦 *${t('wa.items')}:*\n`;
     cartItems.forEach((item, idx) => {
+      if (isPriceHidden(item)) {
+        m += `${idx + 1}. *${item.name}*\n`;
+        m += `   ${t('wa.qty')}: ${item.quantity} · _${t('price.onRequest')}_\n\n`;
+        return;
+      }
       const lineTotal = round2(item.offer_price * item.quantity);
       const lineSavings = round2((item.mrp - item.offer_price) * item.quantity);
       m += `${idx + 1}. *${item.name}*\n`;
@@ -71,11 +94,14 @@ export function buildOrderMessage(storeConfig, cartItems, unlistedNotes, custome
       m += `\n\n`;
     });
     m += `${DIVIDER}\n`;
-    m += `💵 *${t('wa.subtotal')}:* ${money(totals.mrpSubtotal)}\n`;
-    if (totals.savings > 0) m += `🎉 *${t('wa.totalSavings')}:* −${money(totals.savings)}\n`;
+    if (!totals.allUnpriced) {
+      m += `💵 *${t('wa.subtotal')}:* ${money(totals.mrpSubtotal)}\n`;
+      if (totals.savings > 0) m += `🎉 *${t('wa.totalSavings')}:* −${money(totals.savings)}\n`;
+    }
     if (totals.deliveryFee > 0) m += `🛵 *${t('wa.deliveryFee')}:* ${money(totals.deliveryFee)}\n`;
     else if (totals.freeDelivery) m += `🛵 *${t('wa.deliveryFee')}:* ${t('wa.free')}\n`;
-    m += `💰 *${t('wa.total')}: ${money(totals.total)}*\n`;
+    m += `💰 *${t('wa.total')}: ${totalText(totals, money, t)}*\n`;
+    if (totals.unpriced) m += `_${t('price.pendingNote')}_\n`;
     m += `${DIVIDER}\n\n`;
   }
 
@@ -97,7 +123,7 @@ export function buildOrderMessage(storeConfig, cartItems, unlistedNotes, custome
   m += `_${t('wa.footer', { store: storeConfig.name })}_`;
 
   const itemsSummary = cartItems
-    .map((i) => `${i.sku_id} × ${i.quantity} = ${round2(i.offer_price * i.quantity)}`)
+    .map((i) => `${i.sku_id} × ${i.quantity} = ${isPriceHidden(i) ? '?' : round2(i.offer_price * i.quantity)}`)
     .join('; ');
 
   return { orderId, message: m, totals, itemsSummary, notes };
@@ -115,7 +141,8 @@ export function buildBookingMessage(storeConfig, appt, { t = makeT('en'), format
   let m = `📅 *${t('wa.apptRequest', { code: appt.code })}*\n`;
   m += `🏪 *${t('wa.store')}:* ${storeConfig.name}\n`;
   m += `${DIVIDER}\n`;
-  m += `✨ *${t('wa.apptService')}:* ${appt.service_name} (${t('appt.minutes', { count: appt.duration_min })}) — ${formatMoney(appt.price, cur)}\n`;
+  const price = appt.price == null || appt.price_hidden ? t('price.onRequest') : formatMoney(appt.price, cur);
+  m += `✨ *${t('wa.apptService')}:* ${appt.service_name} (${t('appt.minutes', { count: appt.duration_min })}) — ${price}\n`;
   m += `👤 *${t('wa.apptSpecialist')}:* ${appt.specialist_name}\n`;
   m += `🗓️ *${t('wa.apptDate')}:* ${day}\n`;
   m += `⏰ *${t('wa.apptTime')}:* ${clock(appt.time)} – ${clock(appt.end_time)}\n`;

@@ -11,13 +11,20 @@ const toLine = (p, quantity) => ({
   name: p.name,
   mrp: p.mrp,
   offer_price: p.offer_price,
+  price_hidden: Boolean(p.price_hidden), // "Price on request": no price is sent or totalled
   image: p.images?.[0] || '',
   quantity,
 });
 
 /** Cart + checkout state, persisted per store in localStorage. */
-export function CartProvider({ slug, store, children }) {
-  const [items, setItems] = useLocalStorage(`cart:${slug}`, []);
+export function CartProvider({ slug, store, products, children }) {
+  const [saved, setItems] = useLocalStorage(`cart:${slug}`, []);
+  // A price the store has hidden since the item went into the bag is hidden in the bag too ("Price on request").
+  const items = useMemo(() => {
+    const hidden = new Set((products || []).filter((p) => p.price_hidden).map((p) => p.sku_id));
+    if (!hidden.size) return saved;
+    return saved.map((i) => (hidden.has(i.sku_id) ? { ...i, mrp: null, offer_price: null, price_hidden: true } : i));
+  }, [saved, products]);
   const [notes, setNotes] = useLocalStorage(`cart-notes:${slug}`, '');
   const [customer, setCustomer] = useLocalStorage('customer-info', { name: '', phone: '', address: '' });
   const [open, setOpen] = useState(false);

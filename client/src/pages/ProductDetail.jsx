@@ -7,6 +7,7 @@ import { MessageScreen } from '../components/StatusScreens.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { discountPercent, formatMoney } from '../lib/format.js';
+import { isPriceHidden } from '../services/whatsappService.js';
 import { useSeo } from '../lib/seo.js';
 import { useT } from '../i18n/index.jsx';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
@@ -47,7 +48,7 @@ export default function ProductDetail() {
   }, [sku]);
 
   useSeo({
-    title: product ? `${product.name} — ₹${product.offer_price} | ${config?.name}` : config?.name,
+    title: product ? (isPriceHidden(product) ? `${product.name} | ${config?.name}` : `${product.name} — ₹${product.offer_price} | ${config?.name}`) : config?.name,
     description: product ? product.description || t('seo.productDesc', { name: product.name, store: config?.name }) : '',
     path: product ? link(`/p/${encodeURIComponent(product.sku_id)}`) : undefined,
     image: product?.images?.[0],
@@ -73,7 +74,8 @@ export default function ProductDetail() {
 
   const cur = config?.currency_symbol || '₹';
   const money = (n) => formatMoney(n, cur);
-  const off = discountPercent(product.mrp, product.offer_price);
+  const hidden = isPriceHidden(product); // "Price on request"
+  const off = hidden ? 0 : discountPercent(product.mrp, product.offer_price);
   const specEntries = Object.entries(product.specs || {});
   const specs = specEntries.filter(([k]) => !GUIDE_KEYS.test(k));
   const guides = specEntries.filter(([k]) => GUIDE_KEYS.test(k));
@@ -161,7 +163,11 @@ export default function ProductDetail() {
 
           <div className="mt-4 rounded-2xl bg-stone-50 p-4">
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold">{money(product.offer_price)}</span>
+              {hidden ? (
+                <span className="text-xl font-extrabold">{t('price.onRequest')}</span>
+              ) : (
+                <span className="text-3xl font-extrabold">{money(product.offer_price)}</span>
+              )}
               {off > 0 && (
                 <>
                   <span className="text-stone-400 line-through">{money(product.mrp)}</span>
@@ -185,6 +191,7 @@ export default function ProductDetail() {
                 </div>
               </dl>
             )}
+            {hidden && <p className="mt-2 text-sm text-stone-600">{t('price.pendingNote')}</p>}
             {!product.in_stock && <p className="mt-2 text-sm font-semibold text-rose-600">{t('product.currentlyOut')}</p>}
           </div>
 
@@ -264,7 +271,8 @@ export default function ProductDetail() {
           </div>
           <button onClick={addToBag} disabled={!product.in_stock} className="btn-brand h-12 flex-1 text-base">
             <ShoppingBag size={18} />
-            {product.in_stock ? (inCart ? t('product.updateBag') : t('product.addToBag')) : t('product.outOfStock')} · {money(product.offer_price * qty)}
+            {product.in_stock ? (inCart ? t('product.updateBag') : t('product.addToBag')) : t('product.outOfStock')}
+            {!hidden && ` · ${money(product.offer_price * qty)}`}
           </button>
         </div>
       </div>

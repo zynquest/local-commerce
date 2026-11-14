@@ -306,6 +306,7 @@ export default function MerchantDashboard() {
                 setEditing(null);
                 setTab('import');
               }}
+              storeHidesPrices={Boolean(store.hide_prices)}
             />
           ) : (
             <>
@@ -333,10 +334,13 @@ export default function MerchantDashboard() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{p.name}</p>
                       <p className="truncate text-xs text-stone-500">
-                        {p.category} · {formatMoney(p.offer_price, cur)}
+                        {p.category} · {p.hide_price && !Number(p.offer_price) ? t('price.onRequest') : formatMoney(p.offer_price, cur)}
                         {p.mrp > p.offer_price && <span className="line-through"> {formatMoney(p.mrp, cur)}</span>}
                       </p>
                       <div className="mt-1 flex gap-1">
+                        {(p.hide_price || store.hide_prices) && p.status !== 'archived' && (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">{t('price.hiddenBadge')}</span>
+                        )}
                         {p.status === 'archived' ? (
                           <span className="rounded-full bg-stone-200 px-2 py-0.5 text-[10px] font-bold text-stone-600">{t('merchant.archivedBadge')}</span>
                         ) : (
@@ -385,7 +389,7 @@ export default function MerchantDashboard() {
         {tab === 'khata' && <KhataPanel store={store} currency={cur} />}
         {tab === 'orders' && <OrdersPanel currency={cur} onChange={refreshStats} />}
         {tab === 'appointments' && <AppointmentsPanel store={store} currency={cur} onChange={refreshStats} />}
-        {tab === 'services' && <ServicesPanel currency={cur} onBulk={() => setTab('import')} onChange={() => { refreshStats(); setTimeout(() => get('/merchant/store').then((r) => setStore(r.store)), 0); }} />}
+        {tab === 'services' && <ServicesPanel currency={cur} storeHidesPrices={Boolean(store.hide_prices)} onBulk={() => setTab('import')} onChange={() => { refreshStats(); setTimeout(() => get('/merchant/store').then((r) => setStore(r.store)), 0); }} />}
         {tab === 'specialists' && <SpecialistsPanel onChange={() => get('/merchant/store').then((r) => setStore(r.store))} />}
         {tab === 'import' && isAppt && <ServicesImport onDone={() => { refreshStats(); get('/merchant/store').then((r) => setStore(r.store)); }} />}
         {tab === 'import' && !isAppt && (

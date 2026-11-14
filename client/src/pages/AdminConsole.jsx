@@ -487,9 +487,9 @@ function OrderDetail({ id, onClose, onOpenStore }) {
                     <li key={n} className="flex items-start justify-between gap-3 py-2">
                       <div className="min-w-0">
                         <p className="font-medium break-words">{i.name}</p>
-                        <p className="text-xs text-stone-500">{i.quantity} × {money(i.unit_price)}</p>
+                        <p className="text-xs text-stone-500">{i.price_hidden ? `${i.quantity} × price on request` : `${i.quantity} × ${money(i.unit_price)}`}</p>
                       </div>
-                      <span className="flex-none font-semibold">{money(i.line_total)}</span>
+                      {!i.price_hidden && <span className="flex-none font-semibold">{money(i.line_total)}</span>}
                     </li>
                   ))}
                 </ul>
@@ -500,7 +500,7 @@ function OrderDetail({ id, onClose, onOpenStore }) {
                 <div className="flex justify-between"><dt className="text-stone-500">Subtotal</dt><dd>{money(order.subtotal)}</dd></div>
                 {order.savings > 0 && <div className="flex justify-between"><dt className="text-stone-500">Savings</dt><dd>{money(order.savings)}</dd></div>}
                 <div className="flex justify-between"><dt className="text-stone-500">Delivery</dt><dd>{money(order.delivery_fee)}</dd></div>
-                <div className="flex justify-between pt-1 text-base font-bold"><dt>Total</dt><dd>{money(order.total)}</dd></div>
+                <div className="flex justify-between pt-1 text-base font-bold"><dt>Total</dt><dd>{money(order.total)}{order.price_on_request ? ' + price on request' : ''}</dd></div>
               </dl>
               {order.price_mismatch && <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">The shopper's prices differed from the live catalog when this was placed.</p>}
             </section>
@@ -568,7 +568,7 @@ function BookingDetail({ id, onClose, onOpenStore }) {
               <div><p className="label">When</p><p className="font-semibold">{slotText(booking)}</p></div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div><p className="label">Service</p><p className="font-semibold break-words">{booking.service_name}</p><p className="text-xs text-stone-500">{booking.duration_min} min</p></div>
-                <div><p className="label">Price</p><p className="font-semibold">{formatMoney(booking.price, booking.currency_symbol)}</p></div>
+                <div><p className="label">Price</p><p className="font-semibold">{booking.price == null ? 'Price on request' : formatMoney(booking.price, booking.currency_symbol)}</p></div>
                 <div><p className="label">Specialist</p><p className="font-semibold break-words">{booking.specialist_name || '—'}</p></div>
                 <div><p className="label">Message language</p><p className="font-semibold uppercase">{booking.language}</p></div>
               </div>
@@ -629,7 +629,7 @@ function RecentBookings({ onClose, onOpenBooking }) {
                     </p>
                   </div>
                   <div className="flex flex-none flex-col items-end gap-1">
-                    <span className="font-bold">{formatMoney(b.price, b.currency_symbol)}</span>
+                    <span className="font-bold">{b.price == null ? 'On request' : formatMoney(b.price, b.currency_symbol)}</span>
                     <BookingStatus status={b.status} />
                   </div>
                 </button>
@@ -672,7 +672,7 @@ function RecentOrders({ onClose, onOpenOrder }) {
                     </p>
                   </div>
                   <div className="flex flex-none flex-col items-end gap-1">
-                    <span className="font-bold">{formatMoney(o.total, o.currency_symbol)}</span>
+                    <span className="font-bold">{formatMoney(o.total, o.currency_symbol)}{o.price_on_request ? '+' : ''}</span>
                     <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-semibold capitalize">{o.status.replace(/_/g, ' ')}</span>
                   </div>
                 </button>

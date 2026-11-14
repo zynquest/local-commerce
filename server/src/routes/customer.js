@@ -106,9 +106,10 @@ customerRouter.put('/me', requireCustomer, async (req, res) => {
 
 customerRouter.get('/orders', requireCustomer, async (req, res) => {
   const { rows } = await query(
-    `SELECT o.id, o.order_code, o.status, o.total, o.subtotal, o.delivery_fee, o.notes, o.created_at,
+    `SELECT o.id, o.order_code, o.status, o.total, o.subtotal, o.delivery_fee, o.notes, o.created_at, o.price_on_request,
             s.name AS store_name, s.slug AS store_slug, s.currency_symbol,
-            coalesce(json_agg(json_build_object('name', i.name, 'quantity', i.quantity, 'line_total', i.line_total)
+            coalesce(json_agg(json_build_object('name', i.name, 'quantity', i.quantity, 'line_total', i.line_total,
+                                                'price_hidden', i.price_hidden)
               ORDER BY i.id) FILTER (WHERE i.id IS NOT NULL), '[]') AS items
        FROM orders o
        JOIN stores s ON s.id = o.store_id

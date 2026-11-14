@@ -130,7 +130,7 @@ export default function BookingSheet({ initialServiceId, onClose }) {
     <div className="rounded-xl bg-stone-50 p-3 text-sm">
       <p className="font-semibold">{service.name}</p>
       <p className="text-xs text-stone-500">
-        {t('appt.minutes', { count: service.duration_min })} · {formatMoney(service.price, store.currency_symbol)}
+        {t('appt.minutes', { count: service.duration_min })} · {service.price == null ? t('price.onRequest') : formatMoney(service.price, store.currency_symbol)}
         {specialistId && <> · {specialistId === ANY ? t('book.anySpecialist') : chosenSpecialist?.name}</>}
         {date && <> · {formatDay(date)}</>}
         {time && <> · <span dir="ltr">{formatClock(time)}</span></>}
@@ -173,7 +173,11 @@ export default function BookingSheet({ initialServiceId, onClose }) {
                       <span className="block font-semibold">{s.name}</span>
                       <span className="block text-xs text-stone-500">{t('appt.minutes', { count: s.duration_min })}</span>
                     </span>
-                    <span className="flex-none font-bold">{formatMoney(s.price, store.currency_symbol)}</span>
+                    {s.price == null ? (
+                      <span className="flex-none text-xs font-semibold text-stone-500">{t('price.onRequest')}</span>
+                    ) : (
+                      <span className="flex-none font-bold">{formatMoney(s.price, store.currency_symbol)}</span>
+                    )}
                   </button>
                 </li>
               ))}

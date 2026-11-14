@@ -65,7 +65,11 @@ export default function BookingStorefront() {
                       {s.description && <p className="line-clamp-2 text-xs text-stone-500">{s.description}</p>}
                       <p className="mt-0.5 flex items-center gap-1 text-xs text-stone-500"><Clock size={11} /> {t('appt.minutes', { count: s.duration_min })}</p>
                     </div>
-                    <span className="flex-none font-bold">{formatMoney(s.price, config.currency_symbol)}</span>
+                    {s.price == null ? (
+                      <span className="flex-none text-xs font-semibold text-stone-500">{t('price.onRequest')}</span>
+                    ) : (
+                      <span className="flex-none font-bold">{formatMoney(s.price, config.currency_symbol)}</span>
+                    )}
                     <button type="button" disabled={!canBook} onClick={() => setBooking({ serviceId: s.id })} className="btn-brand flex-none px-3 py-1.5 text-sm">
                       {t('book.book')}
                     </button>

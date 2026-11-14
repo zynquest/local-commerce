@@ -7,7 +7,7 @@ import WhatsAppIcon from './WhatsAppIcon.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useStore } from '../context/StoreContext.jsx';
 import { formatMoney, getOpenStatus } from '../lib/format.js';
-import { compileWhatsAppOrder, orderMessageLanguage } from '../services/whatsappService.js';
+import { compileWhatsAppOrder, isPriceHidden, orderMessageLanguage, totalText } from '../services/whatsappService.js';
 import CustomerAuthModal from './CustomerAuthModal.jsx';
 import { useSession } from '../context/SessionContext.jsx';
 import { queueOrder } from '../services/orderService.js';
@@ -26,7 +26,7 @@ export default function CartDrawer() {
   const addressRef = useRef(null);
   const cur = config?.currency_symbol || '₹';
   const money = (n) => formatMoney(n, cur);
-  const { subtotal, mrpSubtotal, savings, deliveryFee, freeDelivery, freeDeliveryGap, total } = cart.totals;
+  const { subtotal, mrpSubtotal, savings, deliveryFee, freeDelivery, freeDeliveryGap, unpriced, allUnpriced } = cart.totals;
 
   // Prefill blank delivery fields from the shopper's account.
   useEffect(() => {
@@ -57,7 +57,8 @@ export default function CartDrawer() {
   const hasItems = cart.items.length > 0;
   const hasNotes = cart.notes.trim().length > 0;
   const minOrder = Number(config.minimum_order) || 0;
-  const belowMin = hasItems && subtotal < minOrder;
+  // The minimum can't be checked while some prices are hidden (the store confirms them): it doesn't block then.
+  const belowMin = hasItems && !unpriced && subtotal < minOrder;
   const status = getOpenStatus(config.opening_hours, config.closed_days);
   const closedTemp = Boolean(config.temporarily_closed); // owner's holiday: no orders until it reopens
   const canOrder = (hasItems || hasNotes) && !belowMin && !!config.whatsapp_number && !closedTemp;
@@ -91,7 +92,7 @@ export default function CartDrawer() {
         name: i.name,
         mrp: i.mrp,
         quantity: i.quantity,
-        unit_price: i.offer_price,
+        unit_price: isPriceHidden(i) ? null : i.offer_price,
       })),
       notes: order.notes || null,
       customer_name: cart.customer.name || null,
@@ -165,10 +166,14 @@ export default function CartDrawer() {
                       <SmartImage src={item.image} alt={item.name} hint={config.category} width={160} className="h-16 w-16 flex-none rounded-lg object-cover" />
                       <div className="flex min-w-0 flex-1 flex-col">
                         <p className="line-clamp-2 text-sm font-medium">{item.name}</p>
-                        <p className="text-xs text-stone-500">
-                          <span dir="ltr">{money(item.offer_price)}</span>
-                          {item.mrp > item.offer_price && <>{' '}<span dir="ltr" className="line-through">{money(item.mrp)}</span></>}
-                        </p>
+                        {isPriceHidden(item) ? (
+                          <p className="text-xs font-semibold text-stone-500">{t('price.onRequest')}</p>
+                        ) : (
+                          <p className="text-xs text-stone-500">
+                            <span dir="ltr">{money(item.offer_price)}</span>
+                            {item.mrp > item.offer_price && <>{' '}<span dir="ltr" className="line-through">{money(item.mrp)}</span></>}
+                          </p>
+                        )}
                         <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                           <div className="w-28">
                             <QuantityStepper
@@ -177,7 +182,7 @@ export default function CartDrawer() {
                               onRemove={() => cart.remove(item)}
                             />
                           </div>
-                          <span className="text-sm font-bold">{money(item.offer_price * item.quantity)}</span>
+                          {!isPriceHidden(item) && <span className="text-sm font-bold">{money(item.offer_price * item.quantity)}</span>}
                         </div>
                       </div>
                       <button
@@ -263,10 +268,12 @@ export default function CartDrawer() {
             <footer className="pb-safe space-y-2 border-t border-stone-200 bg-white px-4 pt-3">
               {hasItems && (
                 <dl className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-stone-500">{t('cart.subtotal')}</dt>
-                    <dd>{money(mrpSubtotal)}</dd>
-                  </div>
+                  {!allUnpriced && (
+                    <div className="flex justify-between">
+                      <dt className="text-stone-500">{t('cart.subtotal')}</dt>
+                      <dd>{money(mrpSubtotal)}</dd>
+                    </div>
+                  )}
                   {savings > 0 && (
                     <div className="flex justify-between text-emerald-700">
                       <dt>{t('cart.youSave')}</dt>
@@ -287,8 +294,9 @@ export default function CartDrawer() {
                   )}
                   <div className="flex justify-between border-t border-dashed border-stone-200 pt-1 text-base font-bold">
                     <dt>{t('cart.total')}</dt>
-                    <dd>{money(total)}</dd>
+                    <dd className="text-end">{totalText(cart.totals, money, t)}</dd>
                   </div>
+                  {unpriced > 0 && <p className="text-xs text-stone-500">{t('price.pendingNote')}</p>}
                 </dl>
               )}
               {belowMin && (

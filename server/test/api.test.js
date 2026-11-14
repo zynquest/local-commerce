@@ -368,6 +368,48 @@ describe('storefront + orders', () => {
     assert.equal((await admin('GET', '/api/platform/orders/not-a-uuid')).status, 404);
   });
 
+  test('hidden prices: per product and store-wide, never sent to customers; orders go through as "price on request"', async () => {
+    // A product with its price hidden may be saved without prices.
+    const made = await owner('POST', '/api/merchant/products', { name: `Custom Cake ${run}`, mrp: '', list_price: '', hide_price: true });
+    assert.equal(made.status, 201, JSON.stringify(made.body));
+    assert.equal(made.body.product.hide_price, true);
+    assert.equal((await owner('POST', '/api/merchant/products', { name: `No Price ${run}`, mrp: '', list_price: '' })).status, 400, 'a shown price is still required');
+
+    let pub = await shopper('GET', `/api/stores/${slug}`);
+    const cake = pub.body.products.find((p) => p.name === `Custom Cake ${run}`);
+    const dal = pub.body.products.find((p) => p.name === 'Dal');
+    assert.deepEqual([cake.price_hidden, cake.mrp, cake.offer_price], [true, null, null]);
+    assert.equal('hide_price' in cake, false);
+    assert.deepEqual([dal.price_hidden, dal.offer_price], [false, 90]);
+
+    // Store-wide: every price is hidden, then each product's own setting applies again.
+    await owner('PUT', '/api/merchant/store', { hide_prices: true });
+    pub = await shopper('GET', `/api/stores/${slug}`);
+    assert.equal(pub.body.store.hide_prices, true);
+    assert.ok(pub.body.products.every((p) => p.price_hidden && p.offer_price === null && p.mrp === null));
+    const page = await fetch(`${base}/s/${slug}/p/${encodeURIComponent(dal.sku_id)}`).then((r) => r.text());
+    assert.ok(!/og:price:amount|product:price:amount/.test(page), 'no price tags on the product page');
+    assert.match(page, /<title>Dal \|/);
+    assert.ok(!page.includes('"price":'), 'no price in the product data');
+    await owner('PUT', '/api/merchant/store', { hide_prices: false });
+
+    // An order mixing a priced and a hidden-price item.
+    const order = {
+      order_code: `ORD-HP${run.toUpperCase().slice(-5)}`,
+      items: [{ sku_id: dal.sku_id, quantity: 1, unit_price: 90 }, { sku_id: cake.sku_id, quantity: 2, unit_price: null }],
+      customer_name: 'Guest',
+    };
+    const placed = await shopper('POST', `/api/stores/${slug}/orders`, order);
+    assert.equal(placed.status, 201, JSON.stringify(placed.body));
+    assert.equal(placed.body.order.price_on_request, true);
+    assert.equal(placed.body.order.price_mismatch, false);
+    const mine = (await owner('GET', '/api/merchant/orders')).body.orders.find((o) => o.order_code === order.order_code);
+    assert.deepEqual(mine.items.map((i) => [i.name, i.price_hidden, Number(i.line_total)]), [['Dal', false, 90], [`Custom Cake ${run}`, true, 0]]);
+    assert.equal(Number(mine.subtotal), 90, 'the total leaves the hidden-price line out');
+
+    await owner('DELETE', `/api/merchant/products/${made.body.product.id}`);
+  });
+
   test('customer account: email + OTP in one flow (new shopper is asked for a name), order is linked, history visible', async () => {
     const bad = await shopper('POST', '/api/otp/request', { phone: phoneShopper, purpose: 'customer_login' });
     assert.equal(bad.status, 400, 'customers identify by email, not mobile');
@@ -601,6 +643,32 @@ describe('appointments: services, specialists, slots, WhatsApp bookings', () => 
     }
     assert.equal((await admin('GET', '/api/platform/bookings/00000000-0000-4000-8000-000000000000')).status, 404);
     assert.equal((await admin('GET', '/api/platform/bookings/not-a-uuid')).status, 404);
+  });
+
+  test('a service with its price hidden: no price on the booking page, the booking says "price on request"', async () => {
+    const svc = await pro('POST', '/api/merchant/services', { name: `Consultation ${run}`, duration_min: 30, price: '', hide_price: true });
+    assert.equal(svc.status, 201, JSON.stringify(svc.body));
+    await pro('PUT', `/api/merchant/specialists/${spec.id}`, {
+      name: 'Asha', title: 'Senior Stylist',
+      schedule: Object.fromEntries(['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((d) => [d, [['10:00', '18:00']]])),
+      service_ids: [cut.id, spa.id, svc.body.service.id],
+    });
+    const pub = await shopper('GET', `/api/stores/${apSlug}`);
+    const shown = pub.body.services.find((s) => s.name === `Consultation ${run}`);
+    assert.deepEqual([shown.price, shown.price_hidden], [null, true]);
+    assert.equal(pub.body.services.find((s) => s.name === 'Hair Cut').price, 200);
+    const page = await fetch(`${base}/s/${apSlug}`).then((r) => r.text());
+    assert.match(page, new RegExp(`Consultation ${run} — [^<]*Price on request`));
+    const r = await shopper('POST', `/api/stores/${apSlug}/appointments`, { service_id: shown.id, date: tomorrow(), time: '17:00', name: `Hidden ${run}`, language: 'en' });
+    assert.equal(r.status, 201, JSON.stringify(r.body));
+    assert.deepEqual([r.body.appointment.price, r.body.appointment.price_hidden], [null, true]);
+    await pro('PATCH', `/api/merchant/appointments/${r.body.appointment.id}`, { status: 'cancelled' });
+    await pro('PUT', `/api/merchant/specialists/${spec.id}`, {
+      name: 'Asha', title: 'Senior Stylist',
+      schedule: Object.fromEntries(['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((d) => [d, [['10:00', '18:00']]])),
+      service_ids: [cut.id, spa.id],
+    });
+    await pro('DELETE', `/api/merchant/services/${svc.body.service.id}`);
   });
 
   test('booking needs no phone number (the request goes out on WhatsApp); a bad number is still refused', async () => {

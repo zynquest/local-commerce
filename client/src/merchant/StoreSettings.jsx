@@ -20,7 +20,7 @@ const APPT_DEFAULTS = { slot_minutes: 30, booking_days: 14, min_notice_minutes: 
 const EDITABLE = [
   'address_text', 'city', 'lat', 'lng', 'maps_url', 'place_id', 'order_language',
   'delivery_fee', 'free_delivery_above', 'logo_url', 'banner_url', 'opening_hours', 'closed_days', 'minimum_order',
-  'instagram_handle', 'theme_color', 'description', 'food_type', 'upi_id',
+  'instagram_handle', 'theme_color', 'description', 'food_type', 'upi_id', 'hide_prices',
 ];
 
 const pretty = (p) => (p ? `+91 ${p.slice(-10, -5)} ${p.slice(-5)}` : '—');
@@ -209,6 +209,19 @@ export default function StoreSettings({ store, onSaved, actingAdmin = null }) {
       </Section>
 
       <Section title={t('settings.paymentsTitle')}>
+        {/* Store-wide switch; each product and service can also hide its own price. */}
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-stone-50 p-3">
+          <input
+            type="checkbox"
+            checked={Boolean(form.hide_prices)}
+            onChange={(e) => setForm((f) => ({ ...f, hide_prices: e.target.checked }))}
+            className="mt-0.5 h-5 w-5 flex-none accent-[var(--brand)]"
+          />
+          <span>
+            <span className="block text-sm font-medium">{t('price.hideAll')}</span>
+            <span className="block text-xs text-stone-500">{t('price.hideAllHint')}</span>
+          </span>
+        </label>
         {input('upi_id', { placeholder: 'yourname@okaxis', maxLength: 300, hint: t('settings.h.upi_id') })}
       </Section>
 

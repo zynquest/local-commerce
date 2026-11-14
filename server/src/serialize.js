@@ -20,10 +20,10 @@ export const PUBLIC_STORE_COLUMNS = `s.id, s.slug, s.name, s.whatsapp_number, s.
   s.address_text, s.maps_url, s.description, s.category, s.city, s.currency_symbol, s.minimum_order,
   s.delivery_fee, s.free_delivery_above, s.opening_hours, s.closed_days, s.theme_color, s.verified, s.order_language, s.is_demo, s.updated_at,
   s.business_type, s.lat, s.lng, s.slot_minutes, s.booking_days, s.min_notice_minutes, s.origin, s.claimed_at, s.locality, s.seed_source,
-  s.reopens_on, s.closure_message, s.food_type, s.upi_id, ${CLOSED_NOW_SQL} AS closed_now`;
+  s.reopens_on, s.closure_message, s.food_type, s.upi_id, s.hide_prices, ${CLOSED_NOW_SQL} AS closed_now`;
 
 export const PRODUCT_COLUMNS = `p.id, p.sku_id, p.name, p.category, p.mrp, p.offer_price, p.images, p.description,
-  p.specs, p.tags, p.rating, p.review_count, p.in_stock, p.status, p.position, p.updated_at`;
+  p.specs, p.tags, p.rating, p.review_count, p.in_stock, p.status, p.position, p.updated_at, p.hide_price`;
 
 export const publicStore = (s) => ({
   slug: s.slug,
@@ -66,6 +66,8 @@ export const publicStore = (s) => ({
   food_type: s.business_type === 'appointments' ? null : s.food_type || null,
   // Optional: shown as "Pay by UPI"; tapping opens the shopper's UPI app. Not for demo or unclaimed listings.
   upi_id: s.is_demo || isUnclaimedSeed(s) ? null : s.upi_id || null,
+  // Every price in the store is "Price on request" (products and services can also hide their own).
+  hide_prices: Boolean(s.hide_prices),
 });
 
 /** A seeded listing its owner hasn't claimed yet. */
@@ -87,7 +89,22 @@ export const product = (p) => ({
   in_stock: p.in_stock,
   status: p.status,
   position: p.position,
+  hide_price: Boolean(p.hide_price),
 });
+
+/** True when customers must not see this item's price: the store hides all prices, or the item hides its own. */
+export const priceHidden = (store, item) => Boolean(store?.hide_prices || item?.hide_price);
+
+/**
+ * A product as customers get it: a hidden price is left out entirely (not just hidden in the page), and
+ * price_hidden tells the page to show "Price on request".
+ */
+export const publicProduct = (p, store) => {
+  const out = product(p);
+  delete out.hide_price;
+  if (!priceHidden(store, p)) return { ...out, price_hidden: false };
+  return { ...out, mrp: null, offer_price: null, price_hidden: true };
+};
 
 export const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 

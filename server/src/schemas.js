@@ -218,6 +218,8 @@ export const storeSettings = z
     // The settings form sends '' while a store hasn't answered yet: that changes nothing.
     food_type: z.preprocess((v) => (v === '' || v == null ? undefined : v), z.enum(FOOD_TYPES).optional()),
     // Optional UPI ID for payments; empty removes it.
+    // Hide every product's or service's price ("Price on request"); off: each item's own hide_price applies.
+    hide_prices: z.boolean(),
     upi_id: z.preprocess(
       (v) => (v == null || String(v).trim() === '' ? null : String(v).trim()),
       z.string().regex(/^[A-Za-z0-9._-]{2,255}@[A-Za-z][A-Za-z0-9.]{1,63}$/, 'Enter a valid UPI ID, e.g. name@okaxis').nullable(),
@@ -256,6 +258,11 @@ const productAliases = (v) => {
   const o = { ...v };
   if (o.list_price !== undefined && (o.offer_price === undefined || o.offer_price === '')) o.offer_price = o.list_price;
   if (o.sku_id === '') delete o.sku_id;
+  // A hidden price may be left blank (stored as 0): customers see "Price on request".
+  if (o.hide_price === true) {
+    if (o.mrp === '' || o.mrp == null) o.mrp = o.offer_price === '' || o.offer_price == null ? 0 : o.offer_price;
+    if (o.offer_price === '' || o.offer_price == null) o.offer_price = o.mrp;
+  }
   return o;
 };
 
@@ -319,6 +326,8 @@ const productObject = z
     in_stock: z
       .preprocess((v) => (typeof v === 'string' ? !/^(false|no|0|n|off)$/i.test(v.trim()) : v ?? true), z.boolean())
       .default(true),
+    // Customers see "Price on request" instead of the price (the store can also hide all prices: stores.hide_prices).
+    hide_price: z.boolean().default(false),
   })
   .refine((p) => p.offer_price <= p.mrp, { message: 'List price cannot be more than MRP', path: ['offer_price'] });
 
@@ -335,7 +344,8 @@ export const placeOrder = z.object({
         name: optText(100).optional(), // fallback if the product was deleted since the device cached it
         mrp: money.optional(),
         quantity: z.coerce.number().int().min(1).max(99),
-        unit_price: money, // price shown on the device (may be stale when ordering offline)
+        // Price shown on the device (may be stale when ordering offline); null for a "Price on request" item.
+        unit_price: z.preprocess((v) => (v === '' ? null : v), money.nullable()),
       }),
     )
     .max(200),
@@ -369,14 +379,19 @@ const uuid = z.string().uuid('Invalid id');
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD');
 const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM');
 
-export const service = z.object({
-  name: z.preprocess(cleanText, z.string().min(1, 'Name is required').max(80, 'Max 80 characters')),
-  category: z.preprocess((v) => cleanText(v) || 'Other', z.string().max(60)),
-  description: text(1000).default(''),
-  duration_min: z.coerce.number({ error: 'Duration must be a number' }).int().min(5, 'At least 5 minutes').max(480, 'At most 8 hours'),
-  price: money,
-  active: z.boolean().default(true),
-});
+export const service = z.preprocess(
+  // A hidden price may be left blank (stored as 0): customers see "Price on request".
+  (v) => (v && typeof v === 'object' && v.hide_price === true && (v.price === '' || v.price == null) ? { ...v, price: 0 } : v),
+  z.object({
+    name: z.preprocess(cleanText, z.string().min(1, 'Name is required').max(80, 'Max 80 characters')),
+    category: z.preprocess((v) => cleanText(v) || 'Other', z.string().max(60)),
+    description: text(1000).default(''),
+    duration_min: z.coerce.number({ error: 'Duration must be a number' }).int().min(5, 'At least 5 minutes').max(480, 'At most 8 hours'),
+    price: money,
+    active: z.boolean().default(true),
+    hide_price: z.boolean().default(false),
+  }),
+);
 
 /** Bulk services import (CSV / Excel): each row is checked with `service`, at most 500 per request. */
 export const serviceImport = z.object({ services: z.array(z.unknown()).min(1).max(500) });
